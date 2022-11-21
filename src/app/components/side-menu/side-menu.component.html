@@ -1,0 +1,57 @@
+<!-- Main Sidebar Container -->
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+  <!-- Brand Logo -->
+  <a href="/workspace-demo/dashboard" class="brand-link" style="text-align: center; align-items: center; align-content: center;">
+    <span class="brand-img" style="text-align: center; align-items: center; align-content: center;"><b>K</b></span>
+    <span class="brand-text font-weight-light" style="text-align: center; align-items: center; align-content: center;">ubeVirt&nbsp;<b>Manager</b></span>
+  </a>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+
+    <!-- Menubar -->
+    <!-- Sidebar Menu -->
+    <nav class="mt-2">
+      <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+        <li class="nav-item">
+          <a routerLink="/" class="nav-link" alt="#" title="Dashboard...">
+            <i class="nav-icon fas fa-tachometer-alt"></i>
+            <p>Dashboard</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/vmlist" class="nav-link" alt="#" title="Virtual Machines...">
+            <i class="nav-icon fas fa-desktop"></i>
+            <p>Virtual Machines</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/nodelist" class="nav-link" alt="#" title="Nodes...">
+            <i class="nav-icon fas fa-server"></i>
+            <p>Nodes</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/dsklist" class="nav-link" alt="#" title="Disks..">
+            <i class="nav-icon fas fa-hdd"></i>
+            <p>Disks</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a routerLink="/imglist" class="nav-link" alt="#" title="Images...">
+            <i class="nav-icon fas fa-file"></i>
+            <p>Images</p>
+          </a>
+        </li>
+        <li class="nav-item" *ngIf="networkCheck">
+          <a routerLink="/netlist" class="nav-link" alt="#" title="Network...">
+            <i class="nav-icon fas fa-sitemap"></i>
+            <p>Network</p>
+          </a>
+        </li>
+      </ul>
+    </nav>
+    <!-- /.sidebar-menu -->
+
+  </div>
+</aside>

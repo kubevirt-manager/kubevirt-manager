@@ -1,0 +1,194 @@
+<div class="content">
+  <div class="container-fluid">
+    <div class="content-wrapper">
+      &nbsp;<br>
+      <div class="card card-primary card-outline" *ngFor="let thisNode of nodeList">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-server"></i>
+            &nbsp;&nbsp;{{thisNode.name}}
+          </h3>
+          <div class="card-tools">
+            <button type="button" class="btn btn-tool" (click)="showUpload(thisNode.name)">
+                <i class="fas fa-upload"></i>
+            </button>
+            <button type="button" class="btn btn-tool" (click)="showNew(thisNode.name)">
+              <i class="fas fa-plus"></i>
+          </button>
+          </div>
+        </div>
+        <div class="card-body">
+         <table class="table table-sm" style="vertical-align: middle !important;">
+            <thead>
+              <tr>
+                <th style="width: 10px">&nbsp;</th>
+                <th style="width: 250px">Image</th>
+                <th style="width: 200px">Size</th>
+                <th style="width: 80px">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let thisDsk of thisNode.disklist">
+                  <td style="line-height: 2.2 !important; align-content: center;"><i class="fas fa-file"></i></td>
+                  <td style="line-height: 2.2 !important;">{{thisDsk.name}}</td>
+                  <td style="line-height: 2.2 !important;">{{thisDsk.size}}</td>
+                  <td style="line-height: 0 !important;">
+                    <a class="btn" (click)="showInfo(thisDsk.name, thisNode.name)">
+                      <i class="fas fa-info"></i>
+                    </a>
+                    <a class="btn" (click)="showResize(thisDsk.name, thisNode.name)">
+                      <i class="fas fa-arrow-up"></i>
+                    </a>
+                    <a class="btn" (click)="showDelete(thisDsk.name, thisNode.name)">
+                      <i class="fas fa-trash"></i>
+                    </a>
+                  </td>
+                </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- /.card-body -->
+      </div>
+    </div>
+
+    <!--               -->
+    <!-- Modal: Resize -->
+    <!--               -->
+    <div class="modal fade" id="modal-resize" style="display: none;" aria-hidden="true">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="resize-title">TITLE_TEMPLATE</h4>
+            <button type="button" class="close" (click)="hideResize()">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="modal-body" id="resize-value">
+            <div class="form-group">
+              <input type="hidden" id="resize-disk" name="resize-disk" value="">
+              <input type="hidden" id="resize-node" name="resize-node" value="">
+              <label for="resizeInput">Increment in GB</label>
+              <input #resizeinput type="number" class="form-control" id="resize-input" name="resize-input" placeholder="0">
+            </div>
+          </div>
+          <div class="modal-footer justify-content-between">
+            <button type="button" class="btn btn-default" (click)="hideResize()">Close</button>
+            <button type="button" class="btn btn-primary" (click)="applyResize(resizeinput.value)">Save changes</button>
+          </div>
+        </div>
+        <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+    </div>
+
+    <!--             -->
+    <!-- Modal: Info -->
+    <!--             -->
+    <div class="modal fade" id="modal-info" style="display: none;" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="info-title">TITLE_TEMPLATE</h4>
+            <button type="button" class="close" (click)="hideInfo()">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="modal-body" id="info-value">
+            <p>BODY_TEMPLATE</p>
+          </div>
+          <div class="modal-footer justify-content-center">
+            <button type="button" class="btn btn-default" (click)="hideInfo()">Close</button>
+          </div>
+        </div>
+        <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+    </div>
+
+    <!--               -->
+    <!-- Modal: Upload -->
+    <!--               -->
+    <div class="modal fade" id="modal-upload" style="display: none;" aria-hidden="true">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="upload-title">TITLE_TEMPLATE</h4>
+            <button type="button" class="close" (click)="hideUpload()">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <input type="hidden" name="upload-node" id="upload-node" value="">
+          <div class="modal-body" id="upload-value">
+            <label for="fileInput">Disk File:</label>
+            <div class="form-goup input-group">
+              <input #uploadfile class="custom-file-input" type="file" class="form-control" id="upload-file" name="upload-file">
+            </div>
+          </div>
+          <div class="modal-footer justify-content-between">
+            <button type="button" class="btn btn-default" (click)="hideUpload()">Close</button>
+            <button type="button" class="btn btn-primary" (click)="applyUpload(uploadfile)">Upload</button>
+          </div>
+        </div>
+        <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+    </div>
+
+    <!--            -->
+    <!-- Modal: New -->
+    <!--            -->
+    <div class="modal fade" id="modal-new" style="display: none;" aria-hidden="true">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="new-title">TITLE_TEMPLATE</h4>
+            <button type="button" class="close" (click)="hideNew()">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <input type="hidden" id="new-node" name="new-node" value="">
+          <div class="modal-body" id="new-value">
+            <label for="newDiskName">Disk Name (.img)</label>
+              <input #newdiskname type="text" class="form-control" id="new-disk-name" name="new-disk-name" placeholder="filename.img">
+              <label for="newDisksize">Size in GB</label>
+              <input #newdisksize type="number" class="form-control" id="new-disk-size" name="new-disk-size" placeholder="0">
+          </div>
+          <div class="modal-footer justify-content-between">
+            <button type="button" class="btn btn-default" (click)="hideNew()">Close</button>
+            <button type="button" class="btn btn-primary" (click)="applyNew(newdiskname.value, newdisksize.value)">Save changes</button>
+          </div>
+        </div>
+        <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+    </div>
+
+    <!--               -->
+    <!-- Modal: Delete -->
+    <!--               -->
+    <div class="modal fade" id="modal-delete" style="display: none;" aria-hidden="true">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="delete-title">TITLE_TEMPLATE</h4>
+            <button type="button" class="close" (click)="hideDelete()">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <input type="hidden" id="delete-disk" name="delete-disk" value="">
+          <input type="hidden" id="delete-node" name="delete-node" value="">
+          <div class="modal-body" id="delete-value">
+            <p>BODY_TEMPLATE</p>
+          </div>
+          <div class="modal-footer justify-content-between">
+            <button type="button" class="btn btn-default" (click)="hideDelete()">Close</button>
+            <button type="button" class="btn btn-danger" (click)="applyDelete()">Delete</button>
+          </div>
+        </div>
+        <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+    </div>
+  </div>
+</div>
+

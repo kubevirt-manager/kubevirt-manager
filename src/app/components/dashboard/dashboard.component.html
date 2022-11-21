@@ -1,0 +1,133 @@
+<div class="content">
+  <div class="container-fluid">
+    <div class="content-wrapper">
+      <div class="row">&nbsp;</div>
+
+      <!-- FIRST ROW -->
+      <div class="row">
+        <!-- NODE INFO -->
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h3>{{this.nodeInfo.running}}/{{this.nodeInfo.total}}</h3>
+
+              <p>Kubernetes Nodes</p>
+            </div>
+            <div class="icon">
+              <i class="ion ion-speedometer"></i>
+            </div>
+            <a routerLink="/nodelist" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+          </div>
+        </div>
+
+        <!-- VM INFO -->
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h3>{{this.vmInfo.running}}/{{this.vmInfo.total}}</h3>
+
+              <p>Virtual Machines</p>
+            </div>
+            <div class="icon">
+              <i class="ion ion-stats-bars"></i>
+            </div>
+            <a routerLink="/vmlist" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+          </div>
+        </div>
+
+        <!-- Disks -->
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h3>{{this.discInfo}}</h3>
+
+              <p>Disks</p>
+            </div>
+            <div class="icon">
+              <i class="ion ion-disc"></i>
+            </div>
+            <a routerLink="/dsklist" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+          </div>
+        </div>
+
+        <!-- Images -->
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h3>{{this.imageInfo}}</h3>
+
+              <p>Images</p>
+            </div>
+            <div class="icon">
+              <i class="ion ion-document"></i>
+            </div>
+            <a routerLink="/imglist" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+          </div>
+        </div>
+      </div>
+      <div class="row">&nbsp;</div>
+      <!-- SECOND ROW -->
+      <div class="row">
+        <!-- CPU INFO -->
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h3>{{this.cpuInfo}}</h3>
+
+              <p>Total CPUs</p>
+            </div>
+            <div class="icon">
+              <i class="ion ion-flash"></i>
+            </div>
+            <a routerLink="/nodelist" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+          </div>
+        </div>
+
+        <!-- MEMORY INFO -->
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h3>{{this.memInfo}} GB</h3>
+
+              <p>Total Memory</p>
+            </div>
+            <div class="icon">
+              <i class="ion ion-gear-b"></i>
+            </div>
+            <a routerLink="/nodelist" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+          </div>
+        </div>
+
+        <!-- STORAGE INFO -->
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h3>{{this.storageInfo}} GB</h3>
+
+              <p>Total Storage</p>
+            </div>
+            <div class="icon">
+              <i class="ion ion-folder"></i>
+            </div>
+            <a routerLink="/nodelist" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+          </div>
+        </div>
+
+        <!-- NETWORK INFO -->
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h3>{{this.netInfo}}</h3>
+
+              <p>Available Networks</p>
+            </div>
+            <div class="icon">
+              <i class="ion ion-network"></i>
+            </div>
+            <a routerLink="/netlist" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

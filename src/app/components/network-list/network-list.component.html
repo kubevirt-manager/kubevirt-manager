@@ -1,0 +1,36 @@
+<div class="content">
+  <div class="container-fluid">
+    <div class="content-wrapper">
+      &nbsp;<br>
+      <div class="card card-primary card-outline">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-sitemap"></i>
+            &nbsp;&nbsp;Network Attachment Definitions
+          </h3>
+        </div>
+        <div class="card-body">
+          <table class="table table-sm" style="vertical-align: middle !important;">
+            <thead>
+              <tr>
+                <th style="width: 10px">&nbsp;</th>
+                <th style="width: 200px">Network</th>
+                <th style="width: 200px">Namespace</th>
+                <th style="width: 200px">Config</th>
+              </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let thisAttach of netAttachList">
+                  <td style="line-height: 2.2 !important; align-content: center;"><i class="fas fa-microchip"></i></td>
+                  <td style="line-height: 2.2 !important;">{{thisAttach.name}}</td>
+                  <td style="line-height: 2.2 !important;">{{thisAttach.namespace}}</td>
+                  <td style="line-height: 2.2 !important;"><pre>{{thisAttach.config | json}}</pre></td>
+                </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

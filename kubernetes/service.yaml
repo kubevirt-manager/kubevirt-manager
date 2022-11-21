@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubevirt-manager
+  namespace: kubevirt-manager
+spec:
+  type: ClusterIP
+  selector:
+    app: kubevirt-manager
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080

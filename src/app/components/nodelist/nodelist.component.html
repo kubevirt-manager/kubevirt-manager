@@ -1,0 +1,30 @@
+<div class="content">
+  <div class="container-fluid">
+    <div class="content-wrapper">
+      &nbsp;<br>
+      <div class="card card-primary card-outline" *ngFor="let thisNode of nodeList">
+        <div class="card-header">
+          <h3 class="card-title">
+            <i class="fas fa-server"></i>
+            &nbsp;&nbsp;{{thisNode.name}}
+          </h3>
+        </div>
+        <div class="card-body">
+          <ul class="nav flex-column">
+            <li class="nav-item">Hostname <span class="float-right badge bg-primary">{{thisNode.name}}</span></li>
+            <li class="nav-item">Architecture <span class="float-right badge bg-primary">{{thisNode.arch}}</span></li>
+            <li class="nav-item">Operating System <span class="float-right badge bg-primary">{{thisNode.os}}</span></li>
+            <li class="nav-item">Pod CIDR <span class="float-right badge bg-primary">{{thisNode.cidr}}</span></li>
+            <li class="nav-item">CPU <span class="float-right badge bg-primary">{{thisNode.cpu}}</span></li>
+            <li class="nav-item">Memory <span class="float-right badge bg-primary">{{thisNode.mem}}</span></li>
+            <li class="nav-item">Disk <span class="float-right badge bg-primary">{{thisNode.disk}}</span></li>
+            <li class="nav-item">OS Image <span class="float-right badge bg-primary">{{thisNode.osimg}}</span></li>
+            <li class="nav-item">Kernel <span class="float-right badge bg-primary">{{thisNode.kernel}}</span></li>
+            <li class="nav-item">CRI Version <span class="float-right badge bg-primary">{{thisNode.criver}}</span></li>
+            <li class="nav-item">Kubernetes Version <span class="float-right badge bg-primary">{{thisNode.kubever}}</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

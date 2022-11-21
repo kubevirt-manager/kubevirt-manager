@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kubevirt-manager-worker
+  namespace: kubevirt-manager
+  labels:
+    app: kubevirt-manager-worker
+spec:
+  selector:
+    matchLabels:
+      app: kubevirt-manager-worker
+  template:
+    metadata:
+      labels:
+        app: kubevirt-manager-worker
+    spec:
+      hostNetwork: true
+      containers:
+      - name: kubevirtmgr-worker
+        image: feitnomore/kubevirt-manager-worker:1.0.0
+        command: ["/entrypoint.sh"]
+        imagePullPolicy: Always
+        ports:
+          - name: http
+            containerPort: 15001
+        env:
+        - name: PORT
+          value: "15001"
+        - name: IMGPATH
+          value: "/opt/kubelocal/images"
+        - name: DISKPATH
+          value: "/opt/kubelocal/disks"
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsUser: 10000
+          runAsGroup: 30000
+        volumeMounts:
+        - name: images
+          mountPath: /opt/kubelocal/images
+        - name: disks
+          mountPath: /opt/kubelocal/disks
+      volumes:
+      - name: images
+        hostPath:
+          path: /opt/kubelocal/images
+      - name: disks
+        hostPath:
+          path: /opt/kubelocal/disks
