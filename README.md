@@ -42,13 +42,41 @@ To use the tool, you can either use `kubectl port-forward` on port 8080, use a `
 
 ## Diagram
 
-![diagram](https://github.com/feitnomore/kubevirt-manager/raw/master/images/diagram.png)
+<img src="images/diagram.png" width="96%" align="center"/>
 
 ## Screenshot
 
-All the images are on the `images` folder.
+Dashboard:</br>
+<img src="images/screenshot_01.png" width="96%" align="center"/>
+Instance List:</br>
+<img src="images/screenshot_02.png" width="96%"/>
+</br>Node List and Disks:</br>
+<img src="images/screenshot_03.png" width="43%"/>
+<img src="images/screenshot_04.png" width="43%"/>
+</br>Images and Networks:</br>
+<img src="images/screenshot_05.png" width="43%"/>
+<img src="images/screenshot_06.png" width="43%"/>
+</br>VNC Screen:</br>
+<img src="images/screenshot_07.png" width="96%" align="center"/>
 
-## REFERENCES AND IDEAS
+*Note:* Check `images` folder for more screenshots.
+
+## Building
+
+* Frontend 
+```sh
+docker build -t your-repo/kubevirt-manager:version .
+docker push your-repo/kubevirt-manager:version
+```
+
+* Backend
+```sh
+cd node-backend/
+docker build -t your-repo/kubevirt-manager-worker:version .
+docker push your-repo/kubevirt-manager-worker:version
+```
+
+## References
 
 1. [Kubernetes](https://kubernetes.io/)
 2. [Kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/)
@@ -60,3 +88,6 @@ All the images are on the `images` folder.
 8. [NoVNC](https://github.com/novnc/noVNC)
 9. [QEMU](https://www.qemu.org/)
 
+## License
+
+**kubevirt-manager** is licensed under the [Apache Licence, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
