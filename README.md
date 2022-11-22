@@ -9,7 +9,7 @@ Simple Angular Frontend and NodeJS + Express Backend to operate [Kubevirt](https
 
 ## INTRODUCTION
 
-I've created this Frontend for `KubeVirt` while I was trying to learn a little bit of `Angular`. Basically this tool uses `kubectl` to proxy API requests to `kubeapiserver`. For `Disks`, today I use `HostDisk` as backend for my `Disks`. To be able to work with these `Disks` a backend was developed in `NodeJS` and `ExpressJS` that uses `qemu-img` utility behind the scenes, to manage the `Images` and `Disks`. This `backend` runs as a `DaemonSet` on every node, to enable this tool to create `Images` and `Disks` on any node of the cluster.
+I've created this Frontend for `KubeVirt` while I was trying to learn a little bit of `Angular`. Basically this tool uses `kubectl proxy` to proxy API requests to `kubeapiserver`. For `Disks`, today I use `HostDisk` as backend for my `Disks`. To be able to work with these `Disks` a backend was developed in `NodeJS` and `ExpressJS` that uses `qemu-img` utility behind the scenes, to manage the `Images` and `Disks`. This `backend` runs as a `DaemonSet` on every node, to enable this tool to create `Images` and `Disks` on any node of the cluster.
 
 ## HOW TO INSTALL IT
 
