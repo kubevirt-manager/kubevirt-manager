@@ -56,7 +56,7 @@ export class DashboardComponent implements OnInit {
     this.nodeInfo.total = nodes.length;
     for (let i = 0; i < nodes.length; i++) {
       let diskData = await lastValueFrom(await this.workerService.getDisks(nodes[i].metadata.name));
-      this.discInfo = diskData.length;
+      this.discInfo += diskData.length;
       let imageData = await lastValueFrom(await this.workerService.getImages(nodes[i].metadata.name));
       this.imageInfo += imageData.length;
       this.memInfo += this.convertSize(nodes[i].status.capacity["memory"]);

@@ -9,7 +9,7 @@ Simple Angular Frontend and NodeJS + Express Backend to operate [Kubevirt](https
 
 ## INTRODUCTION
 
-I've created this Frontend for `KubeVirt` while I was trying to learn a little bit of `Angular`. Basically this tool uses `kubectl` to proxy API requests to `kubeapiserver`. For `Disks`, today I use `HostDisk` as backend for my `Disks`. To be able to work with these `Disks` a backend was developed in `NodeJS` and `ExpressJS` that uses `qemu-img` utility behind the scenes, to manage the `Images` and `Disks`. This `backend` runs as a `DaemonSet` on every node, to enable the tool to create `Images` and `Disks` on any node of the cluster.
+I've created this Frontend for `KubeVirt` while I was trying to learn a little bit of `Angular`. Basically this tool uses `kubectl` to proxy API requests to `kubeapiserver`. For `Disks`, today I use `HostDisk` as backend for my `Disks`. To be able to work with these `Disks` a backend was developed in `NodeJS` and `ExpressJS` that uses `qemu-img` utility behind the scenes, to manage the `Images` and `Disks`. This `backend` runs as a `DaemonSet` on every node, to enable this tool to create `Images` and `Disks` on any node of the cluster.
 
 ## HOW TO INSTALL IT
 
@@ -38,7 +38,8 @@ kubectl apply -f kubernetes/service.yaml
 
 ## HOW TO USE IT
 
-To use the tool, you can either use `kubectl port-forward` on port 8080, use a `Service` with type `NodePort` or `LoadBalancer`, or, create an `Ingress` for your service.
+To use the tool, you can either use `kubectl port-forward` on port 8080, use a `Service` with type `NodePort` or `LoadBalancer`, or, create an `Ingress` for your service.  
+*Note:* As the tool needs Websocket support, if you are using an `Ingress` make sure you set it up accordingly.
 
 ## Diagram
 
