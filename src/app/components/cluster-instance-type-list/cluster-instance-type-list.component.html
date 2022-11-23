@@ -1,1 +1,34 @@
-<p>cluster-instance-type-list works!</p>
+<div class="content">
+    <div class="container-fluid">
+      <div class="content-wrapper">
+        &nbsp;<br>
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-sitemap"></i>
+                &nbsp;&nbsp;Cluster Instance Types
+              </h3>
+            </div>
+            <div class="card-body">
+              <table class="table table-sm" style="vertical-align: middle !important;">
+                <thead>
+                  <tr>
+                    <th style="width: 10px">&nbsp;</th>
+                    <th style="width: 200px">Name</th>
+                    <th style="width: 200px">CPU</th>
+                    <th style="width: 200px">Memory</th>
+                  </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let thisType of clusterInstanceTypeList">
+                      <td style="line-height: 2.2 !important; align-content: center;"><i class="fas fa-book"></i></td>
+                      <td style="line-height: 2.2 !important;">{{thisType.name}}</td>
+                      <td style="line-height: 2.2 !important;">{{thisType.cpu}}</td>
+                      <td style="line-height: 2.2 !important;">{{thisType.memory}}</td>
+                    </tr>
+                </tbody>
+              </table>
+            </div>
+        </div>
+    </div>
+</div>

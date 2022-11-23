@@ -97,4 +97,9 @@ export class KubeVirtService {
     return this.http.post(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`, vmvalue, { 'headers': headers } );
   }
 
+  getClusterInstanceTypes(): Observable<any> {
+    var baseUrl ='/k8s/apis/instancetype.kubevirt.io/v1alpha1';
+    return this.http.get(`${baseUrl}/virtualmachineclusterinstancetypes`);
+  }
+
 }
