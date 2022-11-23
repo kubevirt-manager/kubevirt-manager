@@ -19,12 +19,13 @@
             <thead>
               <tr>
                 <th style="width: 10px">&nbsp;</th>
-                <th style="width: 200px">Namespace</th>
-                <th style="width: 200px">Name</th>
+                <th style="width: 150px">Namespace</th>
+                <th style="width: 120px">Name</th>
+                <th style="width: 120px">VM Type</th>
                 <th style="width: 18px">vCPU</th>
                 <th style="width: 18px">Memory</th>
-                <th style="width: 100px">Status</th>
-                <th style="width: 100px">IP Address</th>
+                <th style="width: 80px">Status</th>
+                <th style="width: 80px">IP Address</th>
                 <th style="width: 250px">Actions</th>
               </tr>
             </thead>
@@ -42,6 +43,7 @@
                   </td>
                   <td style="line-height: 2.2 !important;">{{thisVM.namespace}}</td>
                   <td style="line-height: 2.2 !important;">{{thisVM.name}}</td>
+                  <td style="line-height: 2.2 !important;">{{thisVM.instType}}</td>
                   <td style="line-height: 2.2 !important;">{{thisVM.cores * thisVM.sockets * thisVM.threads}}</td>
                   <td style="line-height: 2.2 !important;">{{thisVM.memory}}</td>
                   <td style="line-height: 2.2 !important;">{{thisVM.status}}</td>
@@ -85,12 +87,20 @@
                     </span>
                     <!--- CONFIG BUTTON -->
                     <span [ngSwitch]="thisVM.running">
-                      <a class="btn disabled" (click)="showResize(thisVM.name, thisVM.namespace, thisVM.sockets, thisVM.cores, thisVM.threads, thisVM.memory)" *ngSwitchCase="true">
+                      <a class="btn disabled" *ngSwitchCase="true">
                         <i class="fas fa-cog disabled"></i>
                       </a>
-                      <a class="btn" (click)="showResize(thisVM.name, thisVM.namespace, thisVM.sockets, thisVM.cores, thisVM.threads, thisVM.memory)" *ngSwitchDefault>
-                        <i class="fas fa-cog"></i>
-                      </a>
+                      <!-- Check if this VM is custom or not -->
+                      <span *ngSwitchDefault>
+                        <span [ngSwitch]="thisVM.instType">
+                          <a class="btn" (click)="showResize(thisVM.name, thisVM.namespace, thisVM.sockets, thisVM.cores, thisVM.threads, thisVM.memory)" *ngSwitchCase="'custom'">
+                            <i class="fas fa-cog"></i>
+                          </a>
+                          <a class="btn" (click)="showType(thisVM.name, thisVM.namespace)" *ngSwitchDefault>
+                            <i class="fas fa-cog"></i>
+                          </a>
+                          </span>
+                      </span>
                     </span>
                     <!--- POWER ON BUTTON -->
                     <span [ngSwitch]="thisVM.running">
@@ -186,14 +196,21 @@
                   </div>
                   <!-- CPU/MEM TAB -->
                   <div class="tab-pane fade" id="newvm-cpumem" role="tabpanel" aria-labelledby="newvm-cpumem-tab">
-                    <label for="newvm-cpumem-sockets">Sockets:</label>
-                    <input #newvmcpumemsockets type="number" class="form-control" id="newvm-cpumem-sockets" name="newvm-cpumem-sockets">
-                    <label for="newvm-cpumem-cores">Cores:</label>
-                    <input #newvmcpumemcores type="number" class="form-control" id="newvm-cpumem-cores" name="newvm-cpumem-cores">
-                    <label for="newvm-cpumem-threads">Threads:</label>
-                    <input #newvmcpumemthreads type="number" class="form-control" id="newvm-cpumem-threads" name="newvm-cpumem-threads">
-                    <label for="newvm-cpumem-memory">Memory (in GB):</label>
-                    <input #newvmcpumemmemory type="number" class="form-control" id="newvm-cpumem-memory" name="newvm-cpumem-memory">
+                    <label for="newvm-namespaces">Virtual Machine Type:</label>
+                    <select #newvmtype class="custom-select rounded-0" name="newvm-type" id="newvm-type" (change)="onChangeType(newvmtype.value)">
+                        <option>Value 1</option>
+                    </select>
+                    &nbsp;
+                    <div class="pane fade" id="custom-cpu-memory" name="custom-cpu-memory" style="display: none;" aria-hidden="true">
+                        <label for="newvm-cpumem-sockets">Sockets:</label>
+                        <input #newvmcpumemsockets type="number" class="form-control" id="newvm-cpumem-sockets" name="newvm-cpumem-sockets">
+                        <label for="newvm-cpumem-cores">Cores:</label>
+                        <input #newvmcpumemcores type="number" class="form-control" id="newvm-cpumem-cores" name="newvm-cpumem-cores">
+                        <label for="newvm-cpumem-threads">Threads:</label>
+                        <input #newvmcpumemthreads type="number" class="form-control" id="newvm-cpumem-threads" name="newvm-cpumem-threads">
+                        <label for="newvm-cpumem-memory">Memory (in GB):</label>
+                        <input #newvmcpumemmemory type="number" class="form-control" id="newvm-cpumem-memory" name="newvm-cpumem-memory">
+                    </div>
                   </div>
                   <!-- DISK TAB -->
                   <div class="tab-pane fade" id="newvm-disks" role="tabpanel" aria-labelledby="newvm-disks-tab">
@@ -271,7 +288,7 @@
           </div>
           <div class="modal-footer justify-content-between">
             <button type="button" class="btn btn-default" (click)="hideNewVm()">Close</button>
-            <button type="button" class="btn btn-primary" (click)="applyNewVm(newvmname.value, newvmnamespace.value, newvmnode.value, newvmcpumemsockets.value, newvmcpumemcores.value, newvmcpumemthreads.value, newvmcpumemmemory.value, newvmdiskonetype.value, newvmdiskonevalue.value, newvmdiskonesize.value, newvmdisktwotype.value, newvmdisktwovalue.value, newvmdisktwosize.value, newvmnetwork.value, newvmcloudinitusername.value, newvmcloudinitpassword.value, newvmcloudinitip.value, newvmcloudinitnetmask.value, newvmcloudinitgw.value, newvmcloudinitdns1.value, newvmcloudinitdns2.value)">Create</button>
+            <button type="button" class="btn btn-primary" (click)="applyNewVm(newvmname.value, newvmnamespace.value, newvmnode.value, newvmtype.value, newvmcpumemsockets.value, newvmcpumemcores.value, newvmcpumemthreads.value, newvmcpumemmemory.value, newvmdiskonetype.value, newvmdiskonevalue.value, newvmdiskonesize.value, newvmdisktwotype.value, newvmdisktwovalue.value, newvmdisktwosize.value, newvmnetwork.value, newvmcloudinitusername.value, newvmcloudinitpassword.value, newvmcloudinitip.value, newvmcloudinitnetmask.value, newvmcloudinitgw.value, newvmcloudinitdns1.value, newvmcloudinitdns2.value)">Create</button>
           </div>
         </form>
         </div>
@@ -300,6 +317,36 @@
           <div class="modal-footer justify-content-between">
             <button type="button" class="btn btn-default" (click)="hideDelete()">Close</button>
             <button type="button" class="btn btn-danger" (click)="applyDelete()">Delete</button>
+          </div>
+        </div>
+        <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+    </div>
+
+    <!--                    -->
+    <!-- Modal: Change Type -->
+    <!--                    -->
+    <div class="modal fade" id="modal-type" style="display: none;" aria-hidden="true">
+      <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="type-title">TITLE_TEMPLATE</h4>
+            <button type="button" class="close" (click)="hideType()">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <input type="hidden" id="type-vm" name="type-vm" value="">
+          <input type="hidden" id="type-namespace" name="type-namespace" value="">
+          <div class="modal-body" id="type-value">
+            <label for="newType">Virtual Machine Type:</label>
+            <select #changevmtype class="custom-select rounded-0" name="changevm-type" id="changevm-type">
+                <option>Value 1</option>
+            </select>
+          </div>
+          <div class="modal-footer justify-content-between">
+            <button type="button" class="btn btn-default" (click)="hideType()">Close</button>
+            <button type="button" class="btn btn-primary" (click)="applyType(changevmtype.value)">Save changes</button>
           </div>
         </div>
         <!-- /.modal-content -->

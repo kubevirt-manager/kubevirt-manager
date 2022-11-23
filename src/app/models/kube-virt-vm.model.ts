@@ -10,5 +10,6 @@ export class KubeVirtVM {
   threads:    number   = 0;
   memory:     string   = "";
   nodeSel:    string   = "";
+  instType:   string   = "";
   vmi:        KubeVirtVMI = new KubeVirtVMI;
 }

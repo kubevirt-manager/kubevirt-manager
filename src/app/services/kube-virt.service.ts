@@ -83,6 +83,15 @@ export class KubeVirtService {
         return this.http.patch(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`, '{"spec":{"template":{"spec":{"domain":{"cpu":{"sockets": '+sockets+',"cores": '+cores+',"threads": '+threads+'},"resources":{"requests":{"memory": "'+memory+'Gi"}}}}}}}', { 'headers': headers } );
     }
 
+    changeVmType(namespace: string, name: string, type: string): Observable<any> {
+        var baseUrl ='/k8s/apis/kubevirt.io/v1';
+        const headers = {
+            'content-type': 'application/merge-patch+json',
+            'accept': 'application/json'
+        };
+        return this.http.patch(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`, '{"spec":{"instancetype":{"name":"'+type+'"}}}', { 'headers': headers } );
+    }
+
     deleteVm(namespace: string, name: string): Observable<any> {
         var baseUrl ='/k8s/apis/kubevirt.io/v1';
         return this.http.delete(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`);
@@ -100,6 +109,11 @@ export class KubeVirtService {
     getClusterInstanceTypes(): Observable<any> {
         var baseUrl ='/k8s/apis/instancetype.kubevirt.io/v1alpha1';
         return this.http.get(`${baseUrl}/virtualmachineclusterinstancetypes`);
+    }
+
+    getClusterInstanceType(instType: string): Observable<any> {
+        var baseUrl ='/k8s/apis/instancetype.kubevirt.io/v1alpha1';
+        return this.http.get(`${baseUrl}/virtualmachineclusterinstancetypes/${instType}`);
     }
 
     deleteClusterInstanceType(typeName: string): Observable<any> {

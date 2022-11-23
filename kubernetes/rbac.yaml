@@ -31,6 +31,9 @@ rules:
   - apiGroups: ["subresources.kubevirt.io"]
     resources: ["*"]
     verbs: ["get", "list", "update", "patch"]
+  - apiGroups: ["instancetype.kubevirt.io"]
+    resources: ["*"]
+    verbs: ["*"]  
 
 ---
 
