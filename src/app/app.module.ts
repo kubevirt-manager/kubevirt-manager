@@ -16,6 +16,7 @@ import { ImageListComponent } from './components/image-list/image-list.component
 import { DiskListComponent } from './components/disk-list/disk-list.component';
 import { NetworkListComponent } from './components/network-list/network-list.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { ClusterInstanceTypeListComponent } from './components/cluster-instance-type-list/cluster-instance-type-list.component';
 
 @NgModule({
   declarations: [
@@ -29,7 +30,8 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
     ImageListComponent,
     DiskListComponent,
     NetworkListComponent,
-    DashboardComponent
+    DashboardComponent,
+    ClusterInstanceTypeListComponent
   ],
   imports: [
     BrowserModule,
