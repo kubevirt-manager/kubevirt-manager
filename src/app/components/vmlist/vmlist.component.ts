@@ -365,6 +365,9 @@ export class VmlistComponent implements OnInit {
             alert("You need to select the disk!");
         } else if(this.checkVmExists(newvmname, newvmnamespace)) {
             alert("VM with name/namespace combination already exists!");
+        } else if(newvmtype.toLocaleLowerCase() == "none") {
+            alert("Please select a valid VM type!");
+        }
         } else {
 
             /* Check VM Type */
