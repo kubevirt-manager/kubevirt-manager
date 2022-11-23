@@ -3,32 +3,138 @@
       <div class="content-wrapper">
         &nbsp;<br>
         <div class="card card-primary card-outline">
-            <div class="card-header">
-              <h3 class="card-title">
-                <i class="fas fa-sitemap"></i>
-                &nbsp;&nbsp;Cluster Instance Types
-              </h3>
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-server"></i>
+              &nbsp;&nbsp;Cluster Instance Types
+            </h3>
+            <div class="card-tools">
+              <button type="button" class="btn btn-tool" (click)="showNew()">
+                <i class="fas fa-plus"></i>
+            </button>
             </div>
-            <div class="card-body">
-              <table class="table table-sm" style="vertical-align: middle !important;">
-                <thead>
-                  <tr>
-                    <th style="width: 10px">&nbsp;</th>
-                    <th style="width: 200px">Name</th>
-                    <th style="width: 200px">CPU</th>
-                    <th style="width: 200px">Memory</th>
+          </div>
+          <div class="card-body">
+           <table class="table table-sm" style="vertical-align: middle !important;">
+              <thead>
+                <tr>
+                  <th style="width: 10px">&nbsp;</th>
+                  <th style="width: 180px">Name</th>
+                  <th style="width: 100px">CPU</th>
+                  <th style="width: 100px">Memory</th>
+                  <th style="width: 80px">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                  <tr *ngFor="let thisType of clusterInstanceTypeList">
+                    <td style="line-height: 2.2 !important; align-content: center;"><i class="fas fa-book"></i></td>
+                    <td style="line-height: 2.2 !important;">{{thisType.name}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisType.cpu}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisType.memory}}</td>
+                    <td style="line-height: 0 !important;">
+                      <a class="btn" (click)="showEdit(thisType.name)">
+                        <i class="fas fa-pen"></i>
+                      </a>
+                      <a class="btn" (click)="showDelete(thisType.name)">
+                        <i class="fas fa-trash"></i>
+                      </a>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let thisType of clusterInstanceTypeList">
-                      <td style="line-height: 2.2 !important; align-content: center;"><i class="fas fa-book"></i></td>
-                      <td style="line-height: 2.2 !important;">{{thisType.name}}</td>
-                      <td style="line-height: 2.2 !important;">{{thisType.cpu}}</td>
-                      <td style="line-height: 2.2 !important;">{{thisType.memory}}</td>
-                    </tr>
-                </tbody>
-              </table>
-            </div>
+              </tbody>
+            </table>
+          </div>
+          <!-- /.card-body -->
         </div>
+      </div>
+  
+      <!--               -->
+      <!-- Modal: EDIT   -->
+      <!--               -->
+      <div class="modal fade" id="modal-edit" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="edit-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)="hideEdit()">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="edit-value">
+              <div class="form-group">
+                <input type="hidden" id="edit-type" name="edit-type" value="">
+                <label for="editCPU">CPU</label>
+                <input #cpuinput type="number" class="form-control" id="edit-cpu" name="edit-cpu" placeholder="0">
+                <label for="editMemory">Memory (in GB)</label>
+                <input #memoryinput type="text" class="form-control" id="edit-memory" name="edit-memory" placeholder="0">
+              </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)="hideEdit()">Close</button>
+              <button type="button" class="btn btn-primary" (click)="applyEdit(cpuinput.value, memoryinput.value)">Save changes</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+  
+      <!--            -->
+      <!-- Modal: New -->
+      <!--            -->
+      <div class="modal fade" id="modal-new" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="new-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)="hideNew()">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <input type="hidden" id="new-node" name="new-node" value="">
+            <div class="modal-body" id="new-value">
+                <label for="newTypeName">Instance Type Name</label>
+                <input #newtypename type="text" class="form-control" id="new-type-name" name="new-type-name" placeholder="my-new-type">
+                <label for="newTypeCpu">CPUs:</label>
+                <input #newtypecpu type="number" class="form-control" id="new-type-cpu" name="new-type-cpu" placeholder="0">
+                <label for="newTypeName">Memory (in GB):</label>
+                <input #newtypememory type="text" class="form-control" id="new-type-memory" name="new-type-memory" placeholder="my-new-memory">
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)="hideNew()">Close</button>
+              <button type="button" class="btn btn-primary" (click)="applyNew(newtypename.value, newtypecpu.value, newtypememory.value)">Save changes</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+  
+      <!--               -->
+      <!-- Modal: Delete -->
+      <!--               -->
+      <div class="modal fade" id="modal-delete" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="delete-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)="hideDelete()">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <input type="hidden" id="delete-type" name="delete-type" value="">
+            <div class="modal-body" id="delete-value">
+              <p>BODY_TEMPLATE</p>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)="hideDelete()">Close</button>
+              <button type="button" class="btn btn-danger" (click)="applyDelete()">Delete</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
     </div>
-</div>
+  </div>
+  
+  
