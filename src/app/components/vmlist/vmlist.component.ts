@@ -260,7 +260,7 @@ export class VmlistComponent implements OnInit {
             typeSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
         }
         if (selectorTypeField != null) {
-            typeSelectorOptions += "<option value=custom>Custom</option>\n";
+            typeSelectorOptions += "<option value=custom>custom</option>\n";
             selectorTypeField.innerHTML = typeSelectorOptions;
         }
 
