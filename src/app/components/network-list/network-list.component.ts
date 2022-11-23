@@ -10,34 +10,34 @@ import { K8sApisService } from 'src/app/services/k8s-apis.service';
 })
 export class NetworkListComponent implements OnInit {
 
-  netAttachList: NetworkAttach[] = []
+    netAttachList: NetworkAttach[] = []
 
-  constructor(
-    private k8sApisService: K8sApisService
-  ) { }
+    constructor(
+        private k8sApisService: K8sApisService
+    ) { }
 
-  async ngOnInit(): Promise<void> {
-    await this.getNetworks();
-    let navTitle = document.getElementById("nav-title");
-    if(navTitle != null) {
-      navTitle.replaceChildren("Network");
+    async ngOnInit(): Promise<void> {
+        await this.getNetworks();
+        let navTitle = document.getElementById("nav-title");
+        if(navTitle != null) {
+            navTitle.replaceChildren("Network");
+        }
     }
-  }
 
-  /*
-   * Get Network Attachments from Kubernetes
-   */
-  async getNetworks(): Promise<void> {
-    let currentAttach = new NetworkAttach;
-    const data = await lastValueFrom(this.k8sApisService.getNetworkAttachs());
-    let netAttach = data.items;
-    for (let i = 0; i < netAttach.length; i++) {
-      currentAttach = new NetworkAttach();
-      currentAttach.name = netAttach[i].metadata["name"];
-      currentAttach.namespace = netAttach[i].metadata["namespace"];
-      currentAttach.config = JSON.parse(netAttach[i].spec["config"]);
-      this.netAttachList.push(currentAttach);
+    /*
+     * Get Network Attachments from Kubernetes
+     */
+    async getNetworks(): Promise<void> {
+        let currentAttach = new NetworkAttach;
+        const data = await lastValueFrom(this.k8sApisService.getNetworkAttachs());
+        let netAttach = data.items;
+        for (let i = 0; i < netAttach.length; i++) {
+            currentAttach = new NetworkAttach();
+            currentAttach.name = netAttach[i].metadata["name"];
+            currentAttach.namespace = netAttach[i].metadata["namespace"];
+            currentAttach.config = JSON.parse(netAttach[i].spec["config"]);
+            this.netAttachList.push(currentAttach);
+        }
     }
-  }
 
 }

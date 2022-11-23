@@ -9,27 +9,26 @@ import { K8sApisService } from 'src/app/services/k8s-apis.service';
 })
 export class SideMenuComponent implements OnInit {
 
-  networkCheck: boolean = false;
+    networkCheck: boolean = false;
 
-  constructor(
-    private k8sApisService: K8sApisService
-  ) { }
+    constructor(
+        private k8sApisService: K8sApisService
+    ) { }
 
-  async ngOnInit(): Promise<void> {
-    await this.checkNetwork();
-
-  }
-
-  /*
-   * Check Multus Support
-   */
-  async checkNetwork(): Promise<void> {
-    const data = await lastValueFrom(this.k8sApisService.getCrds());
-    let crds = data.items;
-    for (let i = 0; i < crds.length; i++) {
-      if(crds[i].metadata["name"] == "network-attachment-definitions.k8s.cni.cncf.io") {
-        this.networkCheck = true;
-      }
+    async ngOnInit(): Promise<void> {
+        await this.checkNetwork();
     }
-  }
+
+    /*
+     * Check Multus Support
+     */
+    async checkNetwork(): Promise<void> {
+        const data = await lastValueFrom(this.k8sApisService.getCrds());
+        let crds = data.items;
+        for (let i = 0; i < crds.length; i++) {
+            if(crds[i].metadata["name"] == "network-attachment-definitions.k8s.cni.cncf.io") {
+                this.networkCheck = true;
+            }
+        }
+    }
 }
