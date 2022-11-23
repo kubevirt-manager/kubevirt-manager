@@ -8,7 +8,7 @@ metadata:
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection $connection_upgrade;
 spec:
-  ingressClassName: wifi
+  ingressClassName: my-ingress-class
   tls:
    - hosts:
      - my-host.com
