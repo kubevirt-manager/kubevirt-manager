@@ -255,7 +255,7 @@ export class VmlistComponent implements OnInit {
 
         /* Load ClusterInstanceTyle List and Set Selector */
         data = await lastValueFrom(this.kubeVirtService.getClusterInstanceTypes());
-        let typeSelectorOptions = "<option value=none>None</option>";
+        let typeSelectorOptions = "<option value=none></option>";
         for (i = 0; i < data.items.length; i++) {
             typeSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
         }
@@ -365,9 +365,8 @@ export class VmlistComponent implements OnInit {
             alert("You need to select the disk!");
         } else if(this.checkVmExists(newvmname, newvmnamespace)) {
             alert("VM with name/namespace combination already exists!");
-        } else if(newvmtype.toLocaleLowerCase() == "none") {
+        } else if(newvmtype.toLowerCase() == "none" || newvmtype.toLocaleLowerCase() == "") {
             alert("Please select a valid VM type!");
-        }
         } else {
 
             /* Check VM Type */
