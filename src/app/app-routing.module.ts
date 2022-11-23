@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { ClusterInstanceTypeListComponent } from './components/cluster-instance-type-list/cluster-instance-type-list.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { DiskListComponent } from './components/disk-list/disk-list.component';
 import { ImageListComponent } from './components/image-list/image-list.component';
@@ -16,7 +17,8 @@ const routes: Routes = [
   { path: 'imglist', component: ImageListComponent },
   { path: 'dsklist', component: DiskListComponent },
   { path: 'netlist', component: NetworkListComponent },
-  { path: 'vncviewer/:namespace/:name', component: VNCViewerComponent }
+  { path: 'vncviewer/:namespace/:name', component: VNCViewerComponent },
+  { path: 'citlist', component: ClusterInstanceTypeListComponent}
 ];
 
 @NgModule({
