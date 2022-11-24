@@ -51,16 +51,22 @@ Dashboard:</br>
 <img src="images/screenshot_01.png" width="96%" align="center"/>
 Instance List:</br>
 <img src="images/screenshot_02.png" width="96%"/>
-</br>Node List and Disks:</br>
+</br>Node and Networking:</br>
 <img src="images/screenshot_03.png" width="43%"/>
+<img src="images/screenshot_10.png" width="43%"/>
+</br>Disk Information:</br>
 <img src="images/screenshot_04.png" width="43%"/>
-</br>Images and Networks:</br>
 <img src="images/screenshot_05.png" width="43%"/>
+</br>Image Information:</br>
 <img src="images/screenshot_06.png" width="43%"/>
+<img src="images/screenshot_07.png" width="43%"/>
+</br>Instance Type:</br>
+<img src="images/screenshot_08.png" width="43%"/>
+<img src="images/screenshot_09.png" width="43%"/>
 </br>VNC Screen:</br>
-<img src="images/screenshot_07.png" width="96%" align="center"/>
+<img src="images/screenshot_11.png" width="96%" align="center"/>
 
-*Note:* Check `images` folder for more screenshots.
+*Note:* Check `images` directory for more screenshots.
 
 ## Building
 
