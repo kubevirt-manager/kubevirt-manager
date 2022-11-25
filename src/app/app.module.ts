@@ -1,9 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { MainHeaderComponent } from './components/main-header/main-header.component';
@@ -12,7 +10,6 @@ import { MainFooterComponent } from './components/main-footer/main-footer.compon
 import { NodelistComponent } from './components/nodelist/nodelist.component';
 import { VmlistComponent } from './components/vmlist/vmlist.component';
 import { VNCViewerComponent } from './components/vncviewer/vncviewer.component';
-import { ImageListComponent } from './components/image-list/image-list.component';
 import { DiskListComponent } from './components/disk-list/disk-list.component';
 import { NetworkListComponent } from './components/network-list/network-list.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
@@ -27,7 +24,6 @@ import { ClusterInstanceTypeListComponent } from './components/cluster-instance-
     NodelistComponent,
     VmlistComponent,
     VNCViewerComponent,
-    ImageListComponent,
     DiskListComponent,
     NetworkListComponent,
     DashboardComponent,

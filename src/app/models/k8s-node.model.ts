@@ -1,6 +1,4 @@
 import { KubeVirtVM } from "./kube-virt-vm.model";
-import { VMDisk } from "./vmdisk.model";
-import { VMImage } from "./vmimage.model";
 
 export class K8sNode {
   name:            string = "";
@@ -15,6 +13,4 @@ export class K8sNode {
   criver:          string = "";
   kubever:         string = "";
   vmlist:    KubeVirtVM[] = [];
-  imglist:      VMImage[] = [];
-  disklist:      VMDisk[] = [];
 }

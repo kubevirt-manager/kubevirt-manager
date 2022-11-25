@@ -7,7 +7,6 @@ import { VMDisk } from 'src/app/models/vmdisk.model';
 import { DataVolumesService } from 'src/app/services/data-volumes.service';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { K8sService } from 'src/app/services/k8s.service';
-import { WorkerService } from 'src/app/services/worker.service';
 
 @Component({
   selector: 'app-disk-list',
@@ -25,8 +24,7 @@ export class DiskListComponent implements OnInit {
         private k8sService: K8sService,
         private k8sApisService: K8sApisService,
         private dataVolumesService: DataVolumesService,
-        private router: Router,
-        private workerService: WorkerService
+        private router: Router
     ) { }
 
     async ngOnInit(): Promise<void> {
@@ -51,7 +49,6 @@ export class DiskListComponent implements OnInit {
             currentNode.name = nodes[i].metadata["name"];
             this.nodeList.push(currentNode);
         }
-        this.getDisks();
     }
 
     /*
@@ -73,27 +70,6 @@ export class DiskListComponent implements OnInit {
         let nss = data.items;
         for (let i = 0; i < nss.length; i++) {
           this.namespacesList.push(nss[i].metadata["name"]);
-        }
-    }
-
-    /*
-     * Get Disks from our DaemonSet
-     */
-    async getDisks(): Promise<void> {
-        for(let i = 0; i < this.nodeList.length; i++) {
-            let currentDsk = new VMDisk;
-            let currentDskList: VMDisk[] = [];
-            const data = await lastValueFrom(await this.workerService.getDisks(this.nodeList[i].name));
-            let disks = data;
-            for (let j = 0; j < disks.length; j++) {
-                currentDsk = new VMDisk();
-                currentDsk.name = disks[j]["name"];
-                currentDsk.size = disks[j]["size"];
-                //currentDsk.path = disks[j]["path"];
-                //currentDsk.node = this.nodeList[i].name;
-                currentDskList.push(currentDsk);
-            }
-            this.nodeList[i].disklist = currentDskList;
         }
     }
 
@@ -179,7 +155,8 @@ export class DiskListComponent implements OnInit {
             let diskName = diskField.getAttribute("value");
             if(diskSize != null && diskName != null && diskNamespace != null) {
                 try {
-                    const data = await lastValueFrom(this.k8sService.resizePersistentVolumeClaims(diskNamespace, diskName, diskSize));
+                    let newSize = diskSize.trim() + "Gi"
+                    const data = await lastValueFrom(this.k8sService.resizePersistentVolumeClaims(diskNamespace, diskName, newSize));
                     this.hideResize();
                     this.reloadComponent();
                 } catch (e) {
@@ -198,7 +175,8 @@ export class DiskListComponent implements OnInit {
      * Show Info Window
      */
     async showInfo(diskName: string, nodeName: string): Promise<void> {
-        const data = await lastValueFrom(await this.workerService.getDiskInfo(nodeName, diskName));
+        //const data = await lastValueFrom(await this.workerService.getDiskInfo(nodeName, diskName));
+        let data: any;
         let modalDiv = document.getElementById("modal-info");
         let modalTitle = document.getElementById("info-title");
         let modalBody = document.getElementById("info-value");
@@ -228,79 +206,6 @@ export class DiskListComponent implements OnInit {
             modalDiv.setAttribute("role", "");
             modalDiv.setAttribute("aria-hidden", "true");
             modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
-     * Show Upload Window
-     */
-    showUpload(nodeName: string): void {
-        let modalDiv = document.getElementById("modal-upload");
-        let modalTitle = document.getElementById("upload-title");
-        let modalBody = document.getElementById("upload-value");
-        if(modalTitle != null) {
-            modalTitle.replaceChildren("Upload disk file");
-        }
-        if(modalBody != null) {
-            let imgNode = document.getElementById("upload-node");
-            if(imgNode != null) {
-                imgNode.setAttribute("value", nodeName);
-            }
-        }
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade show");
-            modalDiv.setAttribute("aria-modal", "true");
-            modalDiv.setAttribute("role", "dialog");
-            modalDiv.setAttribute("aria-hidden", "false");
-            modalDiv.setAttribute("style","display: block;");
-        }
-    }
-
-    /*
-     * Hide Upload Window
-     */
-    hideUpload(): void {
-        let modalDiv = document.getElementById("modal-upload");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
-     * Send upload to our DaemonSet
-     */
-    async applyUpload(uploadFile: HTMLInputElement): Promise<void> {
-        let nodeField = document.getElementById("upload-node");
-        if(nodeField != null && uploadFile != null && uploadFile.files != null) {
-            const formData = new FormData();
-            let fileName = "";
-            let nodeName = nodeField.getAttribute("value");
-            if (nodeName != null) {
-                for (let i = 0; i < uploadFile.files.length; i++) {
-                    fileName = uploadFile.files[i].name;
-                    formData.append("file", uploadFile.files[i])
-                }
-                if(fileName.toLowerCase().endsWith(".img") || fileName.toLowerCase().endsWith("qcow2")) {
-                    try {
-                        const data = await lastValueFrom(await this.workerService.uploadDisk(nodeName, fileName, formData));
-                        this.hideUpload();
-                        this.reloadComponent();
-                    } catch (e) {
-                        if (e instanceof HttpErrorResponse) {
-                        alert(e.error["message"])
-                        } else {
-                        console.log(e);
-                        alert("Internal Error!");
-                        }
-                    }
-                } else {
-                    alert("Image file needs to end with .img or .qcow2!");
-                }
-            }
         }
     }
 

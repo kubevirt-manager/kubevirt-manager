@@ -42,7 +42,7 @@ export class DataVolumesService {
             "name":"",
             "namespace":"",
             "annotations": {
-                "cdi.kubevirt.io/storage.deleteAfterCompletion": false
+                "cdi.kubevirt.io/storage.deleteAfterCompletion": "false"
             }
         },
         "spec":{
@@ -72,7 +72,7 @@ export class DataVolumesService {
             "name":"",
             "namespace":"",
             "annotations": {
-                "cdi.kubevirt.io/storage.deleteAfterCompletion": false
+                "cdi.kubevirt.io/storage.deleteAfterCompletion": "false"
             }
         },
         "spec":{
@@ -147,14 +147,14 @@ export class DataVolumesService {
         return this.http.post(`${baseUrl}/namespaces/${dvNamespace}/datavolumes/${dvName}`, thisDv, { 'headers': headers } );
     }
 
-    createPVCDataVolume(dvNamespace: string, dvName: string, dvSize: string, dvSc: string, fromName: string, fromNamespace: string): Observable<any> {
+    createPVCDataVolume(dvNamespace: string, dvName: string, dvSize: string, dvSc: string, fromName: string): Observable<any> {
         let thisDv = this.pvcDiskTemplate;
         thisDv.metadata["name"] = dvName;
         thisDv.metadata["namespace"] = dvNamespace;
         thisDv.spec.pvc.resources.requests["storage"] = dvSize + "Gi";
         thisDv.spec.pvc["storageClassName"] = dvSc;
         thisDv.spec.source.pvc["name"] = fromName;
-        thisDv.spec.source.pvc["namespace"] = fromNamespace;
+        thisDv.spec.source.pvc["namespace"] = dvNamespace;
         var baseUrl ='/k8s/apis/cdi.kubevirt.io/v1beta1';
         const headers = {
             'content-type': 'application/json',

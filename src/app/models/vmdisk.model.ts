@@ -7,7 +7,4 @@ export class VMDisk {
   storageclass:    string  = "";
   succeeded:       boolean = false;
   bound:           boolean = false;
-  /* need to remove */
-  path: string = "";
-  node: any;
 }
