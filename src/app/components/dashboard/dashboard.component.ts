@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
+import { DataVolumesService } from 'src/app/services/data-volumes.service';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { K8sService } from 'src/app/services/k8s.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
-import { WorkerService } from 'src/app/services/worker.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -34,12 +34,13 @@ export class DashboardComponent implements OnInit {
         private k8sService: K8sService,
         private k8sApisService: K8sApisService,
         private kubeVirtService: KubeVirtService,
-        private workerService: WorkerService
+        private dataVolumesService: DataVolumesService
     ) { }
 
     ngOnInit(): void {
         this.getNodes();
         this.getVMs();
+        this.getDisks();
         this.getNetworks();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
@@ -55,10 +56,6 @@ export class DashboardComponent implements OnInit {
         let nodes = data.items;
         this.nodeInfo.total = nodes.length;
         for (let i = 0; i < nodes.length; i++) {
-            let diskData = await lastValueFrom(await this.workerService.getDisks(nodes[i].metadata.name));
-            this.discInfo += diskData.length;
-            let imageData = await lastValueFrom(await this.workerService.getImages(nodes[i].metadata.name));
-            this.imageInfo += imageData.length;
             this.memInfo += this.convertSize(nodes[i].status.capacity["memory"]);
             this.storageInfo += this.convertSize(nodes[i].status.capacity["ephemeral-storage"]);
             this.cpuInfo += Number.parseInt(nodes[i].status.capacity["cpu"]);
@@ -87,11 +84,18 @@ export class DashboardComponent implements OnInit {
     }
 
     /*
+     * Get Data Volumes Information
+     */
+    async getDisks(): Promise<void> {
+        const data = await lastValueFrom(this.dataVolumesService.getDataVolumes());
+        this.discInfo = data.items.length;
+    }
+
+    /*
      * Get Network Attachments from Kubernetes
      */
     async getNetworks(): Promise<void> {
         const data = await lastValueFrom(this.k8sApisService.getNetworkAttachs());
-        let netAttach = data.items;
         this.netInfo = data.items.length;
     }
 

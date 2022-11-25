@@ -31,12 +31,28 @@ export class K8sService {
     return this.http.get(`${baseUrl}/persistentvolumes/${volume}`);      
   }
 
+  deletePersistentVolume(volume: string): Observable<any> {
+    return this.http.delete(`${baseUrl}/persistentvolumes/${volume}`);      
+  }
+
   getPersistentVolumeClaims(): Observable<any> {
     return this.http.get(`${baseUrl}/persistentvolumeclaims`);
   }
 
   getPersistentVolumeClaimsInfo(namespace: string, name: string): Observable<any> {
     return this.http.get(`${baseUrl}/namespaces/${namespace}/persistentvolumeclaims/${name}`);
+  }
+
+  deletePersistentVolumeClaims(namespace: string, name: string): Observable<any> {
+    return this.http.delete(`${baseUrl}/namespaces/${namespace}/persistentvolumeclaims/${name}`);
+  }
+
+  resizePersistentVolumeClaims(namespace: string, name: string, size: string): Observable<any> {
+    const headers = {
+        'content-type': 'application/merge-patch+json',
+        'accept': 'application/json'
+    };
+    return this.http.patch(`${baseUrl}/namespaces/${namespace}/persistentvolumeclaims/${name}`, '{"spec":{"resources":"requests":{"storage":" '+size+'"}}}', { 'headers': headers } );
   }
 
 }

@@ -7,6 +7,95 @@ import { Observable } from 'rxjs';
 })
 export class DataVolumesService {
 
+    blankDiskTemplate = {
+        "apiVersion":"cdi.kubevirt.io/v1beta1",
+        "kind":"DataVolume",
+        "metadata":{
+            "name":"",
+            "namespace":"",
+            "annotations": {
+                "cdi.kubevirt.io/storage.deleteAfterCompletion": false
+            }
+        },
+        "spec":{
+            "pvc": {
+                "storageClassName": "",
+                "accessModes":[
+                    "ReadWriteOnce"
+                ],
+                "resources":{
+                    "requests":{
+                        "storage":""
+                    }
+                }
+            },
+            "source":{
+                "blank":{}
+            }
+        }
+    }
+
+    urlDiskTemplate = {
+        "apiVersion":"cdi.kubevirt.io/v1beta1",
+        "kind":"DataVolume",
+        "metadata":{
+            "name":"",
+            "namespace":"",
+            "annotations": {
+                "cdi.kubevirt.io/storage.deleteAfterCompletion": false
+            }
+        },
+        "spec":{
+            "pvc": {
+                "storageClassName": "",
+                "accessModes":[
+                    "ReadWriteOnce"
+                ],
+                "resources":{
+                    "requests":{
+                        "storage":""
+                    }
+                }
+            },
+            "source":{
+                "http":{
+                    "url": ""
+                }
+            }
+        }
+    }
+
+    pvcDiskTemplate = {
+        "apiVersion":"cdi.kubevirt.io/v1beta1",
+        "kind":"DataVolume",
+        "metadata":{
+            "name":"",
+            "namespace":"",
+            "annotations": {
+                "cdi.kubevirt.io/storage.deleteAfterCompletion": false
+            }
+        },
+        "spec":{
+            "pvc": {
+                "storageClassName": "",
+                "accessModes":[
+                    "ReadWriteOnce"
+                ],
+                "resources":{
+                    "requests":{
+                        "storage":""
+                    }
+                }
+            },
+            "source":{
+                "pvc":{
+                    "name": "",
+                    "namespace": ""
+                }
+            }
+        }
+    }
+
     constructor(private http: HttpClient) { }
 
     getDataVolumes(): Observable<any> {
@@ -14,41 +103,58 @@ export class DataVolumesService {
         return this.http.get(`${baseUrl}/datavolumes`);
     }
 
-    infoDataVolume(namespace: string, name: string): Observable<any> {
+    getDataVolumeInfo(namespace: string, name: string): Observable<any> {
         var baseUrl ='/k8s/apis/cdi.kubevirt.io/v1beta1';
         return this.http.get(`${baseUrl}/namespaces/${namespace}/datavolumes/${name}`);
     }
 
-
-    startVm(namespace: string, name: string): Observable<any> {
-        var baseUrl ='/k8s/apis/kubevirt.io/v1';
-        const headers = {
-            'content-type': 'application/merge-patch+json',
-            'accept': 'application/json'
-        };
-        return this.http.patch(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`, '{"spec":{"running": true}}', { 'headers': headers } );
+    deleteDataVolume(namespace: string, name: string): Observable<any> {
+        var baseUrl ='/k8s/apis/cdi.kubevirt.io/v1beta1';
+        return this.http.delete(`${baseUrl}/namespaces/${namespace}/datavolumes/${name}`);
     }
 
-    changeVmType(namespace: string, name: string, type: string): Observable<any> {
-        var baseUrl ='/k8s/apis/kubevirt.io/v1';
-        const headers = {
-            'content-type': 'application/merge-patch+json',
-            'accept': 'application/json'
-        };
-        return this.http.patch(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`, '{"spec":{"instancetype":{"name":"'+type+'"}}}', { 'headers': headers } );
-    }
-
-    deleteVm(namespace: string, name: string): Observable<any> {
-        var baseUrl ='/k8s/apis/kubevirt.io/v1';
-        return this.http.delete(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`);
-    }
-
-    createVm(namespace: string, name: string, vmvalue: Object): Observable<any> {
+    createBlankDataVolume(dvNamespace: string, dvName: string, dvSize: string, dvSc: string): Observable<any> {
+        let thisDv = this.blankDiskTemplate;
+        thisDv.metadata["name"] = dvName;
+        thisDv.metadata["namespace"] = dvNamespace;
+        thisDv.spec.pvc.resources.requests["storage"] = dvSize + "Gi";
+        thisDv.spec.pvc["storageClassName"] = dvSc;
         var baseUrl ='/k8s/apis/kubevirt.io/v1';
         const headers = {
             'content-type': 'application/json',
             'accept': 'application/json'
         };
-        return this.http.post(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`, vmvalue, { 'headers': headers } );
+        return this.http.post(`${baseUrl}/namespaces/${dvNamespace}/datavolumes/${dvName}`, thisDv, { 'headers': headers } );
+    }
+
+    createURLDataVolume(dvNamespace: string, dvName: string, dvSize: string, dvSc: string, dvUrl: string): Observable<any> {
+        let thisDv = this.urlDiskTemplate;
+        thisDv.metadata["name"] = dvName;
+        thisDv.metadata["namespace"] = dvNamespace;
+        thisDv.spec.pvc.resources.requests["storage"] = dvSize + "Gi";
+        thisDv.spec.pvc["storageClassName"] = dvSc;
+        thisDv.spec.source.http["url"] = dvUrl;
+        var baseUrl ='/k8s/apis/kubevirt.io/v1';
+        const headers = {
+            'content-type': 'application/json',
+            'accept': 'application/json'
+        };
+        return this.http.post(`${baseUrl}/namespaces/${dvNamespace}/datavolumes/${dvName}`, thisDv, { 'headers': headers } );
+    }
+
+    createPVCDataVolume(dvNamespace: string, dvName: string, dvSize: string, dvSc: string, fromName: string, fromNamespace: string): Observable<any> {
+        let thisDv = this.pvcDiskTemplate;
+        thisDv.metadata["name"] = dvName;
+        thisDv.metadata["namespace"] = dvNamespace;
+        thisDv.spec.pvc.resources.requests["storage"] = dvSize + "Gi";
+        thisDv.spec.pvc["storageClassName"] = dvSc;
+        thisDv.spec.source.pvc["name"] = fromName;
+        thisDv.spec.source.pvc["namespace"] = fromNamespace;
+        var baseUrl ='/k8s/apis/kubevirt.io/v1';
+        const headers = {
+            'content-type': 'application/json',
+            'accept': 'application/json'
+        };
+        return this.http.post(`${baseUrl}/namespaces/${dvNamespace}/datavolumes/${dvName}`, thisDv, { 'headers': headers } );
     }
 }

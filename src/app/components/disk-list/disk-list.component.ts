@@ -105,19 +105,19 @@ export class DiskListComponent implements OnInit {
   /*
    * Show Resize Window
    */
-  showResize(dskName: string, nodeName: string): void {
+  showResize(diskNamespace: string, diskName: string): void {
     let modalDiv = document.getElementById("modal-resize");
     let modalTitle = document.getElementById("resize-title");
     let modalBody = document.getElementById("resize-value");
     if(modalTitle != null) {
-      modalTitle.replaceChildren("Resize: " + dskName);
+      modalTitle.replaceChildren("Resize: "+ diskNamespace + " - " + diskName);
     }
     if(modalBody != null) {
+      let resizeNamespace = document.getElementById("resize-namespace");
       let resizeDisk = document.getElementById("resize-disk");
-      let resizeNode = document.getElementById("resize-node");
-      if(resizeDisk != null && resizeNode != null) {
-        resizeDisk.setAttribute("value", dskName);
-        resizeNode.setAttribute("value", nodeName);
+      if(resizeDisk != null && resizeNamespace != null) {
+        resizeDisk.setAttribute("value", diskName);
+        resizeNamespace.setAttribute("value", diskNamespace);
       }
     }
     if(modalDiv != null) {
@@ -144,17 +144,17 @@ export class DiskListComponent implements OnInit {
   }
 
   /*
-   * Perform Resize calling our DaemonSet
+   * Perform Resize of PVC
    */
   async applyResize(diskSize: string): Promise<void> {
     let diskField = document.getElementById("resize-disk");
-    let nodeField = document.getElementById("resize-node");
-    if(diskSize != null && diskField != null && nodeField != null) {
-      let nodeName = nodeField.getAttribute("value");
+    let diskNamesField = document.getElementById("resize-namespace");
+    if(diskSize != null && diskField != null && diskNamesField != null) {
+      let diskNamespace = diskNamesField.getAttribute("value");
       let diskName = diskField.getAttribute("value");
-      if(diskSize != null && diskName != null && nodeName != null) {
+      if(diskSize != null && diskName != null && diskNamespace != null) {
         try {
-          const data = await lastValueFrom(await this.workerService.resizeDisk(nodeName, diskName, diskSize));
+          const data = await lastValueFrom(this.k8sService.resizePersistentVolumeClaims(diskNamespace, diskName, diskSize));
           this.hideResize();
           this.reloadComponent();
         } catch (e) {
@@ -321,31 +321,27 @@ export class DiskListComponent implements OnInit {
   /*
    * Send new disk to our DaemonSet
    */
-  async applyNew(diskName: string, diskSize: string): Promise<void> {
-    let nodeField = document.getElementById("new-node");
-    if(diskSize != null && diskName != null && nodeField != null) {
-      let nodeName = nodeField.getAttribute("value");
-      if(diskSize != null && diskName != null && nodeName != null) {
+  async applyNew(diskNamespace: string, diskName: string, diskSize: string): Promise<void> {
+    if(diskNamespace != null && diskSize != null && diskName != null) {
         try {
-          const data = await lastValueFrom(await this.workerService.newBlankDisk(nodeName, diskName, diskSize));
-          this.hideNew();
-          this.reloadComponent();
+            const data = await lastValueFrom(await this.workerService.newBlankDisk(diskNamespace, diskName, diskSize));
+            this.hideNew();
+            this.reloadComponent();
         } catch (e) {
-          if (e instanceof HttpErrorResponse) {
-            alert(e.error["message"])
-          } else {
-            console.log(e);
+            if (e instanceof HttpErrorResponse) {
+                alert(e.error["message"])
+            } else {
+                console.log(e);
             alert("Internal Error!");
-          }
+            }
         }
-      }
     }
   }
 
   /*
    * Show Delete Window
    */
-  showDelete(diskName: string, nodeName: string): void {
+  showDelete(diskNamespace: string, diskName: string): void {
     let modalDiv = document.getElementById("modal-delete");
     let modalTitle = document.getElementById("delete-title");
     let modalBody = document.getElementById("delete-value");
@@ -353,12 +349,12 @@ export class DiskListComponent implements OnInit {
       modalTitle.replaceChildren("Delete!");
     }
     if(modalBody != null) {
+      let diskNamespaceInput = document.getElementById("delete-namespace");
       let diskNameInput = document.getElementById("delete-disk");
-      let nodeNameInput = document.getElementById("delete-node");
-      if(diskNameInput != null && nodeNameInput != null) {
+      if(diskNameInput != null && diskNamespaceInput != null) {
+        diskNamespaceInput.setAttribute("value", diskNamespace);
         diskNameInput.setAttribute("value", diskName);
-        nodeNameInput.setAttribute("value", nodeName);
-        modalBody.replaceChildren("Are you sure you want to delete " + diskName + "?");
+        modalBody.replaceChildren("Are you sure you want to delete <strong>" + diskNamespace + " - " + diskName + "</strong>?");
       }
     }
     if(modalDiv != null) {
@@ -389,13 +385,20 @@ export class DiskListComponent implements OnInit {
    */
   async applyDelete(): Promise<void> {
     let diskField = document.getElementById("delete-disk");
-    let nodeField = document.getElementById("delete-node");
-    if(diskField != null && nodeField != null) {
-      let nodeName = nodeField.getAttribute("value");
+    let namespaceField = document.getElementById("delete-namespace");
+    if(diskField != null && namespaceField != null) {
+      let diskNamespace = namespaceField.getAttribute("value");
       let diskName = diskField.getAttribute("value");
-      if(diskName != null && nodeName != null) {
+      if(diskName != null && diskNamespace != null) {
         try {
-          const data = await lastValueFrom(await this.workerService.deleteDisk(nodeName, diskName));
+          let volumedata = await lastValueFrom(this.dataVolumesService.getDataVolumeInfo(diskNamespace, diskName));
+          if(volumedata.status["phase"].toLowerCase() == "succeeded") {
+            let pvcdata = await lastValueFrom(this.k8sService.getPersistentVolumeClaimsInfo(diskNamespace, diskName));
+            let pv = pvcdata.spec["volumeName"];
+            let deleteData = await lastValueFrom(this.k8sService.deletePersistentVolumeClaims(diskNamespace, diskName));
+            deleteData = await lastValueFrom(this.k8sService.deletePersistentVolume(pv));
+          }
+          let deleteDataVolume = await lastValueFrom(this.dataVolumesService.deleteDataVolume(diskNamespace, diskName));
           this.hideDelete();
           this.reloadComponent();
         } catch (e) {

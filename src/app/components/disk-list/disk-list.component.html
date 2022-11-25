@@ -45,10 +45,10 @@
                       <i class="fas fa-info"></i>
                     </a>
                     <a class="btn">
-                      <i class="fas fa-arrow-up"></i>
+                      <i class="fas fa-arrow-up" (click)="showResize(thisDisk.namespace, thisDisk.name)"></i>
                     </a>
                     <a class="btn">
-                      <i class="fas fa-trash"></i>
+                      <i class="fas fa-trash" (click)="showDelete(thisDisk.namespace, thisDisk.name)"></i>
                     </a>
                   </td>
                 </tr>
@@ -73,8 +73,8 @@
           </div>
           <div class="modal-body" id="resize-value">
             <div class="form-group">
+              <input type="hidden" id="resize-namespace" name="resize-namespace" value="">
               <input type="hidden" id="resize-disk" name="resize-disk" value="">
-              <input type="hidden" id="resize-node" name="resize-node" value="">
               <label for="resizeInput">Increment in GB</label>
               <input #resizeinput type="number" class="form-control" id="resize-input" name="resize-input" placeholder="0">
             </div>
@@ -163,7 +163,7 @@
           </div>
           <div class="modal-footer justify-content-between">
             <button type="button" class="btn btn-default" (click)="hideNew()">Close</button>
-            <button type="button" class="btn btn-primary" (click)="applyNew(newdiskname.value, newdisksize.value)">Save changes</button>
+            <button type="button" class="btn btn-primary" (click)="applyNew(newdiskname.value , newdiskname.value, newdisksize.value)">Save changes</button>
           </div>
         </div>
         <!-- /.modal-content -->
@@ -183,8 +183,8 @@
               <span aria-hidden="true">×</span>
             </button>
           </div>
+          <input type="hidden" id="delete-namespace" name="delete-namespace" value="">
           <input type="hidden" id="delete-disk" name="delete-disk" value="">
-          <input type="hidden" id="delete-node" name="delete-node" value="">
           <div class="modal-body" id="delete-value">
             <p>BODY_TEMPLATE</p>
           </div>
