@@ -12,6 +12,7 @@ import { VMDisk } from 'src/app/models/vmdisk.model';
 import { WorkerService } from 'src/app/services/worker.service';
 import { NetworkAttach } from 'src/app/models/network-attach.model';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
+import { DataVolumesService } from 'src/app/services/data-volumes.service';
 
 
 @Component({
@@ -103,6 +104,7 @@ export class VmlistComponent implements OnInit {
     constructor(
         private k8sService: K8sService,
         private router: Router,
+        private dataVolumesService: DataVolumesService,
         private workerService: WorkerService,
         private k8sApisService: K8sApisService,
         private kubeVirtService: KubeVirtService
@@ -815,7 +817,7 @@ export class VmlistComponent implements OnInit {
     /*
      * New VM: Control Disk1 Options
      */
-    async onChangeDiskOne(diskType: string, nodeName: string) {
+    async onChangeDiskOne(diskType: string, diskNamespace: string) {
         let diskOneValueField = document.getElementById("newvm-diskonevalue");
         let diskOneSizeField = document.getElementById("newvm-diskonesize");
         if(diskType == "none") {
@@ -828,15 +830,15 @@ export class VmlistComponent implements OnInit {
                 diskOneValueField.setAttribute("disabled", "disabled");
                 diskOneSizeField.removeAttribute("disabled");
             }
-        } else if (diskType == "image") {
+        } else if (diskType == "pvc") {
             if (diskOneValueField != null && diskOneSizeField != null) {
-                diskOneValueField.innerHTML = await this.loadImageOptions(nodeName);
+                diskOneValueField.innerHTML = await this.loadPVCOptions(diskNamespace);
                 diskOneValueField.removeAttribute("disabled");
                 diskOneSizeField.removeAttribute("disabled");
             }
-        } else if (diskType == "disk") {
+        } else if (diskType == "dv") {
             if (diskOneValueField != null && diskOneSizeField != null) {
-                diskOneValueField.innerHTML = await this.loadDiskOptions(nodeName);
+                diskOneValueField.innerHTML = await this.loadDiskOptions(diskNamespace);
                 diskOneValueField.removeAttribute("disabled");
                 diskOneSizeField.setAttribute("disabled", "disabled");
             }
@@ -846,7 +848,7 @@ export class VmlistComponent implements OnInit {
     /*
      * New VM: Control Disk2 Options
      */
-    async onChangeDiskTwo(diskType: string, nodeName: string) {
+    async onChangeDiskTwo(diskType: string, diskNamespace: string) {
         let diskTwoValueField = document.getElementById("newvm-disktwovalue");
         let diskTwoSizeField = document.getElementById("newvm-disktwosize");
         if(diskType == "none") {
@@ -859,15 +861,15 @@ export class VmlistComponent implements OnInit {
                 diskTwoValueField.setAttribute("disabled", "disabled");
                 diskTwoSizeField.removeAttribute("disabled");
             }
-        } else if (diskType == "image") {
+        } else if (diskType == "pvc") {
             if (diskTwoValueField != null && diskTwoSizeField != null) {
-                diskTwoValueField.innerHTML = await this.loadImageOptions(nodeName);
+                diskTwoValueField.innerHTML = await this.loadPVCOptions(diskNamespace);
                 diskTwoValueField.removeAttribute("disabled");
                 diskTwoSizeField.removeAttribute("disabled");
             }
-        } else if (diskType == "disk") {
+        } else if (diskType == "dv") {
             if (diskTwoValueField != null && diskTwoSizeField != null) {
-                diskTwoValueField.innerHTML = await this.loadDiskOptions(nodeName);
+                diskTwoValueField.innerHTML = await this.loadDiskOptions(diskNamespace);
                 diskTwoValueField.removeAttribute("disabled");
                 diskTwoSizeField.setAttribute("disabled", "disabled");
             }
@@ -877,37 +879,26 @@ export class VmlistComponent implements OnInit {
     /*
      * New VM: Load Image Options
      */
-    async loadImageOptions(nodeName: string){
-        let data = await lastValueFrom(await this.workerService.getImages(nodeName));
-        let imageSelectorOptions = "";
-        let images = data;
-        for (let i = 0; i < images.length; i++) {
-            let currentImg = new VMImage();
-            currentImg.name = images[i]["name"];
-            currentImg.size = images[i]["size"];
-            currentImg.path = images[i]["path"]
-            currentImg.node = this.nodeList[i].name;
-            this.imageList.push(currentImg);
-            imageSelectorOptions += "<option value=" + images[i]["name"] +">" + images[i]["name"] + "</option>\n";
+    async loadPVCOptions(dvNamespace: string){
+        let data = await lastValueFrom(this.k8sService.getNamespacedPersistentVolumeClaims(dvNamespace));
+        let pvcSelectorOptions = "";
+        let pvcs = data.items;
+        for (let i = 0; i < pvcs.length; i++) {
+            pvcSelectorOptions += "<option value=" + pvcs[i].metadata["name"] +">" + pvcs[i].metadata["name"] + "</option>\n";
         }
-        return imageSelectorOptions;
+        return pvcSelectorOptions;
     }
 
     /*
      * New VM: Load Disk Options
      */
-    async loadDiskOptions(nodeName: string) {
-        let data = await lastValueFrom(await this.workerService.getDisks(nodeName));
+    async loadDiskOptions(dvNamespace: string) {
         let diskSelectorOptions = "";
-        let disks = data;
+        let data = await lastValueFrom(await this.dataVolumesService.getNamespacedDataVolumes(dvNamespace));
+        let disks = data.items;
         for (let i = 0; i < disks.length; i++) {
-            let currentDsk = new VMDisk();
-            currentDsk.name = disks[i]["name"];
-            currentDsk.size = disks[i]["size"];
-            currentDsk.path = disks[i]["path"];
-            currentDsk.node = this.nodeList[i].name;
-            this.diskList.push(currentDsk);
-            diskSelectorOptions += "<option value=" + disks[i]["path"] +">" + disks[i]["name"] + "</option>\n";
+
+            diskSelectorOptions += "<option value=" + disks[i].metadata["name"] +">" + disks[i].metadata["name"] + "</option>\n";
         }
         return diskSelectorOptions;
     }

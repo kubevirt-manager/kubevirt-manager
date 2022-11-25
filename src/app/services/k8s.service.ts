@@ -39,6 +39,10 @@ export class K8sService {
     return this.http.get(`${baseUrl}/persistentvolumeclaims`);
   }
 
+  getNamespacedPersistentVolumeClaims(namespace: string): Observable<any> {
+    return this.http.get(`${baseUrl}/namespaces/${namespace}/persistentvolumeclaims`);
+  }
+
   getPersistentVolumeClaimsInfo(namespace: string, name: string): Observable<any> {
     return this.http.get(`${baseUrl}/namespaces/${namespace}/persistentvolumeclaims/${name}`);
   }

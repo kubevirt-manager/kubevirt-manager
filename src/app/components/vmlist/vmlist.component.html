@@ -218,11 +218,12 @@
                     <div class="row">
                       <div class="col-2" name="newvm-diskone-type-col">
                         <label for="newvm-diskonetype">Type:</label>
-                        <select #newvmdiskonetype class="custom-select rounded-0" name="newvm-diskonetype" id="newvm-diskonetype" (change)="onChangeDiskOne(newvmdiskonetype.value,newvmnode.value)">
+                        <select #newvmdiskonetype class="custom-select rounded-0" name="newvm-diskonetype" id="newvm-diskonetype" (change)="onChangeDiskOne(newvmdiskonetype.value,newvmnamespace.value)">
                           <option value="none">None</option>
-                          <option value="blank">Blank</option>
-                          <option value="image">Image</option>
-                          <option value="disk">Disk</option>
+                          <option value="blank">Blank Disk</option>
+                          <option value="image">Import(URL)</option>
+                          <option value="pvc">Import(PVC)</option>
+                          <option value="dv">Existing Disk</option>
                         </select>
                       </div>
                       <div class="col-4">
@@ -240,11 +241,12 @@
                     <div class="row">
                       <div class="col-2" name="newvm-diskone-type-col">
                           <label for="newvm-disktwotype">Type:</label>
-                          <select #newvmdisktwotype class="custom-select rounded-0" name="newvm-disktwotype" id="newvm-disktwotype" (change)="onChangeDiskTwo(newvmdisktwotype.value,newvmnode.value)">
-                            <option value="none" selected>None</option>
-                            <option value="blank">Blank</option>
-                            <option value="image">Image</option>
-                            <option value="disk">Disk</option>
+                          <select #newvmdisktwotype class="custom-select rounded-0" name="newvm-disktwotype" id="newvm-disktwotype" (change)="onChangeDiskTwo(newvmdisktwotype.value,newvmnamespace.value)">
+                            <option value="none">None</option>
+                            <option value="blank">Blank Disk</option>
+                            <option value="image">Import(URL)</option>
+                            <option value="pvc">Import(PVC)</option>
+                            <option value="dv">Existing Disk</option>
                           </select>
                         </div>
                         <div class="col-4">

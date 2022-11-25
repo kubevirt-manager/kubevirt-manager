@@ -103,6 +103,11 @@ export class DataVolumesService {
         return this.http.get(`${baseUrl}/datavolumes`);
     }
 
+    getNamespacedDataVolumes(dvNamespace: string): Observable<any> {
+        var baseUrl ='/k8s/apis/cdi.kubevirt.io/v1beta1';
+        return this.http.get(`${baseUrl}/namespaces/${dvNamespace}/datavolumes`);
+    }
+
     getDataVolumeInfo(namespace: string, name: string): Observable<any> {
         var baseUrl ='/k8s/apis/cdi.kubevirt.io/v1beta1';
         return this.http.get(`${baseUrl}/namespaces/${namespace}/datavolumes/${name}`);
