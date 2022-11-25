@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { K8sNode } from 'src/app/models/k8s-node.model';
 import { VMDisk } from 'src/app/models/vmdisk.model';
+import { DataVolumesService } from 'src/app/services/data-volumes.service';
+import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { K8sService } from 'src/app/services/k8s.service';
 import { WorkerService } from 'src/app/services/worker.service';
 
@@ -15,17 +17,19 @@ import { WorkerService } from 'src/app/services/worker.service';
 export class DiskListComponent implements OnInit {
 
   nodeList: K8sNode[] = [];
+  diskList: VMDisk[] = [];
 
   constructor(
     private k8sService: K8sService,
+    private dataVolumesService: DataVolumesService,
     private router: Router,
     private workerService: WorkerService
   ) { }
 
   async ngOnInit(): Promise<void> {
-
-    await this.getNodes();
-    await this.getDisks();
+    await this.getDVs();
+    //await this.getNodes();
+    //await this.getDisks();
     let navTitle = document.getElementById("nav-title");
     if(navTitle != null) {
       navTitle.replaceChildren("Virtual Machine Disks");
@@ -60,12 +64,42 @@ export class DiskListComponent implements OnInit {
         currentDsk = new VMDisk();
         currentDsk.name = disks[j]["name"];
         currentDsk.size = disks[j]["size"];
-        currentDsk.path = disks[j]["path"];
-        currentDsk.node = this.nodeList[i].name;
+        //currentDsk.path = disks[j]["path"];
+        //currentDsk.node = this.nodeList[i].name;
         currentDskList.push(currentDsk);
       }
       this.nodeList[i].disklist = currentDskList;
     }
+  }
+
+  /*
+   * Get DataVolumes
+   */
+  async getDVs(): Promise<void> {
+      const data = await lastValueFrom(this.dataVolumesService.getDataVolumes());
+      let disks = data.items;
+      let currentDisk = new VMDisk;
+      for (let i = 0; i < disks.length; i++) {
+        currentDisk = new VMDisk();
+        currentDisk["namespace"] = disks[i].metadata["namespace"];
+        currentDisk["name"] = disks[i].metadata["name"];
+        currentDisk["status"] = disks[i].status["phase"];
+        currentDisk["progress"] = disks[i].status["progress"];;
+        currentDisk["storageclass"] = disks[i].spec.pvc["storageClassName"];
+        currentDisk["bound"] = false;
+        if(disks[i].status["phase"].toLowerCase() == "succeeded") {
+            let pvcdata = await lastValueFrom(this.k8sService.getPersistentVolumeClaimsInfo(currentDisk["namespace"], currentDisk["name"]));
+            currentDisk["succeeded"] = true;
+            currentDisk["size"] = currentDisk["size"] = pvcdata.spec.resources.requests["storage"];
+            if(pvcdata.status["phase"].toLowerCase() == "bound") {
+                currentDisk["bound"] = true;                
+            }
+        } else {
+            currentDisk["succeeded"] = false;
+            currentDisk["size"] = disks[i].spec.pvc.resources.requests["storage"];
+        }
+        this.diskList.push(currentDisk);
+      }
   }
 
   /*

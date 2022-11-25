@@ -31,7 +31,7 @@ export class VmlistComponent implements OnInit {
     networkCheck: boolean = false;
 
     myVmTemplateTyped = {
-        'apiVersion': "kubevirt.io/v1",
+        'apiVersion': "kubevirt.io/v1alpha3",
         'kind': "VirtualMachine",
         'metadata':{
             'name': "",
@@ -63,7 +63,7 @@ export class VmlistComponent implements OnInit {
     };
 
     myVmTemplateCustom = {
-        'apiVersion': "kubevirt.io/v1",
+        'apiVersion': "kubevirt.io/v1alpha3",
         'kind': "VirtualMachine",
         'metadata':{
             'name': "",
@@ -306,7 +306,7 @@ export class VmlistComponent implements OnInit {
     }
 
     /*
-     * Hide New VM Windows
+     * Hide New VM Window
      */
     hideNewVm(): void {
         let modalDiv = document.getElementById("modal-newvm");

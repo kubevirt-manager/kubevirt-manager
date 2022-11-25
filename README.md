@@ -11,6 +11,23 @@ Simple Angular Frontend and NodeJS + Express Backend to operate [Kubevirt](https
 
 I've created this Frontend for `KubeVirt` while I was trying to learn a little bit of `Angular`. Basically this tool uses `kubectl proxy` to proxy API requests to `kubeapiserver`. For `Disks`, today I use `HostDisk` as backend for my `Disks`. To be able to work with these `Disks` a backend was developed in `NodeJS` and `ExpressJS` that uses `qemu-img` utility behind the scenes, to manage the `Images` and `Disks`. This `backend` runs as a `DaemonSet` on every node, to enable this tool to create `Images` and `Disks` on any node of the cluster.
 
+## REQUIREMENTS
+
+Kubevirt featureGate `ExpandDisks`.
+
+CDI featureGate: 
+```
+  config:
+    featureGates:
+    - HonorWaitForFirstConsumer
+```
+
+StorageClass feature:
+```
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+```
+
 ## HOW TO INSTALL IT
 
 The installation is pretty straightforward. On every `Kubernetes Node` of the cluster, you need to create a directory to hold `Images` and a directory to hold `Disks`. Both directories should have `UID 10000 / GID 30000` as owner. After creating the directories, adjust `Volumes` and environment variables `DISKPATH` and `IMGPATH` on the `worker-daemonset.yaml` file.

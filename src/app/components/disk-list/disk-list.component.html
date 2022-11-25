@@ -2,17 +2,17 @@
   <div class="container-fluid">
     <div class="content-wrapper">
       &nbsp;<br>
-      <div class="card card-primary card-outline" *ngFor="let thisNode of nodeList">
+      <div class="card card-primary card-outline">
         <div class="card-header">
           <h3 class="card-title">
-            <i class="fas fa-server"></i>
-            &nbsp;&nbsp;{{thisNode.name}}
+            <i class="fas fa-hdd"></i>
+            &nbsp;&nbsp;Data Volumes / Persistent Volumes
           </h3>
           <div class="card-tools">
-            <button type="button" class="btn btn-tool" (click)="showUpload(thisNode.name)">
+            <button type="button" class="btn btn-tool">
                 <i class="fas fa-upload"></i>
             </button>
-            <button type="button" class="btn btn-tool" (click)="showNew(thisNode.name)">
+            <button type="button" class="btn btn-tool">
               <i class="fas fa-plus"></i>
           </button>
           </div>
@@ -22,24 +22,32 @@
             <thead>
               <tr>
                 <th style="width: 10px">&nbsp;</th>
-                <th style="width: 250px">Image</th>
-                <th style="width: 200px">Size</th>
+                <th style="width: 100px">Namespace</th>
+                <th style="width: 160px">Name</th>
+                <th style="width: 20px">Size</th>
+                <th style="width: 60px">Status</th>
+                <th style="width: 20px">Progress</th>
+                <th style="width: 100px">Storage Class</th>
                 <th style="width: 80px">Actions</th>
               </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let thisDsk of thisNode.disklist">
-                  <td style="line-height: 2.2 !important; align-content: center;"><i class="fas fa-file"></i></td>
-                  <td style="line-height: 2.2 !important;">{{thisDsk.name}}</td>
-                  <td style="line-height: 2.2 !important;">{{thisDsk.size}}</td>
+                <tr *ngFor="let thisDisk of diskList">
+                  <td style="line-height: 2.2 !important; align-content: center;"><i class="fas fa-hdd"></i></td>
+                  <td style="line-height: 2.2 !important;">{{thisDisk.namespace}}</td>
+                  <td style="line-height: 2.2 !important;">{{thisDisk.name}}</td>
+                  <td style="line-height: 2.2 !important;">{{thisDisk.size}}</td>
+                  <td style="line-height: 2.2 !important;">{{thisDisk.status}}</td>
+                  <td style="line-height: 2.2 !important;">{{thisDisk.progress}}</td>
+                  <td style="line-height: 2.2 !important;">{{thisDisk.storageclass}}</td>
                   <td style="line-height: 0 !important;">
-                    <a class="btn" (click)="showInfo(thisDsk.name, thisNode.name)">
+                    <a class="btn">
                       <i class="fas fa-info"></i>
                     </a>
-                    <a class="btn" (click)="showResize(thisDsk.name, thisNode.name)">
+                    <a class="btn">
                       <i class="fas fa-arrow-up"></i>
                     </a>
-                    <a class="btn" (click)="showDelete(thisDsk.name, thisNode.name)">
+                    <a class="btn">
                       <i class="fas fa-trash"></i>
                     </a>
                   </td>

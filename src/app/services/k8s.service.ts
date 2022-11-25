@@ -22,4 +22,21 @@ export class K8sService {
   getNodeInfo(nodeName: string): Observable<any> {
     return this.http.get(`${baseUrl}/nodes/${nodeName}`);
   }
+
+  getPersistentVolumes(): Observable<any> {
+    return this.http.get(`${baseUrl}/persistentvolumes`);      
+  }
+
+  getPersistentVolumeInfo(volume: string): Observable<any> {
+    return this.http.get(`${baseUrl}/persistentvolumes/${volume}`);      
+  }
+
+  getPersistentVolumeClaims(): Observable<any> {
+    return this.http.get(`${baseUrl}/persistentvolumeclaims`);
+  }
+
+  getPersistentVolumeClaimsInfo(namespace: string, name: string): Observable<any> {
+    return this.http.get(`${baseUrl}/namespaces/${namespace}/persistentvolumeclaims/${name}`);
+  }
+
 }
