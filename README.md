@@ -22,7 +22,7 @@ CDI featureGate:
     - HonorWaitForFirstConsumer
 ```
 
-StorageClass feature:
+StorageClass features `WaitForFirstConsumer` and `allowVolumeExpansion`:
 ```
 volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true

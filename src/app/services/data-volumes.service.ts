@@ -14,7 +14,7 @@ export class DataVolumesService {
             "name":"",
             "namespace":"",
             "annotations": {
-                "cdi.kubevirt.io/storage.deleteAfterCompletion": false
+                "cdi.kubevirt.io/storage.deleteAfterCompletion": "false"
             }
         },
         "spec":{
@@ -119,7 +119,7 @@ export class DataVolumesService {
         thisDv.metadata["namespace"] = dvNamespace;
         thisDv.spec.pvc.resources.requests["storage"] = dvSize + "Gi";
         thisDv.spec.pvc["storageClassName"] = dvSc;
-        var baseUrl ='/k8s/apis/kubevirt.io/v1';
+        var baseUrl ='/k8s/apis/cdi.kubevirt.io/v1beta1';
         const headers = {
             'content-type': 'application/json',
             'accept': 'application/json'
@@ -134,7 +134,7 @@ export class DataVolumesService {
         thisDv.spec.pvc.resources.requests["storage"] = dvSize + "Gi";
         thisDv.spec.pvc["storageClassName"] = dvSc;
         thisDv.spec.source.http["url"] = dvUrl;
-        var baseUrl ='/k8s/apis/kubevirt.io/v1';
+        var baseUrl ='/k8s/apis/cdi.kubevirt.io/v1beta1';
         const headers = {
             'content-type': 'application/json',
             'accept': 'application/json'
@@ -150,7 +150,7 @@ export class DataVolumesService {
         thisDv.spec.pvc["storageClassName"] = dvSc;
         thisDv.spec.source.pvc["name"] = fromName;
         thisDv.spec.source.pvc["namespace"] = fromNamespace;
-        var baseUrl ='/k8s/apis/kubevirt.io/v1';
+        var baseUrl ='/k8s/apis/cdi.kubevirt.io/v1beta1';
         const headers = {
             'content-type': 'application/json',
             'accept': 'application/json'

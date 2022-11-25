@@ -9,10 +9,10 @@
             &nbsp;&nbsp;Data Volumes / Persistent Volumes
           </h3>
           <div class="card-tools">
-            <button type="button" class="btn btn-tool">
+            <!--<button type="button" class="btn btn-tool">
                 <i class="fas fa-upload"></i>
-            </button>
-            <button type="button" class="btn btn-tool">
+            </button> -->
+            <button type="button" class="btn btn-tool"  (click)="showNew()">
               <i class="fas fa-plus"></i>
           </button>
           </div>
@@ -44,9 +44,14 @@
                     <a class="btn">
                       <i class="fas fa-info"></i>
                     </a>
-                    <a class="btn">
-                      <i class="fas fa-arrow-up" (click)="showResize(thisDisk.namespace, thisDisk.name)"></i>
-                    </a>
+                    <span [ngSwitch]="thisDisk.bound">
+                        <a class="btn" (click)="showResize(thisDisk.namespace, thisDisk.name)" *ngSwitchCase="true"> 
+                            <i class="fas fa-arrow-up" ></i>
+                        </a>
+                        <a class="btn disabled" *ngSwitchDefault> 
+                            <i class="fas fa-arrow-up"></i>
+                        </a>
+                    </span>
                     <a class="btn">
                       <i class="fas fa-trash" (click)="showDelete(thisDisk.namespace, thisDisk.name)"></i>
                     </a>
@@ -156,14 +161,22 @@
           </div>
           <input type="hidden" id="new-node" name="new-node" value="">
           <div class="modal-body" id="new-value">
-            <label for="newDiskName">Disk Name (.img)</label>
-              <input #newdiskname type="text" class="form-control" id="new-disk-name" name="new-disk-name" placeholder="filename.img">
-              <label for="newDisksize">Size in GB</label>
-              <input #newdisksize type="number" class="form-control" id="new-disk-size" name="new-disk-size" placeholder="0">
+            <label for="newDiskName">Disk Name</label>
+            <input #newdiskname type="text" class="form-control" id="new-disk-name" name="new-disk-name" placeholder="disk-name">
+            <label for="newDiskNamespace">Namespace:</label>
+            <select #newdisknamespace class="custom-select rounded-0" name="new-disk-namespace" id="new-disk-namespace">
+                <option>Value 1</option>
+            </select>
+            <label for="newDiskStorageClass">Storage Class:</label>
+            <select #newdiskstorageclass class="custom-select rounded-0" name="new-disk-storageclass" id="new-disk-storageclass">
+                <option>Value 1</option>
+            </select>
+            <label for="newDisksize">Size in GB</label>
+            <input #newdisksize type="number" class="form-control" id="new-disk-size" name="new-disk-size" placeholder="0">
           </div>
           <div class="modal-footer justify-content-between">
             <button type="button" class="btn btn-default" (click)="hideNew()">Close</button>
-            <button type="button" class="btn btn-primary" (click)="applyNew(newdiskname.value , newdiskname.value, newdisksize.value)">Save changes</button>
+            <button type="button" class="btn btn-primary" (click)="applyNew(newdisknamespace.value, newdiskname.value , newdiskstorageclass.value, newdisksize.value)">Save changes</button>
           </div>
         </div>
         <!-- /.modal-content -->

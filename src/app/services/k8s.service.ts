@@ -52,7 +52,7 @@ export class K8sService {
         'content-type': 'application/merge-patch+json',
         'accept': 'application/json'
     };
-    return this.http.patch(`${baseUrl}/namespaces/${namespace}/persistentvolumeclaims/${name}`, '{"spec":{"resources":"requests":{"storage":" '+size+'"}}}', { 'headers': headers } );
+    return this.http.patch(`${baseUrl}/namespaces/${namespace}/persistentvolumeclaims/${name}`, '{"spec":{"resources":{"requests":{"storage":" '+size+'"}}}}', { 'headers': headers } );
   }
 
 }
