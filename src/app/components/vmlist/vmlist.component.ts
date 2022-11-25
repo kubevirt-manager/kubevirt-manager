@@ -32,7 +32,8 @@ export class VmlistComponent implements OnInit {
         'kind': "VirtualMachine",
         'metadata':{
             'name': "",
-            'namespace': ""
+            'namespace': "",
+            'labels': {}
         },
         'spec': {
             'instancetype': {
@@ -65,7 +66,8 @@ export class VmlistComponent implements OnInit {
         'kind': "VirtualMachine",
         'metadata':{
             'name': "",
-            'namespace': ""
+            'namespace': "",
+            'labels': {}
         },
         'spec': {
             'running' : false,
@@ -414,6 +416,7 @@ export class VmlistComponent implements OnInit {
                     /* Custom VM */
                     this.myVmTemplateCustom.metadata.name = newvmname;
                     this.myVmTemplateCustom.metadata.namespace = newvmnamespace;
+                    this.myVmTemplateCustom.metadata.labels = {'kubevirt.io/domain': newvmname};
                     this.myVmTemplateCustom.spec.template.metadata.labels = {'kubevirt.io/domain': newvmname};
                     this.myVmTemplateCustom.spec.template.spec.nodeSelector = {'kubernetes.io/hostname': newvmnode};
                     this.myVmTemplateCustom.spec.template.spec.priorityClassName = newvmpriorityclass;
@@ -457,6 +460,7 @@ export class VmlistComponent implements OnInit {
 
                 this.myVmTemplateTyped.metadata.name = newvmname;
                 this.myVmTemplateTyped.metadata.namespace = newvmnamespace;
+                this.myVmTemplateTyped.metadata.labels = {'kubevirt.io/domain': newvmname};
                 this.myVmTemplateTyped.spec.template.spec.nodeSelector = {'kubernetes.io/hostname': newvmnode};
                 this.myVmTemplateTyped.spec.template.metadata.labels = {'kubevirt.io/domain': newvmname};
                 this.myVmTemplateTyped.spec.template.spec.priorityClassName = newvmpriorityclass;
