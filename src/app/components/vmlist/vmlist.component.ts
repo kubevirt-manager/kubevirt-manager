@@ -576,7 +576,7 @@ export class VmlistComponent implements OnInit {
         
 
             /* Networking Setup */
-            if(newvmnetwork != "") {
+            if(newvmnetwork != "podNetwork") {
                 net1 = {'name': "br0", 'multus': {'networkName': newvmnetwork}};
                 iface1 = { 'name': "br0", 'bridge': {}};
             } else {
@@ -1039,7 +1039,7 @@ export class VmlistComponent implements OnInit {
         let selectorNetworkField = document.getElementById("newvm-network");
         if(this.networkCheck) {
             let data = await lastValueFrom(this.k8sApisService.getNetworkAttachs());
-            let networkSelectorOptions = "";
+            let networkSelectorOptions = "<option value=podNetwork>podNetwork</option>\n";
             let netAttach = data.items;
             for (let i = 0; i < netAttach.length; i++) {
                 if(namespace == netAttach[i].metadata["namespace"]) {

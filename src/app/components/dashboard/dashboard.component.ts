@@ -23,7 +23,7 @@ export class DashboardComponent implements OnInit {
     };
 
     discInfo = 0;
-    imageInfo = 0;
+    poolInfo = 0;
 
     cpuInfo = 0;
     memInfo = 0;
