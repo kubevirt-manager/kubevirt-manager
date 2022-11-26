@@ -30,8 +30,6 @@ allowVolumeExpansion: true
 
 ## HOW TO INSTALL IT
 
-The installation is pretty straightforward. On every `Kubernetes Node` of the cluster, you need to create a directory to hold `Images` and a directory to hold `Disks`. Both directories should have `UID 10000 / GID 30000` as owner. After creating the directories, adjust `Volumes` and environment variables `DISKPATH` and `IMGPATH` on the `worker-daemonset.yaml` file.
-
 ### Create the Namespace
 ```sh
 $ kubectl apply -f kubernetes/ns.yaml
