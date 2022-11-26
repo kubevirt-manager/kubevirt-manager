@@ -5,12 +5,12 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    version: 1.0.1
+    version: trunk
 spec:
   selector:
     matchLabels:
       app: kubevirt-manager
-      version: 1.0.1
+      version: trunk
   replicas: 1
   strategy:
     type: Recreate
@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: kubevirtmgr
-          image: feitnomore/kubevirt-manager:1.0.1
+          image: feitnomore/kubevirt-manager:trunk
           imagePullPolicy: IfNotPresent
           ports:
           - name: http

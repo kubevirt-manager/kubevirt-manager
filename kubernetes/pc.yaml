@@ -1,0 +1,20 @@
+apiVersion: scheduling.k8s.io/v1
+description: Priority class for VMs which should not be preemtited.
+kind: PriorityClass
+metadata:
+  name: vm-standard
+  labels:
+    kubevirt-manager: "true"
+preemptionPolicy: Never
+value: 999999999
+
+---
+apiVersion: scheduling.k8s.io/v1
+description: Priority class for VMs which are allowed to be preemtited.
+kind: PriorityClass
+metadata:
+  name: vm-preemptible
+  labels:
+    kubevirt-manager: "true"
+preemptionPolicy: PreemptLowerPriority
+value: 1000000
