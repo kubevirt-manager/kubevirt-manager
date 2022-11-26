@@ -195,7 +195,7 @@ export class VmlistComponent implements OnInit {
                 }
             }
 
-            if(currentVm.running) {
+            if(currentVm.running && currentVm.status && vms[i].status["printableStatus"].toLowerCase() == "running") {
                 let currentVmi = new KubeVirtVMI;
                 try {
                     const datavmi = await lastValueFrom(this.kubeVirtService.getVMi(currentVm.namespace, currentVm.name));
@@ -581,7 +581,7 @@ export class VmlistComponent implements OnInit {
                 iface1 = { 'name': "br0", 'bridge': {}};
             } else {
                 net1 = {'name': "default", 'pod': {}};
-                iface1 = {'name': "default",'marquerade': {}};
+                iface1 = {'name': "default",'masquerade': {}};
             }
 
             /* Create the VM */
@@ -602,6 +602,7 @@ export class VmlistComponent implements OnInit {
                     this.hideNewVm();
                     this.reloadComponent();
                 } catch (e) {
+                    alert(e);
                     console.log(e);
                 }
             } else {
@@ -620,6 +621,7 @@ export class VmlistComponent implements OnInit {
                     this.hideNewVm();
                     this.reloadComponent();
                 } catch (e) {
+                    alert(e);
                     console.log(e);
                 }
             }
