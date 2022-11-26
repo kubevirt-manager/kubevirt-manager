@@ -44,9 +44,9 @@ $ kubectl apply -f kubernetes/rbac.yaml
 ```sh
 $ kubectl apply -f kubernetes/deployment.yaml
 ```
-### Create the BackEnd DaemonSet
+### Create the Priority Classes
 ```sh
-$ kubectl apply -f kubernetes/worker-daemonset.yaml
+$ kubectl apply -f kubernetes/pc.yaml
 ```
 ### Create the FrontEnd Service
 ```sh
