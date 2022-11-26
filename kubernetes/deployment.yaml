@@ -18,6 +18,7 @@ spec:
     metadata:
       labels:
         app: kubevirt-manager
+        version: trunk
     spec:
       containers:
         - name: kubevirtmgr
