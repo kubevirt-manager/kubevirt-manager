@@ -2,11 +2,11 @@
   <div class="container-fluid">
     <div class="content-wrapper">
       &nbsp;<br>
-      <div class="card card-primary card-outline" *ngFor="let thisNode of nodeList">
+      <div class="card card-outline" *ngFor="let thisNode of nodeList">
         <div class="card-header">
           <h3 class="card-title">
             <i class="fas fa-hdd"></i>
-            &nbsp;&nbsp;{{thisNode.name}}
+            &nbsp;&nbsp;{{thisNode.name}} 
           </h3>
           <div class="card-tools">
             <button type="button" class="btn btn-tool" (click)="showNewVm(thisNode.name)">
@@ -20,7 +20,7 @@
               <tr>
                 <th style="width: 10px">&nbsp;</th>
                 <th style="width: 130px">Namespace</th>
-                <th style="width: 180px">Name</th>
+                <th style="width: 160px">Name</th>
                 <th style="width: 70px">VM Type</th>
                 <th style="width: 18px">vCPU</th>
                 <th style="width: 18px">Memory</th>

@@ -2,7 +2,7 @@
     <div class="container-fluid">
       <div class="content-wrapper">
         &nbsp;<br>
-        <div class="card card-primary card-outline">
+        <div class="card card-outline">
           <div class="card-header">
             <h3 class="card-title">
               VM Pools
@@ -14,96 +14,58 @@
             </div>
           </div>
           <div class="card-body">
-            <table class="table table-sm" style="vertical-align: middle !important;" *ngFor="let thisPool of poolList">
-            <thead>
-                <tr><th><i class="fas fa-server"></i>&nbsp;&nbsp;Namespace: {{thisPool.namespace}} / Name: {{thisPool.name}}</th></tr>
-            </thead>
+            <div class="card card-outline" *ngFor="let thisPool of poolList">
             <tbody>
-            <tr><td>
                 <table class="table table-sm" style="vertical-align: middle !important;">
                 <thead>
                     <tr>
-                    <th style="width: 10px">&nbsp;</th>
-                    <th style="width: 180px">Name</th>
-                    <th style="width: 70px">VM Type</th>
-                    <th style="width: 18px">vCPU</th>
-                    <th style="width: 18px">Memory</th>
-                    <th style="width: 80px">Status</th>
-                    <th style="width: 80px">IP Address</th>
-                    <th style="width: 250px">Actions</th>
-                    </tr>
+                        <th style="width: 10px">&nbsp;</th>
+                        <th style="width: 130px">Namespace</th>
+                        <th style="width: 180px">Pool Name</th>
+                        <th style="width: 70px">VM Type</th>
+                        <th style="width: 18px">vCPU</th>
+                        <th style="width: 18px">Memory</th>
+                        <th style="width: 80px">Replicas</th>
+                        <th style="width: 180px">Actions</th>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let thisVM of thisPool.vmlist">
-                        <td style="line-height: 2.2 !important; align-content: center;">
-                        <span>
-                            <span>
-                            <span class="badge"><i class="fas fa-hdd"></i></span>
-                            </span>
-                        </span>
-                        </td>
-                        <td style="line-height: 2.2 !important;">{{thisVM.name}}</td>
-                        <td style="line-height: 2.2 !important;">{{thisVM.instType}}</td>
-                        <td style="line-height: 2.2 !important;">{{thisVM.cores * thisVM.sockets * thisVM.threads}}</td>
-                        <td style="line-height: 2.2 !important;">{{thisVM.memory}}</td>
-                        <td style="line-height: 2.2 !important;">{{thisVM.status}}</td>
-                        <td style="line-height: 2.2 !important;">
-                        <span [ngSwitch]="thisVM.status">
-                            <span *ngSwitchCase="'Running'">
-                            {{thisVM.vmi.ifAddr}}
-                            </span>
-                            <span *ngSwitchDefault>
-                            &nbsp;
-                            </span>
-                        </span>
-                        </td>
-                        <td style="line-height: 0 !important;">
-                        <!--- INFO BUTTON -->
-                        <span>
-                            <a class="btn">
-                            <i class="fas fa-info"></i>
-                            </a>
-                        </span>
-                        <!--- PAUSE BUTTON -->
-                        <span>
-                            <a class="btn">
-                            <i class="fas fa-pause"></i>
-                            </a>
-                        </span>
-                        <!--- PLAY BUTTON -->
-                        <span>
-                            <a class="btn">
-                            <i class="fas fa-play"></i>
-                            </a>
-                        </span>
-                        <!--- VNC BUTTON -->
-                        <span>
-                            <a class="btn">
-                            <i class="fas fa-desktop"></i>
-                            </a>
-                        </span>
-                        <!--- CONFIG BUTTON -->
-                        <span>
-                            <a class="btn">
-                            <i class="fas fa-cog"></i>
-                            </a>
-                        </span>
+                <tr>
+                    <td style="line-height: 2.2 !important;"><i class="fas fa-server"></i></td>
+                    <td style="line-height: 2.2 !important;">{{thisPool.namespace}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisPool.name}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisPool.instType}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisPool.cores * thisPool.sockets * thisPool.threads}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisPool.memory}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisPool.replicas}}</td>
+                    <td style="line-height: 2.2 !important;">
                         <!--- POWER ON BUTTON -->
-                        <span>
-                            <a class="btn">
-                            <i class="fas fa-plug"></i>
+                        <span [ngSwitch]="thisPool.running">
+                            <a class="btn disabled" (click)='vmOperations("start", thisPool.namespace, thisPool.name)' *ngSwitchCase="true">
+                              <i class="fas fa-plug disabled"></i>
+                            </a>
+                            <a class="btn" (click)='vmOperations("start", thisPool.namespace, thisPool.name)' *ngSwitchDefault>
+                              <i class="fas fa-plug"></i>
                             </a>
                         </span>
                         <!--- POWER OFF BUTTON -->
-                        <span>
-                            <a class="btn">
-                            <i class="fas fa-power-off"></i>
+                        <span [ngSwitch]="thisPool.running">
+                            <a class="btn" (click)='vmOperations("stop", thisPool.namespace, thisPool.name)' *ngSwitchCase="true">
+                              <i class="fas fa-power-off"></i>
+                            </a>
+                            <a class="btn disabled" (click)='vmOperations("stop", thisPool.namespace, thisPool.name)' *ngSwitchDefault>
+                              <i class="fas fa-power-off disabled"></i>
                             </a>
                         </span>
-                        <!--- RESTART BUTTON -->
+                        <!--- SCALE REPLICAS -->
                         <span>
                             <a class="btn">
-                            <i class="fas fa-redo"></i>
+                            <i class="fas fa-arrow-up"></i>
+                            </a>
+                        </span>
+                        <!--- CHANGE VM -->
+                        <span>
+                            <a class="btn">
+                            <i class="fas fa-cog"></i>
                             </a>
                         </span>
                         <!--- DELETE BUTTON -->
@@ -112,13 +74,95 @@
                             <i class="fas fa-trash"></i>
                             </a>
                         </span>
-                        </td>
-                    </tr>
+                    </td>
+                </tr>
+                <tr><td></td>
+                    <td colspan="100%">
+                    <table class="table table-sm" style="vertical-align: middle !important;">
+                    <thead>
+                        <tr>
+                        <th style="width: 10px">&nbsp;</th>
+                        <th style="width: 180px">Virtual Machine</th>
+                        <th style="width: 70px">Node</th>
+                        <th style="width: 80px">Status</th>
+                        <th style="width: 80px">IP Address</th>
+                        <th style="width: 180px">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let thisVM of thisPool.vmlist">
+                            <td style="line-height: 2.2 !important; align-content: center;">
+                            <span>
+                                <span>
+                                <span class="badge"><i class="fas fa-hdd"></i></span>
+                                </span>
+                            </span>
+                            </td>
+                            <td style="line-height: 2.2 !important;">{{thisVM.name}}</td>
+                            <td style="line-height: 2.2 !important;">{{thisVM.nodeSel}}</td>
+                            <td style="line-height: 2.2 !important;">{{thisVM.status}}</td>
+                            <td style="line-height: 2.2 !important;">
+                            <span [ngSwitch]="thisVM.status">
+                                <span *ngSwitchCase="'Running'">
+                                {{thisVM.vmi.ifAddr}}
+                                </span>
+                                <span *ngSwitchDefault>
+                                &nbsp;
+                                </span>
+                            </span>
+                            </td>
+                            <td style="line-height: 0 !important;">
+                            <!--- VNC BUTTON -->
+                            <span [ngSwitch]="thisVM.status">
+                                <a class="btn" routerLink="/vncviewer/{{thisVM.namespace}}/{{thisVM.name}}" *ngSwitchCase="'Running'">
+                                <i class="fas fa-desktop"></i>
+                                </a>
+                                <a class="btn disabled" routerLink="/vncviewer/{{thisVM.namespace}}/{{thisVM.name}}" *ngSwitchDefault>
+                                <i class="fas fa-desktop disabled"></i>
+                                </a>
+                            </span>
+                            <!--- POWER ON BUTTON -->
+                            <span [ngSwitch]="thisVM.running">
+                                <a class="btn disabled" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' *ngSwitchCase="true">
+                                  <i class="fas fa-plug disabled"></i>
+                                </a>
+                                <a class="btn" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' *ngSwitchDefault>
+                                  <i class="fas fa-plug"></i>
+                                </a>
+                            </span>
+                            <!--- POWER OFF BUTTON -->
+                            <span [ngSwitch]="thisVM.running">
+                                <a class="btn" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' *ngSwitchCase="true">
+                                  <i class="fas fa-power-off"></i>
+                                </a>
+                                <a class="btn disabled" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' *ngSwitchDefault>
+                                  <i class="fas fa-power-off disabled"></i>
+                                </a>
+                            </span>
+                            <!--- RESTART BUTTON -->
+                            <span [ngSwitch]="thisVM.running">
+                                <a class="btn" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' *ngSwitchCase="true">
+                                  <i class="fas fa-redo"></i>
+                                </a>
+                                <a class="btn disabled" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' *ngSwitchDefault>
+                                  <i class="fas fa-redo disabled"></i>
+                                </a>
+                            </span>
+                            <!--- DELETE BUTTON -->
+                            <span>
+                                <a class="btn">
+                                <i class="fas fa-trash"></i>
+                                </a>
+                            </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                    </table>
+                </td></tr>
                 </tbody>
                 </table>
-            </td></tr>
             </tbody>
-            </table>
+            </div>
           </div>
           <!-- /.card-body -->
         </div>

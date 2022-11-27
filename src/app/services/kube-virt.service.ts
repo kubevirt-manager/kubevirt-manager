@@ -15,6 +15,11 @@ export class KubeVirtService {
         return this.http.get(`${baseUrl}/virtualmachines`);
     }
 
+    getPooledVM(namespace: string, pool: string): Observable<any> {
+        var baseUrl ='/k8s/apis/kubevirt.io/v1alpha3';
+        return this.http.get(`${baseUrl}/namespaces/${namespace}/virtualmachines?labelSelector=kubevirt.io%2Fvmpool%3D${pool}`);
+    }
+
     getVMis(): Observable<any> {
         var baseUrl ='/k8s/apis/kubevirt.io/v1alpha3';
         return this.http.get(`${baseUrl}/virtualmachineinstances`);
@@ -23,6 +28,16 @@ export class KubeVirtService {
     getVMi(namespace: string, name: string): Observable<any> {
         var baseUrl ='/k8s/apis/kubevirt.io/v1alpha3';
         return this.http.get(`${baseUrl}/namespaces/${namespace}/virtualmachineinstances/${name}`);
+    }
+
+    getVMPools(): Observable<any> {
+        var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
+        return this.http.get(`${baseUrl}/virtualmachinepools`);
+    }
+
+    getVMPool(namespace: string, name: string): Observable<any> {
+        var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
+        return this.http.get(`${baseUrl}/namespaces/${namespace}/virtualmachinepools/${name}`);
     }
 
     startVm(namespace: string, name: string): Observable<any> {
@@ -55,6 +70,14 @@ export class KubeVirtService {
         };
         let body = '{"gracePeriodSeconds":0,"propagationPolicy":"Background"}';
         return this.http.delete(`${baseUrl}/namespaces/${namespace}/virtualmachineinstances/${name}`,  {'headers': headers, 'body': body});
+    }
+
+    restartVm(namespace: string, name: string): Observable<any> {
+        var baseUrl ='/k8s/apis/subresources.kubevirt.io/v1';
+        const headers = {
+            'accept': 'application/json'
+        };
+        return this.http.put(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}/restart`, { 'headers': headers } );
     }
 
     pauseVm(namespace: string, name: string): Observable<any> {

@@ -22,7 +22,6 @@ export class VMPoolsComponent implements OnInit {
     ) { }
 
     async ngOnInit(): Promise<void> {
-        await this.getVMs();
         await this.getPools();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
@@ -30,24 +29,62 @@ export class VMPoolsComponent implements OnInit {
         }
     }
 
-    getPools(): void {
-        let thisPool = new KubeVirtVMPool();
+    /*
+     * Load Pool List
+     */
+    async getPools(): Promise<void> {
+        let currentPool = new KubeVirtVMPool;
+        const data = await lastValueFrom(this.kubeVirtService.getVMPools());
+        let pools = data.items;
+        for(let i = 0; i < pools.length; i++) {
+            currentPool = new KubeVirtVMPool();
+            currentPool.name = pools[i].metadata["name"];
+            currentPool.namespace = pools[i].metadata["namespace"];
+            currentPool.replicas = pools[i].spec["replicas"];
+            currentPool.running = pools[i].spec.virtualMachineTemplate.spec["running"];
+            /* Getting VM Type */
+            try {
+                currentPool.instType = pools[i].spec.virtualMachineTemplate.spec.instancetype.name;
+            } catch(e) {
+                currentPool.instType = "custom";
+            }
 
-        thisPool.namespace = "virtualmachines";
-        thisPool.vmlist = this.vmList;
-
-        thisPool.name = "pool1";
-        this.poolList.push(thisPool);
-        thisPool.name = "pool2";
-        this.poolList.push(thisPool);
+            if(currentPool.instType == "custom") {
+                /* Custom VM has cpu / mem parameters */
+                currentPool.cores = pools[i].spec.virtualMachineTemplate.spec.template.spec.domain.cpu["cores"];
+                currentPool.sockets = pools[i].spec.virtualMachineTemplate.spec.template.spec.domain.cpu["sockets"];
+                currentPool.threads = pools[i].spec.virtualMachineTemplate.spec.template.spec.domain.cpu["threads"];
+                currentPool.memory = pools[i].spec.virtualMachineTemplate.spec.template.spec.domain.resources.requests["memory"];
+            } else {
+                /* load vCPU / Mem from type */
+                try {
+                    const data = await lastValueFrom(this.kubeVirtService.getClusterInstanceType(currentPool.instType));
+                    currentPool.cores = data.spec.cpu["guest"];
+                    currentPool.memory = data.spec.memory["guest"];
+                    currentPool.sockets = 1;
+                    currentPool.threads = 1;
+                } catch (e) {
+                    currentPool.sockets = 0;
+                    currentPool.threads = 0;
+                    currentPool.cores = 0;
+                    currentPool.memory = "";
+                }
+            }
+            await this.getPoolVM(currentPool.namespace, currentPool.name);
+            currentPool.vmlist = this.vmList;
+            console.log(currentPool);
+            console.log(pools[i]);
+            this.poolList.push(currentPool);
+        }
     }
 
     /*
      * Load VM List
      */
-    async getVMs(): Promise<void> {
+    async getPoolVM(namespace: string, poolName: string): Promise<void> {
+        this.vmList = [];
         let currentVm = new KubeVirtVM;
-        const data = await lastValueFrom(this.kubeVirtService.getVMs());
+        const data = await lastValueFrom(this.kubeVirtService.getPooledVM(namespace, poolName));
         let vms = data.items;
         for (let i = 0; i < vms.length; i++) {
             currentVm = new KubeVirtVM();
@@ -125,6 +162,24 @@ export class VMPoolsComponent implements OnInit {
         }
     }
 
+    /*
+     * VM Basic Operations (start, stop, etc...)
+     */
+    async vmOperations(vmOperation: string, vmNamespace: string, vmName: string): Promise<void> {
+        if(vmOperation == "start"){
+            var data = await lastValueFrom(this.kubeVirtService.startVm(vmNamespace, vmName));
+            this.reloadComponent();
+        } else if (vmOperation == "stop") {
+            var data = await lastValueFrom(this.kubeVirtService.stopVm(vmNamespace, vmName));
+            this.reloadComponent();
+        } else if (vmOperation == "reboot"){
+            var data = await lastValueFrom(this.kubeVirtService.restartVm(vmNamespace, vmName));
+            this.reloadComponent();
+        } else if (vmOperation == "delete") {
+            const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
+            this.reloadComponent();
+        }
+    }
     /*
      * Reload this component
      */

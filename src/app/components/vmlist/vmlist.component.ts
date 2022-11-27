@@ -836,7 +836,8 @@ export class VmlistComponent implements OnInit {
                 }
             }
         }
-    }    
+    }
+
     /*
      * VM Basic Operations (start, stop, etc...)
      */
@@ -848,8 +849,7 @@ export class VmlistComponent implements OnInit {
             var data = await lastValueFrom(this.kubeVirtService.stopVm(vmNamespace, vmName));
             this.reloadComponent();
         } else if (vmOperation == "reboot"){
-            var data = await lastValueFrom(this.kubeVirtService.startVm(vmNamespace, vmName));
-            data = await lastValueFrom(this.kubeVirtService.startVm(vmNamespace, vmName));
+            var data = await lastValueFrom(this.kubeVirtService.restartVm(vmNamespace, vmName));
             this.reloadComponent();
         } else if (vmOperation == "pause") {
             const data = await lastValueFrom(this.kubeVirtService.pauseVm(vmNamespace, vmName));

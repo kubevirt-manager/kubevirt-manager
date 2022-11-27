@@ -42,6 +42,7 @@ export class DashboardComponent implements OnInit {
         this.getVMs();
         this.getDisks();
         this.getNetworks();
+        this.getPools();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Dashboard");
@@ -97,6 +98,14 @@ export class DashboardComponent implements OnInit {
     async getNetworks(): Promise<void> {
         const data = await lastValueFrom(this.k8sApisService.getNetworkAttachs());
         this.netInfo = data.items.length;
+    }
+
+    /*
+     * Get VM Pools
+     */
+    async getPools(): Promise<void> {
+        const data = await lastValueFrom(this.kubeVirtService.getVMPools());
+        this.poolInfo = data.items.length;
     }
 
     /*
