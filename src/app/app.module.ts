@@ -14,6 +14,7 @@ import { DiskListComponent } from './components/disk-list/disk-list.component';
 import { NetworkListComponent } from './components/network-list/network-list.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { ClusterInstanceTypeListComponent } from './components/cluster-instance-type-list/cluster-instance-type-list.component';
+import { VMPoolsComponent } from './components/vmpools/vmpools.component';
 
 @NgModule({
   declarations: [
@@ -27,7 +28,8 @@ import { ClusterInstanceTypeListComponent } from './components/cluster-instance-
     DiskListComponent,
     NetworkListComponent,
     DashboardComponent,
-    ClusterInstanceTypeListComponent
+    ClusterInstanceTypeListComponent,
+    VMPoolsComponent
   ],
   imports: [
     BrowserModule,
