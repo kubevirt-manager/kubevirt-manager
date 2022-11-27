@@ -58,12 +58,6 @@
                     </span>
                   </td>
                   <td style="line-height: 0 !important;">
-                    <!--- INFO BUTTON -->
-                    <span>
-                      <a class="btn">
-                        <i class="fas fa-info"></i>
-                      </a>
-                    </span>
                     <!--- PAUSE BUTTON -->
                     <span [ngSwitch]="thisVM.status">
                       <a class="btn" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' *ngSwitchCase="'Running'">

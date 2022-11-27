@@ -38,20 +38,6 @@ export class DiskListComponent implements OnInit {
     }
 
     /*
-     * Get Nodes from Kubernetes
-     */
-    async getNodes(): Promise<void> {
-        let currentNode = new K8sNode;
-        const data = await lastValueFrom(this.k8sService.getNodes());
-        let nodes = data.items;
-        for (let i = 0; i < nodes.length; i++) {
-            currentNode = new K8sNode();
-            currentNode.name = nodes[i].metadata["name"];
-            this.nodeList.push(currentNode);
-        }
-    }
-
-    /*
      * Get StorageClasses from Kubernetes
      */
     async getStorageClasses(): Promise<void> {
@@ -174,17 +160,31 @@ export class DiskListComponent implements OnInit {
     /*
      * Show Info Window
      */
-    async showInfo(diskName: string, nodeName: string): Promise<void> {
-        //const data = await lastValueFrom(await this.workerService.getDiskInfo(nodeName, diskName));
-        let data: any;
+    async showInfo(diskNamespace: string, diskName: string): Promise<void> {
+        let myInnerHTML = "";
+        let volumedata = await lastValueFrom(this.dataVolumesService.getDataVolumeInfo(diskNamespace, diskName));
+        myInnerHTML += "<li class=\"nav-item\">Data Volume: <span class=\"float-right badge bg-primary\">" + volumedata.metadata["name"] + "</span></li>";
+        myInnerHTML += "<li class=\"nav-item\">Namespace: <span class=\"float-right badge bg-primary\">" + volumedata.metadata["namespace"] + "</span></li>";
+        myInnerHTML += "<li class=\"nav-item\">Creation Time: <span class=\"float-right badge bg-primary\">" + volumedata.metadata["creationTimestamp"] + "</span></li>";
+        myInnerHTML += "<li class=\"nav-item\">Storage Class: <span class=\"float-right badge bg-primary\">" + volumedata.spec.pvc["storageClassName"] + "</span></li>";
+        myInnerHTML += "<li class=\"nav-item\">PVC: <span class=\"float-right badge bg-primary\">" + volumedata.status["claimName"] + "</span></li>";
+        myInnerHTML += "<li class=\"nav-item\">Phase: <span class=\"float-right badge bg-primary\">" + volumedata.status["phase"] + "</span></li>";
+        if(volumedata.status["phase"].toLowerCase() == "succeeded") {
+            let pvcdata = await lastValueFrom(this.k8sService.getPersistentVolumeClaimsInfo(diskNamespace, diskName));
+            let pvdata = await lastValueFrom(this.k8sService.getPersistentVolumeInfo(pvcdata.spec["volumeName"]));
+            myInnerHTML += "<li class=\"nav-item\">PV: <span class=\"float-right badge bg-primary\">" + pvcdata.spec["volumeName"] + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">Volume Mode: <span class=\"float-right badge bg-primary\">" + pvcdata.spec["volumeMode"] + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">Driver: <span class=\"float-right badge bg-primary\">" + pvdata.spec.csi["driver"] + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">Reclaim Policy: <span class=\"float-right badge bg-primary\">" + pvdata.spec["persistentVolumeReclaimPolicy"] + "</span></li>";
+        }
         let modalDiv = document.getElementById("modal-info");
         let modalTitle = document.getElementById("info-title");
-        let modalBody = document.getElementById("info-value");
+        let modalBody = document.getElementById("info-cards");
         if(modalTitle != null) {
             modalTitle.replaceChildren("Disk: " + diskName);
         }
         if(modalBody != null) {
-            modalBody.innerText = data.message;
+            modalBody.innerHTML = myInnerHTML;
         }
         if(modalDiv != null) {
             modalDiv.setAttribute("class", "modal fade show");

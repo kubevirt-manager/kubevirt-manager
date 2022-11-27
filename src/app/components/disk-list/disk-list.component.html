@@ -42,7 +42,7 @@
                   <td style="line-height: 2.2 !important;">{{thisDisk.storageclass}}</td>
                   <td style="line-height: 0 !important;">
                     <a class="btn">
-                      <i class="fas fa-info"></i>
+                      <i class="fas fa-info" (click)="showInfo(thisDisk.namespace, thisDisk.name)"></i>
                     </a>
                     <span [ngSwitch]="thisDisk.bound">
                         <a class="btn" (click)="showResize(thisDisk.namespace, thisDisk.name)" *ngSwitchCase="true"> 
@@ -86,7 +86,7 @@
           </div>
           <div class="modal-footer justify-content-between">
             <button type="button" class="btn btn-default" (click)="hideResize()">Close</button>
-            <button type="button" class="btn btn-primary" (click)="applyResize(resizeinput.value)">Create</button>
+            <button type="button" class="btn btn-primary" (click)="applyResize(resizeinput.value)">Resize</button>
           </div>
         </div>
         <!-- /.modal-content -->
@@ -107,7 +107,9 @@
             </button>
           </div>
           <div class="modal-body" id="info-value">
-            <p>BODY_TEMPLATE</p>
+            <ul class="nav flex-column" id="info-cards">
+                TEMPLATE
+            </ul>
           </div>
           <div class="modal-footer justify-content-center">
             <button type="button" class="btn btn-default" (click)="hideInfo()">Close</button>
