@@ -184,4 +184,13 @@ export class KubeVirtService {
         return this.http.delete(`${baseUrl}/namespaces/${namespace}/virtualmachinepools/${name}`);
     }
 
+    scalePoolReplicas(namespace: string, name: string, size: string): Observable<any> {
+        var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
+        const headers = {
+            'content-type': 'application/merge-patch+json',
+            'accept': 'application/json'
+        };
+        return this.http.patch(`${baseUrl}/namespaces/${namespace}/virtualmachinepools/${name}`, '{"spec":{"replicas": ' + size + '}}', { 'headers': headers } );
+    }
+
 }

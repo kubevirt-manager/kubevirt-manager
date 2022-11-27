@@ -59,7 +59,7 @@
                         <!--- SCALE REPLICAS -->
                         <span>
                             <a class="btn">
-                            <i class="fas fa-arrow-up"></i>
+                            <i class="fas fa-arrow-up" (click)='showReplicas(thisPool.namespace, thisPool.name)'></i>
                             </a>
                         </span>
                         <!--- CHANGE VM -->
@@ -166,6 +166,36 @@
           </div>
           <!-- /.card-body -->
         </div>
+      </div>
+
+    <!--                 -->
+    <!-- Modal: Replicas -->
+    <!--                 -->
+    <div class="modal fade" id="modal-replicas" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="replicas-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)="hideReplicas()">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="replicas-value">
+              <div class="form-group">
+                <input type="hidden" id="replicas-namespace" name="replicas-namespace" value="">
+                <input type="hidden" id="replicas-pool" name="replicas-pool" value="">
+                <label for="replicasInput">New number of replicas</label>
+                <input #replicasinput type="number" class="form-control" id="replicas-input" name="replicas-input" placeholder="0">
+              </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)="hideReplicas()">Close</button>
+              <button type="button" class="btn btn-primary" (click)="applyReplicas(replicasinput.value)">Resize</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
       </div>
     </div>
   </div>

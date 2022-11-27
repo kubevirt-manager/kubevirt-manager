@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
@@ -194,6 +195,73 @@ export class VMPoolsComponent implements OnInit {
         } else if (poolOperation == "delete") {
             const data = await lastValueFrom(this.kubeVirtService.deletePool(poolNamespace, poolName));
             this.reloadComponent();
+        }
+    }
+
+    /*
+     * Show Replicas Window
+     */
+    showReplicas(poolNamespace: string, poolName: string): void {
+        let modalDiv = document.getElementById("modal-replicas");
+        let modalTitle = document.getElementById("replicas-title");
+        let modalBody = document.getElementById("replicas-value");
+        if(modalTitle != null) {
+            modalTitle.replaceChildren("Scale: "+ poolNamespace + " - " + poolName);
+        }
+        if(modalBody != null) {
+            let replicasNamespace = document.getElementById("replicas-namespace");
+            let replicasName = document.getElementById("replicas-pool");
+            if(replicasName != null && replicasNamespace != null) {
+                replicasName.setAttribute("value", poolName);
+                replicasNamespace.setAttribute("value", poolNamespace);
+            }
+        }
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+    }
+
+    /*
+     * Hide Resize Window
+     */
+    hideReplicas(): void {
+        let modalDiv = document.getElementById("modal-replicas");
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade");
+            modalDiv.setAttribute("aria-modal", "false");
+            modalDiv.setAttribute("role", "");
+            modalDiv.setAttribute("aria-hidden", "true");
+            modalDiv.setAttribute("style","display: none;");
+        }
+    }
+
+    /*
+     * Perform Resize of PVC
+     */
+    async applyReplicas(replicasSize: string): Promise<void> {
+        let nameField = document.getElementById("replicas-pool");
+        let namespaceField = document.getElementById("replicas-namespace");
+        if(replicasSize != null && nameField != null && namespaceField != null) {
+            let poolNamespace = namespaceField.getAttribute("value");
+            let poolName = nameField.getAttribute("value");
+            if(replicasSize != null && poolName != null && poolNamespace != null) {
+                try {
+                    const data = await lastValueFrom(this.kubeVirtService.scalePoolReplicas(poolNamespace, poolName, replicasSize));
+                    this.hideReplicas();
+                    this.reloadComponent();
+                } catch (e) {
+                    if (e instanceof HttpErrorResponse) {
+                        alert(e.error["message"])
+                    } else {
+                        console.log(e);
+                        alert("Internal Error!");
+                    }
+                }
+            }
         }
     }
 
