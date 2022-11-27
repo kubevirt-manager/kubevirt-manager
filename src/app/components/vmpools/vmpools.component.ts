@@ -180,6 +180,23 @@ export class VMPoolsComponent implements OnInit {
             this.reloadComponent();
         }
     }
+
+    /*
+     * Pool Basic Operations (start, stop, etc...)
+     */
+    async poolOperations(poolOperation: string, poolNamespace: string, poolName: string): Promise<void> {
+        if(poolOperation == "start"){
+            var data = await lastValueFrom(this.kubeVirtService.startPool(poolNamespace, poolName));
+            this.reloadComponent();
+        } else if (poolOperation == "stop") {
+            var data = await lastValueFrom(this.kubeVirtService.stopPool(poolNamespace, poolName));
+            this.reloadComponent();
+        } else if (poolOperation == "delete") {
+            const data = await lastValueFrom(this.kubeVirtService.deletePool(poolNamespace, poolName));
+            this.reloadComponent();
+        }
+    }
+
     /*
      * Reload this component
      */

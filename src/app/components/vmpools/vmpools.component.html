@@ -40,19 +40,19 @@
                     <td style="line-height: 2.2 !important;">
                         <!--- POWER ON BUTTON -->
                         <span [ngSwitch]="thisPool.running">
-                            <a class="btn disabled" (click)='vmOperations("start", thisPool.namespace, thisPool.name)' *ngSwitchCase="true">
+                            <a class="btn disabled" (click)='poolOperations("start", thisPool.namespace, thisPool.name)' *ngSwitchCase="true">
                               <i class="fas fa-plug disabled"></i>
                             </a>
-                            <a class="btn" (click)='vmOperations("start", thisPool.namespace, thisPool.name)' *ngSwitchDefault>
+                            <a class="btn" (click)='poolOperations("start", thisPool.namespace, thisPool.name)' *ngSwitchDefault>
                               <i class="fas fa-plug"></i>
                             </a>
                         </span>
                         <!--- POWER OFF BUTTON -->
                         <span [ngSwitch]="thisPool.running">
-                            <a class="btn" (click)='vmOperations("stop", thisPool.namespace, thisPool.name)' *ngSwitchCase="true">
+                            <a class="btn" (click)='poolOperations("stop", thisPool.namespace, thisPool.name)' *ngSwitchCase="true">
                               <i class="fas fa-power-off"></i>
                             </a>
-                            <a class="btn disabled" (click)='vmOperations("stop", thisPool.namespace, thisPool.name)' *ngSwitchDefault>
+                            <a class="btn disabled" (click)='poolOperations("stop", thisPool.namespace, thisPool.name)' *ngSwitchDefault>
                               <i class="fas fa-power-off disabled"></i>
                             </a>
                         </span>
