@@ -169,6 +169,9 @@
                     <a class="nav-link active" id="newvm-home-tab" data-toggle="pill" href="#newvm-home" role="tab" aria-controls="newvm-home" aria-selected="false">Basic</a>
                   </li>
                   <li class="nav-item">
+                    <a class="nav-link" id="newvm-labels-tab" data-toggle="pill" href="#newvm-labels" role="tab" aria-controls="newvm-labels" aria-selected="false">Labels</a>
+                  </li>
+                  <li class="nav-item">
                     <a class="nav-link" id="newvm-cpumem-tab" data-toggle="pill" href="#newvm-cpumem" role="tab" aria-controls="newmvm-cpumem" aria-selected="false">CPU/Memory</a>
                   </li>
                   <li class="nav-item">
@@ -193,6 +196,39 @@
                       <option>Value 1</option>
                     </select>
                     <input #newvmnode type="hidden" class="form-control" id="newvm-node" name="newvm-node">
+                  </div>
+                  <!-- LABELS TAB -->
+                  <div class="tab-pane fade" id="newvm-labels" role="tabpanel" aria-labelledby="newvm-labels-tab">
+                      <table class="table table-sm" style="vertical-align: middle !important;">
+                          <thead>
+                              <tr>
+                              <th style="width: 250px">Key</th>
+                              <th style="width: 250px">Value</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              <tr>
+                                <td style="line-height: 2.2 !important;"><input #newvmlabelkeyone type="text" class="form-control" id="newvm-labelkey-one" name="newvm-labelkey-one"></td>
+                                <td style="line-height: 2.2 !important;"><input #newvmlabelvalueone type="text" class="form-control" id="newvm-labelvalue-one" name="newvm-labelvalue-one"></td>
+                              </tr>
+                              <tr>
+                                <td style="line-height: 2.2 !important;"><input #newvmlabelkeytwo type="text" class="form-control" id="newvm-labelkey-two" name="newvm-labelkey-two"></td>
+                                <td style="line-height: 2.2 !important;"><input #newvmlabelvaluetwo type="text" class="form-control" id="newvm-labelvalue-two" name="newvm-labelvalue-two"></td>
+                              </tr>
+                              <tr>
+                                <td style="line-height: 2.2 !important;"><input #newvmlabelkeythree type="text" class="form-control" id="newvm-labelkey-three" name="newvm-labelkey-three"></td>
+                                <td style="line-height: 2.2 !important;"><input #newvmlabelvaluethree type="text" class="form-control" id="newvm-labelvalue-three" name="newvm-labelvalue-three"></td>
+                              </tr>
+                              <tr>
+                                <td style="line-height: 2.2 !important;"><input #newvmlabelkeyfour type="text" class="form-control" id="newvm-labelkey-four" name="newvm-labelkey-four"></td>
+                                <td style="line-height: 2.2 !important;"><input #newvmlabelvaluefour type="text" class="form-control" id="newvm-labelvalue-four" name="newvm-labelvalue-four"></td>
+                              </tr>
+                              <tr>
+                                <td style="line-height: 2.2 !important;"><input #newvmlabelkeyfive type="text" class="form-control" id="newvm-labelkey-five" name="newvm-labelkey-five"></td>
+                                <td style="line-height: 2.2 !important;"><input #newvmlabelvaluefive type="text" class="form-control" id="newvm-labelvalue-five" name="newvm-labelvalue-five"></td>
+                              </tr>
+                          </tbody>
+                      </table>
                   </div>
                   <!-- CPU/MEM TAB -->
                   <div class="tab-pane fade" id="newvm-cpumem" role="tabpanel" aria-labelledby="newvm-cpumem-tab">
@@ -313,7 +349,7 @@
           </div>
           <div class="modal-footer justify-content-between">
             <button type="button" class="btn btn-default" (click)="hideNewVm()">Close</button>
-            <button type="button" class="btn btn-primary" (click)="applyNewVm(newvmname.value, newvmnamespace.value, newvmnode.value, newvmtype.value, newvmcpumemsockets.value, newvmcpumemcores.value, newvmcpumemthreads.value, newvmcpumemmemory.value, newvmpc.value, newvmdiskonetype.value, newvmdiskonevalue.value, newvmdiskonesize.value, newvmdiskonesc.value, newvmdiskoneurl.value, newvmdisktwotype.value, newvmdisktwovalue.value, newvmdisktwosize.value, newvmdisktwosc.value, newvmdisktwourl.value, newvmnetwork.value, newvmcloudinitusername.value, newvmcloudinitpassword.value, newvmcloudinitip.value, newvmcloudinitnetmask.value, newvmcloudinitgw.value, newvmcloudinitdns1.value, newvmcloudinitdns2.value)">Create</button>
+            <button type="button" class="btn btn-primary" (click)="applyNewVm(newvmname.value, newvmnamespace.value, newvmnode.value, newvmlabelkeyone.value, newvmlabelvalueone.value, newvmlabelkeytwo.value, newvmlabelvaluetwo.value, newvmlabelkeythree.value, newvmlabelvaluethree.value, newvmlabelkeyfour.value, newvmlabelvaluefour.value, newvmlabelkeyfive.value, newvmlabelvaluefive.value, newvmtype.value, newvmcpumemsockets.value, newvmcpumemcores.value, newvmcpumemthreads.value, newvmcpumemmemory.value, newvmpc.value, newvmdiskonetype.value, newvmdiskonevalue.value, newvmdiskonesize.value, newvmdiskonesc.value, newvmdiskoneurl.value, newvmdisktwotype.value, newvmdisktwovalue.value, newvmdisktwosize.value, newvmdisktwosc.value, newvmdisktwourl.value, newvmnetwork.value, newvmcloudinitusername.value, newvmcloudinitpassword.value, newvmcloudinitip.value, newvmcloudinitnetmask.value, newvmcloudinitgw.value, newvmcloudinitdns1.value, newvmcloudinitdns2.value)">Create</button>
           </div>
         </form>
         </div>

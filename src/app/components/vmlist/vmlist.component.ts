@@ -10,6 +10,7 @@ import { VMDisk } from 'src/app/models/vmdisk.model';
 import { NetworkAttach } from 'src/app/models/network-attach.model';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { DataVolumesService } from 'src/app/services/data-volumes.service';
+import { ExpressionType } from '@angular/compiler';
 
 
 @Component({
@@ -360,6 +361,16 @@ export class VmlistComponent implements OnInit {
         newvmname: string,
         newvmnamespace: string,
         newvmnode: string,
+        newvmlabelkeyone: string,
+        newvmlabelvalueone: string,
+        newvmlabelkeytwo: string,
+        newvmlabelvaluetwo: string,
+        newvmlabelkeythree: string,
+        newvmlabelvaluethree: string,
+        newvmlabelkeyfour: string,
+        newvmlabelvaluefour: string,
+        newvmlabelkeyfive: string,
+        newvmlabelvaluefive: string,
         newvmtype: string,
         newvmcpumemsockets: string,
         newvmcpumemcores: string,
@@ -408,16 +419,55 @@ export class VmlistComponent implements OnInit {
             alert("Please select a valid VM type!");
         } else {
 
+            /* Load Custom Labels */
+            let tmpLabels = [{}];
+            tmpLabels.pop();
+            if(newvmlabelkeyone != "") {
+                let thisLabel = {
+                    [newvmlabelkeyone]: newvmlabelvalueone
+                };
+                tmpLabels.push(thisLabel);
+            }
+            if(newvmlabelkeytwo != "") {
+                let thisLabel = {
+                    [newvmlabelkeytwo]: newvmlabelvaluetwo
+                };
+                tmpLabels.push(thisLabel);
+            }
+            if(newvmlabelkeythree != "") {
+                let thisLabel = {
+                    [newvmlabelkeythree]: newvmlabelvaluethree
+                };
+                tmpLabels.push(thisLabel);
+            }
+            if(newvmlabelkeyfour != "") {
+                let thisLabel = {
+                    [newvmlabelkeyfour]: newvmlabelvaluefour
+                };
+                tmpLabels.push(thisLabel);
+            }
+            if(newvmlabelkeyfive != "") {
+                let thisLabel = {
+                    [newvmlabelkeyfive]: newvmlabelvaluefive
+                };
+                tmpLabels.push(thisLabel);
+            }
+
+            /* Load other labels */
+            let thisLabel = {'kubevirt.io/domain': newvmname};
+            tmpLabels.push(thisLabel);
+
             /* Check VM Type */
             if(newvmtype.toLowerCase() == "custom") {
                 if(newvmcpumemsockets == "" || newvmcpumemcores == "" || newvmcpumemthreads == "" || newvmcpumemmemory == "") {
                     alert("For custom VM you need to set cpu and memory parameters!");
+                    throw new Error("For custom VM you need to set cpu and memory parameters!");
                 } else {
                     /* Custom VM */
                     this.myVmTemplateCustom.metadata.name = newvmname;
                     this.myVmTemplateCustom.metadata.namespace = newvmnamespace;
-                    this.myVmTemplateCustom.metadata.labels = {'kubevirt.io/domain': newvmname};
-                    this.myVmTemplateCustom.spec.template.metadata.labels = {'kubevirt.io/domain': newvmname};
+                    this.myVmTemplateCustom.metadata.labels = tmpLabels;
+                    this.myVmTemplateCustom.spec.template.metadata.labels = tmpLabels;
                     this.myVmTemplateCustom.spec.template.spec.nodeSelector = {'kubernetes.io/hostname': newvmnode};
                     this.myVmTemplateCustom.spec.template.spec.priorityClassName = newvmpriorityclass;
                     this.myVmTemplateCustom.spec.template.spec.domain.cpu.cores = Number(newvmcpumemcores);
@@ -460,9 +510,9 @@ export class VmlistComponent implements OnInit {
 
                 this.myVmTemplateTyped.metadata.name = newvmname;
                 this.myVmTemplateTyped.metadata.namespace = newvmnamespace;
-                this.myVmTemplateTyped.metadata.labels = {'kubevirt.io/domain': newvmname};
+                this.myVmTemplateTyped.metadata.labels = tmpLabels;
+                this.myVmTemplateTyped.spec.template.metadata.labels = tmpLabels;
                 this.myVmTemplateTyped.spec.template.spec.nodeSelector = {'kubernetes.io/hostname': newvmnode};
-                this.myVmTemplateTyped.spec.template.metadata.labels = {'kubevirt.io/domain': newvmname};
                 this.myVmTemplateTyped.spec.template.spec.priorityClassName = newvmpriorityclass;
                 this.myVmTemplateTyped.spec.instancetype.name = newvmtype;
             }
@@ -491,21 +541,36 @@ export class VmlistComponent implements OnInit {
             if(newvmdiskonetype == "image") {
                 /* Create Disk From Image */
                 let disk1name = newvmnamespace + "-"+ newvmname + "-disk1";
-                let disk1data = await lastValueFrom(this.dataVolumesService.createURLDataVolume(newvmnamespace, disk1name, newvmdiskonesize, newvmdiskonesc, newvmdiskoneurl));
-                disk1 = { 'name': "disk1", 'disk': {}};
-                device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
+                try {
+                    let disk1data = await lastValueFrom(this.dataVolumesService.createURLDataVolume(newvmnamespace, disk1name, newvmdiskonesize, newvmdiskonesc, newvmdiskoneurl));
+                    disk1 = { 'name': "disk1", 'disk': {}};
+                    device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
+                } catch (e) {
+                    alert(e);
+                    throw new Error("For custom VM you need to set cpu and memory parameters!");
+                }
             } else if (newvmdiskonetype == "blank") {
                 /* Create Blank Disk */
                 let disk1name = newvmnamespace + "-"+ newvmname + "-disk1";
-                let disk1data = await lastValueFrom(this.dataVolumesService.createBlankDataVolume(newvmnamespace, disk1name, newvmdiskonesize, newvmdiskonesc));
-                disk1 = { 'name': "disk1", 'disk': {}};
-                device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
+                try {
+                    let disk1data = await lastValueFrom(this.dataVolumesService.createBlankDataVolume(newvmnamespace, disk1name, newvmdiskonesize, newvmdiskonesc));
+                    disk1 = { 'name': "disk1", 'disk': {}};
+                    device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
+                } catch (e) {
+                    alert(e);
+                    throw new Error("For custom VM you need to set cpu and memory parameters!");
+                }
             } else if (newvmdiskonetype == "pvc") {
                 /* Copy Existing PVC */
                 let disk1name = newvmnamespace + "-"+ newvmname + "-disk1";
-                let disk1data = await lastValueFrom(this.dataVolumesService.createPVCDataVolume(newvmnamespace, disk1name, newvmdiskonesize, newvmdiskonesc, newvmdiskonevalue));
-                disk1 = { 'name': "disk1", 'disk': {}};
-                device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
+                try {
+                    let disk1data = await lastValueFrom(this.dataVolumesService.createPVCDataVolume(newvmnamespace, disk1name, newvmdiskonesize, newvmdiskonesc, newvmdiskonevalue));
+                    disk1 = { 'name': "disk1", 'disk': {}};
+                    device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
+                } catch (e) {
+                    alert(e);
+                    throw new Error("For custom VM you need to set cpu and memory parameters!");
+                }
             } else if (newvmdiskonetype == "dv") {
                 /* Use Existing Disk */
                 disk1 = { 'name': "disk1", 'disk': {}};
@@ -516,21 +581,36 @@ export class VmlistComponent implements OnInit {
             if(newvmdisktwotype == "image") {
                 /* Create Disk From Image */
                 let disk2name = newvmnamespace + "-"+ newvmname + "-disk2";
-                let disk2data = await lastValueFrom(this.dataVolumesService.createURLDataVolume(newvmnamespace, disk2name, newvmdisktwosize, newvmdisktwosc, newvmdisktwourl));
-                disk2 = { 'name': "disk2", 'disk': {}};
-                device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
+                try {
+                    let disk2data = await lastValueFrom(this.dataVolumesService.createURLDataVolume(newvmnamespace, disk2name, newvmdisktwosize, newvmdisktwosc, newvmdisktwourl));
+                    disk2 = { 'name': "disk2", 'disk': {}};
+                    device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
+                } catch (e) {
+                    alert(e);
+                    throw new Error("For custom VM you need to set cpu and memory parameters!");
+                }
             } else if (newvmdisktwotype == "blank") {
                 /* Create Blank Disk */
                 let disk2name = newvmnamespace + "-"+ newvmname + "-disk2";
-                let disk2data = await lastValueFrom(this.dataVolumesService.createBlankDataVolume(newvmnamespace, disk2name, newvmdisktwosize, newvmdisktwosc));
-                disk2 = { 'name': "disk2", 'disk': {}};
-                device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
+                try {
+                    let disk2data = await lastValueFrom(this.dataVolumesService.createBlankDataVolume(newvmnamespace, disk2name, newvmdisktwosize, newvmdisktwosc));
+                    disk2 = { 'name': "disk2", 'disk': {}};
+                    device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
+                } catch (e) {
+                    alert(e);
+                    throw new Error("For custom VM you need to set cpu and memory parameters!");
+                }
             } else if (newvmdisktwotype == "pvc") {
                 /* Copy Existing PVC */
+                try {
                 let disk2name = newvmnamespace + "-"+ newvmname + "-disk2";
-                let disk2data = await lastValueFrom(this.dataVolumesService.createPVCDataVolume(newvmnamespace, disk2name, newvmdisktwosize, newvmdisktwosc, newvmdisktwovalue));
-                disk2 = { 'name': "disk2", 'disk': {}};
-                device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
+                    let disk2data = await lastValueFrom(this.dataVolumesService.createPVCDataVolume(newvmnamespace, disk2name, newvmdisktwosize, newvmdisktwosc, newvmdisktwovalue));
+                    disk2 = { 'name': "disk2", 'disk': {}};
+                    device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
+                } catch (e) {
+                    alert(e);
+                    throw new Error("For custom VM you need to set cpu and memory parameters!");
+                }
             }else if (newvmdisktwotype == "dv") {
                 /* Use Existing Disk */
                 disk2 = { 'name': "disk2", 'disk': {}};
