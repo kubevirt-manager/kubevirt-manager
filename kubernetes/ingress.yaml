@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: kubevirt-manager-wifi
+  name: kubevirt-manager
   namespace: kubevirt-manager
   annotations:
     nginx.org/location-snippets: |
