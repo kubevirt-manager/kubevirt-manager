@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: kubevirtmgr
-          image: kubevirtmanager/kubevirt-manager:1.1.0
+          image: kubevirtmanager/kubevirt-manager:1.1.1
           imagePullPolicy: IfNotPresent
           ports:
           - name: http
