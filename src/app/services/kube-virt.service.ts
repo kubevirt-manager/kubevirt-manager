@@ -15,6 +15,11 @@ export class KubeVirtService {
         return this.http.get(`${baseUrl}/virtualmachines`);
     }
 
+    getVM(namespace: string, name: string): Observable<any> {
+        var baseUrl ='/k8s/apis/kubevirt.io/v1alpha3';
+        return this.http.get(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`);
+    }
+
     getPooledVM(namespace: string, pool: string): Observable<any> {
         var baseUrl ='/k8s/apis/kubevirt.io/v1alpha3';
         return this.http.get(`${baseUrl}/namespaces/${namespace}/virtualmachines?labelSelector=kubevirt.io%2Fvmpool%3D${pool}`);
@@ -191,6 +196,33 @@ export class KubeVirtService {
             'accept': 'application/json'
         };
         return this.http.patch(`${baseUrl}/namespaces/${namespace}/virtualmachinepools/${name}`, '{"spec":{"replicas": ' + size + '}}', { 'headers': headers } );
+    }
+
+    scalePool(namespace: string, name: string, cores: string, threads: string, sockets: string, memory: string): Observable<any> {
+        var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
+        const headers = {
+            'content-type': 'application/merge-patch+json',
+            'accept': 'application/json'
+        };
+        return this.http.patch(`${baseUrl}/namespaces/${namespace}/virtualmachinepools/${name}`, '{"spec":{"virtualMachineTemplate":{"spec":{"template":{"spec":{"domain":{"cpu":{"sockets": '+sockets+',"cores": '+cores+',"threads": '+threads+'},"resources":{"requests":{"memory": "'+memory+'Gi"}}}}}}}}}', { 'headers': headers } );
+    }
+
+    createPool(namespace: string, name: string, poolvalue: Object): Observable<any> {
+        var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
+        const headers = {
+            'content-type': 'application/json',
+            'accept': 'application/json'
+        };
+        return this.http.post(`${baseUrl}/namespaces/${namespace}/virtualmachinepools/${name}`, poolvalue, { 'headers': headers } );
+    }
+
+    changePoolType(namespace: string, name: string, type: string): Observable<any> {
+        var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
+        const headers = {
+            'content-type': 'application/merge-patch+json',
+            'accept': 'application/json'
+        };
+        return this.http.patch(`${baseUrl}/namespaces/${namespace}/virtualmachinepools/${name}`, '{"spec":{"virtualMachineTemplate":{"spec":{"instancetype":{"name":"'+type+'"}}}}}', { 'headers': headers } );
     }
 
 }

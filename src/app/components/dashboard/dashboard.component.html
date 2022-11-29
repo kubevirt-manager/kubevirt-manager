@@ -50,22 +50,23 @@
           </div>
         </div>
 
-        <!-- Images -->
+        <!-- VM Pools -->
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
               <h3>{{this.poolInfo}}</h3>
 
-              <p>Pools</p>
+              <p>VM Pools</p>
             </div>
             <div class="icon">
               <i class="ion ion-code"></i>
             </div>
-            <a routerLink="/vmlist" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            <a routerLink="/vmpools" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
           </div>
         </div>
       </div>
       <div class="row">&nbsp;</div>
+
       <!-- SECOND ROW -->
       <div class="row">
         <!-- CPU INFO -->
@@ -128,6 +129,71 @@
           </div>
         </div>
       </div>
+      <div class="row">&nbsp;</div>
+
+      <!-- THIRD ROW -->
+      <div class="row">
+        <!-- STORAGE CLASS -->
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h3>{{this.storageClassesInfo}}</h3>
+
+              <p>Storage Classes</p>
+            </div>
+            <div class="icon">
+              <i class="ion ion-flash"></i>
+            </div>
+            <a routerLink="/disklist" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+          </div>
+        </div>
+
+        <!-- NAMESPACES -->
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h3>{{this.namespacesInfo}}</h3>
+
+              <p>Namespaces</p>
+            </div>
+            <div class="icon">
+              <i class="ion ion-gear-b"></i>
+            </div>
+            <a routerLink="/vmlist" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+          </div>
+        </div>
+
+        <!-- INSTANCE TYPES -->
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h3>{{this.instanceTypesInfo}}</h3>
+
+              <p>Instance Types</p>
+            </div>
+            <div class="icon">
+              <i class="ion ion-folder"></i>
+            </div>
+            <a routerLink="/citlist" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+          </div>
+        </div>
+
+        <!-- SERVICES -->
+        <div class="col-lg-3 col-6">
+          <div class="small-box bg-info">
+            <div class="inner">
+              <h3>0</h3>
+
+              <p>Load Balancers</p>
+            </div>
+            <div class="icon">
+              <i class="ion ion-network"></i>
+            </div>
+            <a routerLink="/netlist" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+          </div>
+        </div>
+      </div>
     </div>
+
   </div>
 </div>

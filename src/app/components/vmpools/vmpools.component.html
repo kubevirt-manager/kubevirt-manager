@@ -8,8 +8,8 @@
               VM Pools
             </h3>
             <div class="card-tools">
-              <button type="button" class="btn btn-tool">
-                  <i class="fas fa-plus-square"></i>
+              <button type="button" class="btn btn-tool" (click)='showNewPool()'>
+                  <i class="fas fa-plus-square" (click)='showNewPool()'></i>
               </button>
             </div>
           </div>
@@ -38,6 +38,12 @@
                     <td style="line-height: 2.2 !important;">{{thisPool.memory}}</td>
                     <td style="line-height: 2.2 !important;">{{thisPool.replicas}}</td>
                     <td style="line-height: 2.2 !important;">
+                        <!--- INFO BUTTON -->
+                        <span>
+                            <a class="btn" (click)='showInfo(thisPool.namespace, thisPool.name)'>
+                              <i class="fas fa-info"></i>
+                            </a>
+                        </span>
                         <!--- POWER ON BUTTON -->
                         <span [ngSwitch]="thisPool.running">
                             <a class="btn disabled" (click)='poolOperations("start", thisPool.namespace, thisPool.name)' *ngSwitchCase="true">
@@ -58,19 +64,22 @@
                         </span>
                         <!--- SCALE REPLICAS -->
                         <span>
-                            <a class="btn">
-                            <i class="fas fa-arrow-up" (click)='showReplicas(thisPool.namespace, thisPool.name)'></i>
+                            <a class="btn"  (click)='showReplicas(thisPool.namespace, thisPool.name)'>
+                            <i class="fas fa-arrow-up"></i>
                             </a>
                         </span>
-                        <!--- CHANGE VM -->
-                        <span>
-                            <a class="btn">
-                            <i class="fas fa-cog"></i>
+                        <!--- CONFIG BUTTON -->
+                        <span [ngSwitch]="thisPool.instType">
+                            <a class="btn" (click)="showResize(thisPool.name, thisPool.namespace, thisPool.sockets, thisPool.cores, thisPool.threads, thisPool.memory)" *ngSwitchCase="'custom'">
+                              <i class="fas fa-cog"></i>
+                            </a>
+                            <a class="btn" (click)="showType(thisPool.name, thisPool.namespace)" *ngSwitchDefault>
+                              <i class="fas fa-cog"></i>
                             </a>
                         </span>
                         <!--- DELETE BUTTON -->
                         <span>
-                            <a class="btn">
+                            <a class="btn" (click)='showDelete(thisPool.namespace, thisPool.name)'>
                             <i class="fas fa-trash"></i>
                             </a>
                         </span>
@@ -149,9 +158,12 @@
                                 </a>
                             </span>
                             <!--- DELETE BUTTON -->
-                            <span>
-                                <a class="btn">
-                                <i class="fas fa-trash"></i>
+                            <span [ngSwitch]="thisVM.running">
+                                <a class="btn disabled" (click)="showDeleteVM(thisVM.name, thisVM.namespace)" *ngSwitchCase="true">
+                                    <i class="fas fa-trash disabled"></i>
+                                </a>
+                                <a class="btn" (click)="showDeleteVM(thisVM.name, thisVM.namespace)" *ngSwitchDefault>
+                                    <i class="fas fa-trash"></i>
                                 </a>
                             </span>
                             </td>
@@ -167,6 +179,364 @@
           <!-- /.card-body -->
         </div>
       </div>
+
+
+    <!--                 -->
+    <!-- Modal: New Pool -->
+    <!--                 -->
+    <div class="modal fade" id="modal-newpool" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content">
+          <form name="newpoolform" id="newpoolform">
+            <div class="modal-header">
+              <h4 class="modal-title" id="newpool-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)="hideNewPool()">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="newpool-value">
+              <div class="card card-primary card-tabs">
+                <div class="card-header p-0 pt-1">
+                  <!-- TABS Selector-->
+                  <ul class="nav nav-tabs" id="custom-tabs-two-tab" role="tablist">
+                    <li class="nav-item">
+                      <a class="nav-link active" id="newpool-home-tab" data-toggle="pill" href="#newpool-home" role="tab" aria-controls="newpool-home" aria-selected="false">Basic</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" id="newpool-labels-tab" data-toggle="pill" href="#newpool-labels" role="tab" aria-controls="newpool-labels" aria-selected="false">Labels</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" id="newpool-cpumem-tab" data-toggle="pill" href="#newpool-cpumem" role="tab" aria-controls="newpool-cpumem" aria-selected="false">CPU/Memory</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" id="newpool-disks-tab" data-toggle="pill" href="#newpool-disks" role="tab" aria-controls="newpool-disks" aria-selected="false">Disk</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" id="newpool-net-tab" data-toggle="pill" href="#newpool-net" role="tab" aria-controls="newpool-net" aria-selected="false">Networking</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" id="newpool-cloudinit-tab" data-toggle="pill" href="#newpool-cloudinit" role="tab" aria-controls="newpool-cloudinit" aria-selected="false">Cloud Init</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="card-body">
+                  <!-- HOME TAB -->
+                  <div class="tab-content" id="custom-tabs-two-tabContent">
+                    <div class="tab-pane fade show active" id="newpool-home" role="tabpanel" aria-labelledby="newpool-home-tab">
+                      <label for="newpool-name">Name:</label>
+                      <input #newpoolname type="text" class="form-control" id="newpool-name" name="newpool-name">
+                      <label for="newpool-namespaces">Namespace:</label>
+                      <select #newpoolnamespace class="custom-select rounded-0" name="newpool-namespace" id="newpool-namespace" (change)="onChangeNamespace(newpoolnamespace.value)">
+                        <option>Value 1</option>
+                      </select>
+                      <label for="newpool-replicas">Replicas:</label>
+                      <input #newpoolreplicas type="number" class="form-control" id="newpool-replicas" name="newpool-replicas">
+                    </div>
+                    <!-- LABELS TAB -->
+                    <div class="tab-pane fade" id="newpool-labels" role="tabpanel" aria-labelledby="newpool-labels-tab">
+                        <table class="table table-sm" style="vertical-align: middle !important;">
+                            <thead>
+                                <tr>
+                                <th style="width: 250px">Key</th>
+                                <th style="width: 250px">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                  <td style="line-height: 2.2 !important;"><input #newpoollabelkeyone type="text" class="form-control" id="newpool-labelkey-one" name="newpool-labelkey-one"></td>
+                                  <td style="line-height: 2.2 !important;"><input #newpoollabelvalueone type="text" class="form-control" id="newpool-labelvalue-one" name="newpool-labelvalue-one"></td>
+                                </tr>
+                                <tr>
+                                  <td style="line-height: 2.2 !important;"><input #newpoollabelkeytwo type="text" class="form-control" id="newpool-labelkey-two" name="newpool-labelkey-two"></td>
+                                  <td style="line-height: 2.2 !important;"><input #newpoollabelvaluetwo type="text" class="form-control" id="newpool-labelvalue-two" name="newpool-labelvalue-two"></td>
+                                </tr>
+                                <tr>
+                                  <td style="line-height: 2.2 !important;"><input #newpoollabelkeythree type="text" class="form-control" id="newpool-labelkey-three" name="newpool-labelkey-three"></td>
+                                  <td style="line-height: 2.2 !important;"><input #newpoollabelvaluethree type="text" class="form-control" id="newpool-labelvalue-three" name="newpool-labelvalue-three"></td>
+                                </tr>
+                                <tr>
+                                  <td style="line-height: 2.2 !important;"><input #newpoollabelkeyfour type="text" class="form-control" id="newpool-labelkey-four" name="newpool-labelkey-four"></td>
+                                  <td style="line-height: 2.2 !important;"><input #newpoollabelvaluefour type="text" class="form-control" id="newpool-labelvalue-four" name="newpool-labelvalue-four"></td>
+                                </tr>
+                                <tr>
+                                  <td style="line-height: 2.2 !important;"><input #newpoollabelkeyfive type="text" class="form-control" id="newpool-labelkey-five" name="newpool-labelkey-five"></td>
+                                  <td style="line-height: 2.2 !important;"><input #newpoollabelvaluefive type="text" class="form-control" id="newpool-labelvalue-five" name="newpool-labelvalue-five"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- CPU/MEM TAB -->
+                    <div class="tab-pane fade" id="newpool-cpumem" role="tabpanel" aria-labelledby="newpool-cpumem-tab">
+                      <label for="newpool-namespaces">Virtual Machine Type:</label>
+                      <select #newpooltype class="custom-select rounded-0" name="newpool-type" id="newpool-type" (change)="onChangeType(newpooltype.value)">
+                          <option>Value 1</option>
+                      </select>
+                      <div class="pane fade" id="custom-cpu-memory" name="custom-cpu-memory" style="display: none;" aria-hidden="true">
+                          <label for="newpool-cpumem-sockets">Sockets:</label>
+                          <input #newpoolcpumemsockets type="number" class="form-control" id="newpool-cpumem-sockets" name="newpool-cpumem-sockets">
+                          <label for="newpool-cpumem-cores">Cores:</label>
+                          <input #newpoolcpumemcores type="number" class="form-control" id="newpool-cpumem-cores" name="newpool-cpumem-cores">
+                          <label for="newpool-cpumem-threads">Threads:</label>
+                          <input #newpoolcpumemthreads type="number" class="form-control" id="newpool-cpumem-threads" name="newpool-cpumem-threads">
+                          <label for="newpool-cpumem-memory">Memory (in GB):</label>
+                          <input #newpoolcpumemmemory type="number" class="form-control" id="newpool-cpumem-memory" name="newpool-cpumem-memory">
+                      </div>
+                      <label for="newpool-priorityclass">Priority Class:</label>
+                      <select #newpoolpc class="custom-select rounded-0" name="newpool-pc" id="newpool-pc">
+                          <option>Value 1</option>
+                      </select>
+                    </div>
+                    <!-- DISK TAB -->
+                    <div class="tab-pane fade" id="newpool-disks" role="tabpanel" aria-labelledby="newpool-disks-tab">
+                      <label for="disk1div">Disk 1:</label>
+                      <div class="row">
+                        <div class="col-2" name="newpool-diskone-type-col">
+                          <label for="newpool-diskonetype">Type:</label>
+                          <select #newpooldiskonetype class="custom-select rounded-0" name="newpool-diskonetype" id="newpool-diskonetype" (change)="onChangeDiskOne(newpooldiskonetype.value,newpoolnamespace.value)">
+                            <option value="none">None</option>
+                            <option value="blank">Blank Disk</option>
+                            <option value="image">Import(URL)</option>
+                            <option value="pvc">Import(PVC)</option>
+                            <option value="dv">Existing Disk</option>
+                          </select>
+                        </div>
+                        <div class="col-4">
+                          <label for="newpool-diskonesc">Storage Class:</label>
+                          <select #newpooldiskonesc class="custom-select rounded-0" name="newpool-diskonesc" id="newpool-diskonesc">
+                          </select>
+                        </div>
+                        <div class="col-4">
+                          <label for="newpool-diskonevalue">Value:</label>
+                          <select #newpooldiskonevalue class="custom-select rounded-0" name="newpool-diskonevalue" id="newpool-diskonevalue" disabled>
+                          </select>
+                        </div>
+                        <div class="col-2">
+                          <label for="newpool-diskonesize">Size in GB:</label>
+                          <input #newpooldiskonesize type=number class="form-control" id="newpool-diskonesize" disabled>
+                        </div>
+                      </div>
+                      <div class="pane fade" id="import-disk1-url" name="import-disk1-url" style="display: none;" aria-hidden="true">
+                          <br>
+                          <label for="newpool-disk1-url">URL: (raw/qcow2)</label>
+                          <input #newpooldiskoneurl type="text" class="form-control" id="newpool-disk1-url" name="newpool-disk1-url">
+                      </div>
+                      <br>
+                      <label for="disk2div">Disk 2:</label>
+                      <div class="row">
+                        <div class="col-2" name="newpool-diskone-type-col">
+                            <label for="newpool-disktwotype">Type:</label>
+                            <select #newpooldisktwotype class="custom-select rounded-0" name="newpool-disktwotype" id="newpool-disktwotype" (change)="onChangeDiskTwo(newpooldisktwotype.value,newpoolnamespace.value)">
+                              <option value="none">None</option>
+                              <option value="blank">Blank Disk</option>
+                              <option value="image">Import(URL)</option>
+                              <option value="pvc">Import(PVC)</option>
+                              <option value="dv">Existing Disk</option>
+                            </select>
+                          </div>
+                          <div class="col-4">
+                            <label for="newpool-disktwosc">Storage Class:</label>
+                            <select #newpooldisktwosc class="custom-select rounded-0" name="newpool-disktwosc" id="newpool-disktwosc">
+                            </select>
+                          </div>
+                          <div class="col-4">
+                              <label for="newpool-disktwovalue">Value:</label>
+                              <select #newpooldisktwovalue class="custom-select rounded-0" name="newpool-disktwovalue" id="newpool-disktwovalue" disabled>
+                              </select>
+                          </div>
+                          <div class="col-2">
+                            <label for="newpool-disktwosize">Size in GB:</label>
+                            <input #newpooldisktwosize type=number class="form-control" id="newpool-disktwosize" disabled>
+                          </div>
+                      </div>
+                      <div class="pane fade" id="import-disk2-url" name="import-disk2-url" style="display: none;" aria-hidden="true">
+                          <br>
+                          <label for="newpool-disk2-url">URL: (raw/qcow2)</label>
+                          <input #newpooldisktwourl type="text" class="form-control" id="newpool-disk2-url" name="newpool-disk2-url">
+                      </div>
+                    </div>
+                    <!-- NETWORK TAB -->
+                    <div class="tab-pane fade" id="newpool-net" role="tabpanel" aria-labelledby="newpool-net-tab">
+                      <label for="newpool-network">Network:</label>
+                      <select #newpoolnetwork class="custom-select rounded-0" name="newpool-network" id="newpool-network">
+                        <option value=podNetwork>podNetwork</option>
+                      </select>
+                    </div>
+                    <!-- CLOUDINIT TAB -->
+                    <div class="tab-pane fade" id="newpool-cloudinit" role="tabpanel" aria-labelledby="newpool-cloudinit-tab">
+                      <label for="newpool-cloudinit-username">Username:</label>
+                      <input #newpoolcloudinitusername type="text" class="form-control" id="newpool-cloudinit-username" name="newpool-cloudinit-username">
+                      <label for="newpool-cloudinit-password">Password:</label>
+                      <input #newpoolcloudinitpassword type="password" class="form-control" id="newpool-cloudinit-password" name="newpool-cloudinit-password">
+                    </div>
+                  </div>
+                </div>
+                <!-- /.card -->
+              </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)="hideNewPool()">Close</button>
+              <button type="button" class="btn btn-primary" (click)="applyNewPool(newpoolname.value, newpoolnamespace.value, newpoolreplicas.value, newpoollabelkeyone.value, newpoollabelvalueone.value, newpoollabelkeytwo.value, newpoollabelvaluetwo.value, newpoollabelkeythree.value, newpoollabelvaluethree.value, newpoollabelkeyfour.value, newpoollabelvaluefour.value, newpoollabelkeyfive.value, newpoollabelvaluefive.value, newpooltype.value, newpoolcpumemsockets.value, newpoolcpumemcores.value, newpoolcpumemthreads.value, newpoolcpumemmemory.value, newpoolpc.value, newpooldiskonetype.value, newpooldiskonevalue.value, newpooldiskonesize.value, newpooldiskonesc.value, newpooldiskoneurl.value, newpooldisktwotype.value, newpooldisktwovalue.value, newpooldisktwosize.value, newpooldisktwosc.value, newpooldisktwourl.value, newpoolnetwork.value, newpoolcloudinitusername.value, newpoolcloudinitpassword.value)">Create</button>
+            </div>
+          </form>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+  
+
+
+
+
+
+
+
+
+    <!--                    -->
+    <!-- Modal: INFO        -->
+    <!--                    -->
+    <div class="modal fade" id="modal-info" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="info-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)="hideInfo()">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="info-value">
+                <ul class="nav flex-column" id="info-cards">
+                    TEMPLATE
+                </ul>
+            </div>
+            <div class="modal-footer justify-content-center">
+              <button type="button" class="btn btn-default" (click)="hideInfo()">Close</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+    </div>
+
+    <!--               -->
+    <!-- Modal: Delete -->
+    <!--               -->
+    <div class="modal fade" id="modal-delete" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="delete-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)="hideDelete()">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <input type="hidden" id="delete-namespace" name="delete-namespace" value="">
+            <input type="hidden" id="delete-name" name="delete-name" value="">
+            <div class="modal-body" id="delete-value">
+              <p>BODY_TEMPLATE</p>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)="hideDelete()">Close</button>
+              <button type="button" class="btn btn-danger" (click)="applyDelete()">Delete</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!--                 -->
+    <!-- Modal: DeleteVM -->
+    <!--                 -->
+    <div class="modal fade" id="modal-deletevm" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="deletevm-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)="hideDeleteVM()">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <input type="hidden" id="deletevm-namespace" name="deletevm-namespace" value="">
+            <input type="hidden" id="deletevm-name" name="deletevm-name" value="">
+            <div class="modal-body" id="deletevm-value">
+              <p>BODY_TEMPLATE</p>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)="hideDeleteVM()">Close</button>
+              <button type="button" class="btn btn-danger" (click)="applyDeleteVM()">Delete</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!--                    -->
+    <!-- Modal: Change Type -->
+    <!--                    -->
+    <div class="modal fade" id="modal-type" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="type-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)="hideType()">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <input type="hidden" id="type-pool" name="type-pool" value="">
+            <input type="hidden" id="type-namespace" name="type-namespace" value="">
+            <div class="modal-body" id="type-value">
+              <label for="newType">Virtual Machine Pool Type:</label>
+              <select #changepooltype class="custom-select rounded-0" name="changepool-type" id="changepool-type">
+                  <option>Value 1</option>
+              </select>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)="hideType()">Close</button>
+              <button type="button" class="btn btn-primary" (click)="applyType(changepooltype.value)">Save changes</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+  
+
+    <!--               -->
+    <!-- Modal: Resize -->
+    <!--               -->
+    <div class="modal fade" id="modal-resize" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="resize-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)="hideResize()">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="resize-value">
+              <input #resizeName type="hidden" id="resize-name" name="resize-name" value="">
+              <input #resizeNamespace type="hidden" id="resize-namespace" name="resize-namespace" value="">
+              <label for="fileInput">Sockets:</label>
+              <input #resizeSockets type="number" class="form-control" id="resize-sockets" name="resize-sockets">
+              <label for="fileInput">Cores:</label>
+              <input #resizeCores type="number" class="form-control" id="resize-cores" name="resize-cores">
+              <label for="fileInput">Threads:</label>
+              <input #resizeThreads type="number" class="form-control" id="resize-threads" name="resize-threas">
+              <label for="fileInput">Memory (in GB):</label>
+              <input #resizeMemory type="number" class="form-control" id="resize-memory" name="resize-memory">
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)="hideResize()">Close</button>
+              <button type="button" class="btn btn-primary" (click)="applyResize(resizeSockets.value, resizeCores.value, resizeThreads.value, resizeMemory.value)">Save changes</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
 
     <!--                 -->
     <!-- Modal: Replicas -->

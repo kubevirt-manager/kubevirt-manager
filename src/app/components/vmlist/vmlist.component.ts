@@ -10,7 +10,7 @@ import { VMDisk } from 'src/app/models/vmdisk.model';
 import { NetworkAttach } from 'src/app/models/network-attach.model';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { DataVolumesService } from 'src/app/services/data-volumes.service';
-import { ExpressionType } from '@angular/compiler';
+import { VirtualMachine } from 'src/app/templates/virtual-machine.apitemplate';
 
 
 @Component({
@@ -28,79 +28,8 @@ export class VmlistComponent implements OnInit {
     netAttachList: NetworkAttach[] = []
     networkCheck: boolean = false;
 
-    myVmTemplateTyped = {
-        'apiVersion': "kubevirt.io/v1alpha3",
-        'kind': "VirtualMachine",
-        'metadata':{
-            'name': "",
-            'namespace': "",
-            'labels': {}
-        },
-        'spec': {
-            'instancetype': {
-                'kind': "VirtualMachineClusterInstancetype",
-                'name': ""
-            },
-            'running' : false,
-            'template':{
-                'metadata': {
-                    'labels': {}
-                },
-                'spec': {
-                    'nodeSelector':{},
-                    'priorityClassName': "",
-                    'domain': {
-                        'devices': {
-                            'disks':[{}],
-                            'interfaces': [{}]
-                        },
-                    },
-                    'networks':[{}],
-                    'volumes':[{}]
-                }
-            }
-        }
-    };
-
-    myVmTemplateCustom = {
-        'apiVersion': "kubevirt.io/v1alpha3",
-        'kind': "VirtualMachine",
-        'metadata':{
-            'name': "",
-            'namespace': "",
-            'labels': {}
-        },
-        'spec': {
-            'running' : false,
-            'template':{
-                'metadata': {
-                    'labels': {}
-                },
-                'spec': {
-                    'nodeSelector':{},
-                    'priorityClassName': "",
-                    'domain': {
-                        'cpu': {
-                            'sockets': 0,
-                            'threads': 0,
-                            'cores': 0
-                        },
-                        'devices': {
-                            'disks':[{}],
-                            'interfaces': [{}]
-                        },
-                        'resources': {
-                            'requests': {
-                                'memory': ""
-                            }
-                        }
-                    },
-                    'networks':[{}],
-                    'volumes':[{}]
-                }
-            }
-        }
-    };
+    myVmTemplateTyped = new VirtualMachine().typedVM;
+    myVmTemplateCustom = new VirtualMachine().customVM;
 
     constructor(
         private k8sService: K8sService,
@@ -420,42 +349,41 @@ export class VmlistComponent implements OnInit {
         } else {
 
             /* Load Custom Labels */
-            let tmpLabels = [{}];
-            tmpLabels.pop();
+            let tmpLabels = {};
             if(newvmlabelkeyone != "") {
                 let thisLabel = {
                     [newvmlabelkeyone]: newvmlabelvalueone
                 };
-                tmpLabels.push(thisLabel);
+                Object.assign(tmpLabels, thisLabel);
             }
             if(newvmlabelkeytwo != "") {
                 let thisLabel = {
                     [newvmlabelkeytwo]: newvmlabelvaluetwo
                 };
-                tmpLabels.push(thisLabel);
+                Object.assign(tmpLabels, thisLabel);
             }
             if(newvmlabelkeythree != "") {
                 let thisLabel = {
                     [newvmlabelkeythree]: newvmlabelvaluethree
                 };
-                tmpLabels.push(thisLabel);
+                Object.assign(tmpLabels, thisLabel);
             }
             if(newvmlabelkeyfour != "") {
                 let thisLabel = {
                     [newvmlabelkeyfour]: newvmlabelvaluefour
                 };
-                tmpLabels.push(thisLabel);
+                Object.assign(tmpLabels, thisLabel);
             }
             if(newvmlabelkeyfive != "") {
                 let thisLabel = {
                     [newvmlabelkeyfive]: newvmlabelvaluefive
                 };
-                tmpLabels.push(thisLabel);
+                Object.assign(tmpLabels, thisLabel);
             }
 
             /* Load other labels */
             let thisLabel = {'kubevirt.io/domain': newvmname};
-            tmpLabels.push(thisLabel);
+            Object.assign(tmpLabels, thisLabel);
 
             /* Check VM Type */
             if(newvmtype.toLowerCase() == "custom") {
@@ -468,7 +396,7 @@ export class VmlistComponent implements OnInit {
                     this.myVmTemplateCustom.metadata.namespace = newvmnamespace;
                     this.myVmTemplateCustom.metadata.labels = tmpLabels;
                     this.myVmTemplateCustom.spec.template.metadata.labels = tmpLabels;
-                    this.myVmTemplateCustom.spec.template.spec.nodeSelector = {'kubernetes.io/hostname': newvmnode};
+                    this.myVmTemplateCustom.spec.template.spec.nodeSelector = tmpLabels;
                     this.myVmTemplateCustom.spec.template.spec.priorityClassName = newvmpriorityclass;
                     this.myVmTemplateCustom.spec.template.spec.domain.cpu.cores = Number(newvmcpumemcores);
                     this.myVmTemplateCustom.spec.template.spec.domain.cpu.threads = Number(newvmcpumemthreads);
@@ -508,11 +436,13 @@ export class VmlistComponent implements OnInit {
                     this.myVmTemplateTyped.spec.template.spec.domain.devices.interfaces.pop();
                 }
 
+                this.myVmTemplateTyped.apiVersion = "kubevirt.io/v1alpha3";
+                this.myVmTemplateTyped.kind = "VirtualMachine";
                 this.myVmTemplateTyped.metadata.name = newvmname;
                 this.myVmTemplateTyped.metadata.namespace = newvmnamespace;
                 this.myVmTemplateTyped.metadata.labels = tmpLabels;
                 this.myVmTemplateTyped.spec.template.metadata.labels = tmpLabels;
-                this.myVmTemplateTyped.spec.template.spec.nodeSelector = {'kubernetes.io/hostname': newvmnode};
+                this.myVmTemplateTyped.spec.template.spec.nodeSelector = tmpLabels;
                 this.myVmTemplateTyped.spec.template.spec.priorityClassName = newvmpriorityclass;
                 this.myVmTemplateTyped.spec.instancetype.name = newvmtype;
             }
@@ -547,7 +477,7 @@ export class VmlistComponent implements OnInit {
                     device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
                 } catch (e) {
                     alert(e);
-                    throw new Error("For custom VM you need to set cpu and memory parameters!");
+                    throw new Error("Error creating Disk1 from Image!");
                 }
             } else if (newvmdiskonetype == "blank") {
                 /* Create Blank Disk */
@@ -558,7 +488,7 @@ export class VmlistComponent implements OnInit {
                     device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
                 } catch (e) {
                     alert(e);
-                    throw new Error("For custom VM you need to set cpu and memory parameters!");
+                    throw new Error("Error creating Disk1 from Blank!");
                 }
             } else if (newvmdiskonetype == "pvc") {
                 /* Copy Existing PVC */
@@ -569,7 +499,7 @@ export class VmlistComponent implements OnInit {
                     device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
                 } catch (e) {
                     alert(e);
-                    throw new Error("For custom VM you need to set cpu and memory parameters!");
+                    throw new Error("Error creating Disk1 from PVC!");
                 }
             } else if (newvmdiskonetype == "dv") {
                 /* Use Existing Disk */
@@ -587,7 +517,7 @@ export class VmlistComponent implements OnInit {
                     device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
                 } catch (e) {
                     alert(e);
-                    throw new Error("For custom VM you need to set cpu and memory parameters!");
+                    throw new Error("Error creating Disk2 from Image!");
                 }
             } else if (newvmdisktwotype == "blank") {
                 /* Create Blank Disk */
@@ -598,7 +528,7 @@ export class VmlistComponent implements OnInit {
                     device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
                 } catch (e) {
                     alert(e);
-                    throw new Error("For custom VM you need to set cpu and memory parameters!");
+                    throw new Error("Error creating Disk2 from Blank!");
                 }
             } else if (newvmdisktwotype == "pvc") {
                 /* Copy Existing PVC */
@@ -609,7 +539,7 @@ export class VmlistComponent implements OnInit {
                     device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
                 } catch (e) {
                     alert(e);
-                    throw new Error("For custom VM you need to set cpu and memory parameters!");
+                    throw new Error("Error creating Disk2 from PVC!");
                 }
             }else if (newvmdisktwotype == "dv") {
                 /* Use Existing Disk */
@@ -919,6 +849,56 @@ export class VmlistComponent implements OnInit {
     }
 
     /*
+     * Show Info Window
+     */
+    async showInfo(vmNamespace: string, vmName: string): Promise<void> {
+        let myInnerHTML = "";
+        let modalDiv = document.getElementById("modal-info");
+        let modalTitle = document.getElementById("info-title");
+        let modalBody = document.getElementById("info-cards");
+        if(modalTitle != null) {
+            modalTitle.replaceChildren("Info");
+        }
+        if(modalBody != null) {
+            let data = await lastValueFrom(this.kubeVirtService.getVM(vmNamespace, vmName));
+            myInnerHTML += "<li class=\"nav-item\">VM Name: <span class=\"float-right badge bg-primary\">" + data.metadata.name + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">VM Namespace: <span class=\"float-right badge bg-primary\">" + data.metadata.namespace + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">Creation Timestamp: <span class=\"float-right badge bg-primary\">" + data.metadata.creationTimestamp + "</span></li>";
+            if(data.metadata.labels != null) {
+                let labels = Object.entries(data.metadata.labels);
+                for(let i = 0; i < labels.length; i++){
+                    let thisLabel = labels[i];
+                    myInnerHTML += "<li class=\"nav-item\">Labels: <span class=\"float-right badge bg-primary\">" + thisLabel[0] + ": " + thisLabel[1] + "</span></li>";
+                }
+            }
+            myInnerHTML += "<li class=\"nav-item\">Status: <span class=\"float-right badge bg-primary\">" + data.status.printableStatus + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">Ready: <span class=\"float-right badge bg-primary\">" + data.status.ready + "</span></li>";
+            modalBody.innerHTML = myInnerHTML;
+        }
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+    }
+
+  /*
+   * Hide Info Window
+   */
+    hideInfo(): void {
+        let modalDiv = document.getElementById("modal-info");
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade");
+            modalDiv.setAttribute("aria-modal", "false");
+            modalDiv.setAttribute("role", "");
+            modalDiv.setAttribute("aria-hidden", "true");
+            modalDiv.setAttribute("style","display: none;");
+        }
+    }
+
+    /*
      * VM Basic Operations (start, stop, etc...)
      */
     async vmOperations(vmOperation: string, vmNamespace: string, vmName: string): Promise<void> {
@@ -1119,9 +1099,9 @@ export class VmlistComponent implements OnInit {
      */
     async onChangeNamespace(namespace: string) {
         let selectorNetworkField = document.getElementById("newvm-network");
+        let networkSelectorOptions = "<option value=podNetwork>podNetwork</option>\n";
         if(this.networkCheck) {
             let data = await lastValueFrom(this.k8sApisService.getNetworkAttachs());
-            let networkSelectorOptions = "<option value=podNetwork>podNetwork</option>\n";
             let netAttach = data.items;
             for (let i = 0; i < netAttach.length; i++) {
                 if(namespace == netAttach[i].metadata["namespace"]) {
@@ -1133,10 +1113,9 @@ export class VmlistComponent implements OnInit {
                     networkSelectorOptions += "<option value=" + netAttach[i].metadata["name"] + ">" + netAttach[i].metadata["name"] + "</option>\n";
                 }
             }
-            if (selectorNetworkField != null && networkSelectorOptions != "") {
-                selectorNetworkField.innerHTML = networkSelectorOptions;
-                selectorNetworkField.removeAttribute("disabled");
-            }
+        }
+        if (selectorNetworkField != null && networkSelectorOptions != "") {
+            selectorNetworkField.innerHTML = networkSelectorOptions;
         }
     }
 

@@ -1,101 +1,17 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { DataVolume } from '../templates/data-volume.apitemplate';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DataVolumesService {
 
-    blankDiskTemplate = {
-        "apiVersion":"cdi.kubevirt.io/v1beta1",
-        "kind":"DataVolume",
-        "metadata":{
-            "name":"",
-            "namespace":"",
-            "annotations": {
-                "cdi.kubevirt.io/storage.deleteAfterCompletion": "false"
-            }
-        },
-        "spec":{
-            "pvc": {
-                "storageClassName": "",
-                "accessModes":[
-                    "ReadWriteOnce"
-                ],
-                "resources":{
-                    "requests":{
-                        "storage":""
-                    }
-                }
-            },
-            "source":{
-                "blank":{}
-            }
-        }
-    }
-
-    urlDiskTemplate = {
-        "apiVersion":"cdi.kubevirt.io/v1beta1",
-        "kind":"DataVolume",
-        "metadata":{
-            "name":"",
-            "namespace":"",
-            "annotations": {
-                "cdi.kubevirt.io/storage.deleteAfterCompletion": "false"
-            }
-        },
-        "spec":{
-            "pvc": {
-                "storageClassName": "",
-                "accessModes":[
-                    "ReadWriteOnce"
-                ],
-                "resources":{
-                    "requests":{
-                        "storage":""
-                    }
-                }
-            },
-            "source":{
-                "http":{
-                    "url": ""
-                }
-            }
-        }
-    }
-
-    pvcDiskTemplate = {
-        "apiVersion":"cdi.kubevirt.io/v1beta1",
-        "kind":"DataVolume",
-        "metadata":{
-            "name":"",
-            "namespace":"",
-            "annotations": {
-                "cdi.kubevirt.io/storage.deleteAfterCompletion": "false"
-            }
-        },
-        "spec":{
-            "pvc": {
-                "storageClassName": "",
-                "accessModes":[
-                    "ReadWriteOnce"
-                ],
-                "resources":{
-                    "requests":{
-                        "storage":""
-                    }
-                }
-            },
-            "source":{
-                "pvc":{
-                    "name": "",
-                    "namespace": ""
-                }
-            }
-        }
-    }
-
+    blankDiskTemplate = new DataVolume().blankDisk;
+    urlDiskTemplate = new DataVolume().urlDisk;
+    pvcDiskTemplate = new DataVolume().pvcDisk;
+    
     constructor(private http: HttpClient) { }
 
     getDataVolumes(): Observable<any> {

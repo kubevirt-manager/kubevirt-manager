@@ -5,7 +5,13 @@ import { lastValueFrom } from 'rxjs';
 import { KubeVirtVM } from 'src/app/models/kube-virt-vm.model';
 import { KubeVirtVMI } from 'src/app/models/kube-virt-vmi.model';
 import { KubeVirtVMPool } from 'src/app/models/kube-virt-vmpool.model';
+import { NetworkAttach } from 'src/app/models/network-attach.model';
+import { DataVolumesService } from 'src/app/services/data-volumes.service';
+import { K8sApisService } from 'src/app/services/k8s-apis.service';
+import { K8sService } from 'src/app/services/k8s.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
+import { DataVolume } from 'src/app/templates/data-volume.apitemplate';
+import { VMPool } from 'src/app/templates/vmpool.apitemplate';
 
 @Component({
   selector: 'app-vmpools',
@@ -16,14 +22,28 @@ export class VMPoolsComponent implements OnInit {
 
     poolList: KubeVirtVMPool[] = [];
     vmList: KubeVirtVM[] = [];
+    namespaceList: string[] = [];
+    networkList: NetworkAttach[] = [];
+    netAttachList: NetworkAttach[] = []
+    networkCheck: boolean = false;
+
+    myVmPoolCustom = new VMPool().myVmPoolCustom;
+    myVmPoolTyped = new VMPool().myVmPoolType;
+    blankDiskTemplate = new DataVolume().blankDisk;
+    urlDiskTemplate = new DataVolume().urlDisk;
+    pvcDiskTemplate = new DataVolume().pvcDisk;
 
     constructor(
         private router: Router,
+        private k8sService: K8sService,
+        private k8sApisService: K8sApisService,
+        private dataVolumesService: DataVolumesService,
         private kubeVirtService: KubeVirtService
     ) { }
 
     async ngOnInit(): Promise<void> {
         await this.getPools();
+        await this.checkNetwork();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Virtual Machine Pools");
@@ -73,8 +93,6 @@ export class VMPoolsComponent implements OnInit {
             }
             await this.getPoolVM(currentPool.namespace, currentPool.name);
             currentPool.vmlist = this.vmList;
-            console.log(currentPool);
-            console.log(pools[i]);
             this.poolList.push(currentPool);
         }
     }
@@ -164,6 +182,470 @@ export class VMPoolsComponent implements OnInit {
     }
 
     /*
+     * Show New Pool Window
+     */
+    async showNewPool(): Promise<void> {
+        let i = 0;
+        let modalDiv = document.getElementById("modal-newpool");
+        let modalTitle = document.getElementById("newpool-title");
+        let modalBody = document.getElementById("newpool-value");
+
+        let selectorNamespacesField = document.getElementById("newpool-namespace");
+        let selectorTypeField = document.getElementById("newpool-type");
+        let selectorPCField = document.getElementById("newpool-pc");
+        let selectorSCOneField = document.getElementById("newpool-diskonesc");
+        let selectorSCTwoField = document.getElementById("newpool-disktwosc");
+
+        /* Load Namespace List and Set Selector */
+        let data = await lastValueFrom(this.k8sService.getNamespaces());
+        let nsSelectorOptions = "";
+        for (i = 0; i < data.items.length; i++) {
+            this.namespaceList.push(data.items[i].metadata["name"]);
+            nsSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
+        }
+        if (selectorNamespacesField != null) {
+            selectorNamespacesField.innerHTML = nsSelectorOptions;
+        }
+
+        /* Load ClusterInstanceType List and Set Selector */
+        data = await lastValueFrom(this.kubeVirtService.getClusterInstanceTypes());
+        let typeSelectorOptions = "<option value=none></option>";
+        for (i = 0; i < data.items.length; i++) {
+            typeSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
+        }
+        if (selectorTypeField != null) {
+            typeSelectorOptions += "<option value=custom>custom</option>\n";
+            selectorTypeField.innerHTML = typeSelectorOptions;
+        }
+
+        /* Load Priority Class List and Set Selector */
+        data = await lastValueFrom(this.k8sApisService.getStorageClasses());
+        let storageSelectorOptions = "";
+        for (i = 0; i < data.items.length; i++) {
+            storageSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
+        }
+        if (selectorSCOneField != null && selectorSCTwoField != null) {
+            selectorSCOneField.innerHTML = storageSelectorOptions;
+            selectorSCTwoField.innerHTML = storageSelectorOptions;
+        }
+
+        /* Load Storage Class List and Set Selector */
+        data = await lastValueFrom(this.k8sApisService.getPriorityClasses());
+        let prioritySelectorOptions = "";
+        for (i = 0; i < data.items.length; i++) {
+            if(data.items[i].metadata["name"].toLowerCase() == "vm-standard") {
+                prioritySelectorOptions += "<option value=" + data.items[i].metadata["name"] +" selected>" + data.items[i].metadata["name"] + "</option>\n";
+            } else {
+                prioritySelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
+            }
+        }
+        if (selectorPCField != null) {
+            selectorPCField.innerHTML = prioritySelectorOptions;
+        }
+
+        if(modalTitle != null) {
+            modalTitle.replaceChildren("New Virtual Machine Pool");
+        }
+
+        /* Clean up devices */
+        while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.length > 0) {
+            this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.pop();
+        }
+        while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.volumes.length > 0){
+            this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.volumes.pop();
+        }
+        while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.length > 0) {
+            this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.pop();
+        }
+        while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.volumes.length > 0){
+            this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.volumes.pop();
+        }
+
+        /* Clean up networks */
+        while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.networks.length > 0){
+            this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.networks.pop();
+        }
+        while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.length > 0) {
+            this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.pop();
+        }
+        while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.networks.length > 0){
+            this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.networks.pop();
+        }
+        while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.length > 0) {
+            this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.pop();
+        }
+
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+    }
+
+    /*
+     * Hide New Pool Window
+     */
+    hideNewPool(): void {
+        let modalDiv = document.getElementById("modal-newpool");
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade");
+            modalDiv.setAttribute("aria-modal", "false");
+            modalDiv.setAttribute("role", "");
+            modalDiv.setAttribute("aria-hidden", "true");
+            modalDiv.setAttribute("style","display: none;");
+        }
+    }
+
+
+
+
+
+    /*
+     * New VM: Create the New VM
+     */
+    async applyNewPool(
+        newpoolname: string,
+        newpoolnamespace: string,
+        newpoolreplicas: string,
+        newpoollabelkeyone: string,
+        newpoollabelvalueone: string,
+        newpoollabelkeytwo: string,
+        newpoollabelvaluetwo: string,
+        newpoollabelkeythree: string,
+        newpoollabelvaluethree: string,
+        newpoollabelkeyfour: string,
+        newpoollabelvaluefour: string,
+        newpoollabelkeyfive: string,
+        newpoollabelvaluefive: string,
+        newpooltype: string,
+        newpoolcpumemsockets: string,
+        newpoolcpumemcores: string,
+        newpoolcpumemthreads: string,
+        newpoolcpumemmemory: string,
+        newpoolpriorityclass: string,
+        newpooldiskonetype: string,
+        newpooldiskonevalue: string,
+        newpooldiskonesize: string,
+        newpooldiskonesc: string,
+        newpooldiskoneurl: string,
+        newpooldisktwotype: string,
+        newpooldisktwovalue: string,
+        newpooldisktwosize: string,
+        newpooldisktwosc: string,
+        newpooldisktwourl: string,
+        newpoolnetwork: string,
+        newpoolcloudinitusername: string,
+        newpoolcloudinitpassword: string
+    ) {
+        /* Basic Form Fields Check/Validation */
+        if(newpoolname == "" || newpoolnamespace == "") {
+            alert("You need to fill in the name and namespace fields!");
+        } else if (newpooldiskonetype == "none") {
+            alert("Your virtual machine needs at least the first disk!");
+        } else if ((newpooldiskonetype == "blank" || newpooldiskonetype == "image") && newpooldiskonesize == "") {
+            alert("You need to set a size for your disk!");
+        } else if (newpooldiskonetype == "image" && newpooldiskoneurl == "") {
+            alert("You need to select a source image for your disk!");
+        } else if (newpooldiskonetype == "disk" && newpooldiskonevalue == "") {
+            alert("You need to select the disk!");
+        } else if ((newpooldisktwotype == "blank" || newpooldisktwotype == "image") && newpooldisktwosize == "") {
+            alert("You need to set a size for your disk!");
+        } else if (newpooldisktwotype == "image" && newpooldisktwourl == "") {
+            alert("You need to select a source image for your disk!");
+        } else if (newpooldisktwotype == "disk" && newpooldisktwovalue == "") {
+            alert("You need to select the disk!");
+        } else if(this.checkPoolExists(newpoolname, newpoolnamespace)) {
+            alert("Pool with name/namespace combination already exists!");
+        } else if(newpooltype.toLowerCase() == "none" || newpooltype.toLocaleLowerCase() == "") {
+            alert("Please select a valid VM type!");
+        } else {
+
+            /* Load Custom Labels */
+            let tmpLabels = {};
+            if(newpoollabelkeyone != "") {
+                let thisLabel = {
+                    [newpoollabelkeyone]: newpoollabelvalueone
+                };
+                Object.assign(tmpLabels, thisLabel);
+            }
+            if(newpoollabelkeytwo != "") {
+                let thisLabel = {
+                    [newpoollabelkeytwo]: newpoollabelvaluetwo
+                };
+                Object.assign(tmpLabels, thisLabel);
+            }
+            if(newpoollabelkeythree != "") {
+                let thisLabel = {
+                    [newpoollabelkeythree]: newpoollabelvaluethree
+                };
+                Object.assign(tmpLabels, thisLabel);
+            }
+            if(newpoollabelkeyfour != "") {
+                let thisLabel = {
+                    [newpoollabelkeyfour]: newpoollabelvaluefour
+                };
+                Object.assign(tmpLabels, thisLabel);
+            }
+            if(newpoollabelkeyfive != "") {
+                let thisLabel = {
+                    [newpoollabelkeyfive]: newpoollabelvaluefive
+                };
+                Object.assign(tmpLabels, thisLabel);
+            }
+
+            /* Load other labels */
+            let thisLabel = {'kubevirt.io/vmpool': newpoolname};
+            Object.assign(tmpLabels, thisLabel);
+
+            /* Check VM Type */
+            if(newpooltype.toLowerCase() == "custom") {
+                if(newpoolcpumemsockets == "" || newpoolcpumemcores == "" || newpoolcpumemthreads == "" || newpoolcpumemmemory == "") {
+                    alert("For custom VM you need to set cpu and memory parameters!");
+                    throw new Error("For custom VM you need to set cpu and memory parameters!");
+                } else {
+                    /* Custom VM */
+                    this.myVmPoolCustom.metadata.name = newpoolname;
+                    this.myVmPoolCustom.metadata.namespace = newpoolnamespace;
+                    this.myVmPoolCustom.metadata.labels =  tmpLabels;
+                    this.myVmPoolCustom.spec.selector.matchLabels = tmpLabels;
+                    this.myVmPoolCustom.spec.virtualMachineTemplate.metadata.labels = tmpLabels;
+                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.metadata.labels = tmpLabels;
+                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.priorityClassName = newpoolpriorityclass;
+
+                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.cpu.cores = Number(newpoolcpumemcores);
+                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.cpu.threads = Number(newpoolcpumemthreads);
+                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.cpu.sockets = Number(newpoolcpumemsockets);
+                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.resources.requests.memory = newpoolcpumemmemory + "Gi";
+
+                    /* Clean up datavolume */
+                    while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.dataVolumeTemplates.length > 0) {
+                        this.myVmPoolCustom.spec.virtualMachineTemplate.spec.dataVolumeTemplates.pop();
+                    }
+
+                    /* Clean up devices */
+                    while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.length > 0) {
+                        this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.pop();
+                    }
+                    while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.volumes.length > 0){
+                        this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.volumes.pop();
+                    }
+                
+                    /* Clean up networks */
+                    while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.networks.length > 0){
+                        this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.networks.pop();
+                    }
+                    while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.length > 0) {
+                        this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.pop();
+                    }
+                }
+            } else {
+                /* Clean up datavolume */
+                while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.dataVolumeTemplates.length > 0) {
+                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.dataVolumeTemplates.pop();
+                }
+
+                /* Clean up devices */
+                while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.length > 0) {
+                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.pop();
+                }
+                while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.volumes.length > 0){
+                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.volumes.pop();
+                }
+            
+                /* Clean up networks */
+                while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.networks.length > 0){
+                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.networks.pop();
+                }
+                while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.length > 0) {
+                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.pop();
+                }
+
+                this.myVmPoolTyped.metadata.name = newpoolname;
+                this.myVmPoolTyped.metadata.namespace = newpoolnamespace;
+                this.myVmPoolTyped.metadata.labels =  tmpLabels;
+                this.myVmPoolTyped.spec.selector.matchLabels = tmpLabels;
+                this.myVmPoolTyped.spec.virtualMachineTemplate.metadata.labels = tmpLabels;
+                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.metadata.labels = tmpLabels;
+                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.priorityClassName = newpoolpriorityclass;
+                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.instancetype.name = newpooltype;
+            }
+
+            /* Placeholders */
+            let data = "";
+            let disk1dv = {};
+            let disk2dv = {};
+            let disk1 = {};
+            let disk2 = {};
+            let disk3 = {};
+            let device1 = {};
+            let device2 = {};
+            let device3 = {};
+            let net1 = {};
+            let iface1 = {};
+
+            let cloudconfig  = "#cloud-config\n";
+                cloudconfig += "manage_etc_hosts: true\n";
+                cloudconfig += "hostname: " + newpoolname + "\n";
+
+            /* Disk1 setup */
+            if(newpooldiskonetype == "image") {
+                /* Create Disk From Image */
+                let disk1name = newpoolnamespace + "-"+ newpoolname + "-disk1";
+                let tmpdv = this.urlDiskTemplate;
+                tmpdv.metadata.name = disk1name;
+                tmpdv.metadata.namespace = newpoolnamespace;
+                tmpdv.spec.pvc.storageClassName = newpooldiskonesc;
+                tmpdv.spec.pvc.resources.requests.storage = newpooldiskonesize + "Gi";
+                tmpdv.spec.source.http.url = newpooldiskoneurl;
+                disk1 = { 'name': "disk1", 'disk': {}};
+                device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
+                disk1dv = tmpdv;
+            } else if (newpooldiskonetype == "blank") {
+                /* Create Blank Disk */
+                let disk1name = newpoolnamespace + "-"+ newpoolname + "-disk1";
+                let tmpdv = this.blankDiskTemplate;
+                tmpdv.metadata.name = disk1name;
+                tmpdv.metadata.namespace = newpoolnamespace;
+                tmpdv.spec.pvc.storageClassName = newpooldiskonesc;
+                tmpdv.spec.pvc.resources.requests.storage = newpooldiskonesize + "Gi";
+                disk1 = { 'name': "disk1", 'disk': {}};
+                device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
+                disk1dv = tmpdv;
+            } else if (newpooldiskonetype == "pvc") {
+                /* Copy Existing PVC */
+                let disk1name = newpoolnamespace + "-"+ newpoolname + "-disk1";
+                let tmpdv = this.pvcDiskTemplate;
+                tmpdv.metadata.name = disk1name;
+                tmpdv.metadata.namespace = newpoolnamespace;
+                tmpdv.spec.pvc.storageClassName = newpooldiskonesc;
+                tmpdv.spec.pvc.resources.requests.storage = newpooldiskonesize + "Gi";
+                tmpdv.spec.source.pvc.name = newpooldiskonevalue;
+                tmpdv.spec.source.pvc.namespace = newpoolnamespace;
+                disk1 = { 'name': "disk1", 'disk': {}};
+                device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
+                disk1dv = tmpdv;
+            }
+
+            /* Disk2 setup */
+            if(newpooldisktwotype == "image") {
+                /* Create Disk From Image */
+                let disk2name = newpoolnamespace + "-"+ newpoolname + "-disk2";
+                let tmpdv = this.urlDiskTemplate;
+                tmpdv.metadata.name = disk2name;
+                tmpdv.metadata.namespace = newpoolnamespace;
+                tmpdv.spec.pvc.storageClassName = newpooldisktwosc;
+                tmpdv.spec.pvc.resources.requests.storage = newpooldisktwosize + "Gi";
+                tmpdv.spec.source.http.url = newpooldisktwourl;
+                disk2 = { 'name': "disk2", 'disk': {}};
+                device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
+                disk2dv = tmpdv;
+            } else if (newpooldisktwotype == "blank") {
+                /* Create Blank Disk */
+                let disk2name = newpoolnamespace + "-"+ newpoolname + "-disk2";
+                let tmpdv = this.blankDiskTemplate;
+                tmpdv.metadata.name = disk2name;
+                tmpdv.metadata.namespace = newpoolnamespace;
+                tmpdv.spec.pvc.storageClassName = newpooldisktwosc;
+                tmpdv.spec.pvc.resources.requests.storage = newpooldisktwosize + "Gi";
+                disk2 = { 'name': "disk2", 'disk': {}};
+                device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
+                disk2dv = tmpdv;
+            } else if (newpooldisktwotype == "pvc") {
+                let disk2name = newpoolnamespace + "-"+ newpoolname + "-disk2";
+                let tmpdv = this.pvcDiskTemplate;
+                tmpdv.metadata.name = disk2name;
+                tmpdv.metadata.namespace = newpoolnamespace;
+                tmpdv.spec.pvc.storageClassName = newpooldisktwosc;
+                tmpdv.spec.pvc.resources.requests.storage = newpooldisktwosize + "Gi";
+                tmpdv.spec.source.pvc.name = newpooldisktwovalue;
+                tmpdv.spec.source.pvc.namespace = newpoolnamespace;
+                disk2 = { 'name': "disk2", 'disk': {}};
+                device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
+                disk2dv = tmpdv;
+            }
+
+            /* UserData Setup */
+            if(newpoolcloudinitusername != "") {
+                cloudconfig += "user: " + newpoolcloudinitusername + "\n";
+            }
+            if (newpoolcloudinitpassword != "") {
+                cloudconfig += "password: " + newpoolcloudinitpassword + "\n";
+            }
+
+
+            /* Adding UserData/NetworkData device */
+            disk3 = {'name': "disk3", 'disk': {'bus': "virtio"}};
+            device3 = {'name': "disk3", 'cloudInitNoCloud': {'userData': cloudconfig}};
+        
+
+            /* Networking Setup */
+            if(newpoolnetwork != "podNetwork") {
+                net1 = {'name': "br0", 'multus': {'networkName': newpoolnetwork}};
+                iface1 = { 'name': "br0", 'bridge': {}};
+            } else {
+                net1 = {'name': "default", 'pod': {}};
+                iface1 = {'name': "default",'masquerade': {}};
+            }
+
+            /* Create the VM */
+            if(newpooltype.toLowerCase() == "custom") {
+                /* Create a custom CPU/Mem VM */
+                this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.push(disk1);
+                this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.volumes.push(device1);
+                this.myVmPoolCustom.spec.virtualMachineTemplate.spec.dataVolumeTemplates.push(disk1dv);
+                if(newpooldisktwotype == "image" || newpooldisktwotype == "blank" || newpooldisktwotype == "disk") {
+                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.push(disk2);
+                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.volumes.push(device2);
+                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.dataVolumeTemplates.push(disk2dv);
+                }
+                this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.push(disk3);
+                this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.volumes.push(device3);
+                this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.networks.push(net1);
+                this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.push(iface1);
+                try {
+                    this.myVmPoolCustom.spec.replicas = Number(newpoolreplicas);
+                    data = await lastValueFrom(this.kubeVirtService.createPool(newpoolnamespace, newpoolname, this.myVmPoolCustom));
+                    this.hideNewPool();
+                    this.reloadComponent();
+                } catch (e) {
+                    alert(e);
+                    console.log(e);
+                }
+            } else {
+                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.push(disk1);
+                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.volumes.push(device1);
+                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.dataVolumeTemplates.push(disk1dv);
+                if(newpooldisktwotype == "image" || newpooldisktwotype == "blank" || newpooldisktwotype == "disk") {
+                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.push(disk2);
+                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.volumes.push(device2);
+                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.dataVolumeTemplates.push(disk2dv);
+                }
+                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.push(disk3);
+                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.volumes.push(device3);
+                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.networks.push(net1);
+                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.push(iface1);
+                try {
+                    this.myVmPoolTyped.spec.replicas = Number(newpoolreplicas);
+                    data = await lastValueFrom(this.kubeVirtService.createPool(newpoolnamespace, newpoolname, this.myVmPoolTyped));
+                    this.hideNewPool();
+                    this.reloadComponent();
+                } catch (e) {
+                    alert(e);
+                    console.log(e);
+                }
+            }
+        }
+    }
+
+
+
+
+
+
+
+    /*
      * VM Basic Operations (start, stop, etc...)
      */
     async vmOperations(vmOperation: string, vmNamespace: string, vmName: string): Promise<void> {
@@ -226,7 +708,7 @@ export class VMPoolsComponent implements OnInit {
     }
 
     /*
-     * Hide Resize Window
+     * Hide Replicas Window
      */
     hideReplicas(): void {
         let modalDiv = document.getElementById("modal-replicas");
@@ -240,7 +722,7 @@ export class VMPoolsComponent implements OnInit {
     }
 
     /*
-     * Perform Resize of PVC
+     * Perform Resize of VM Pool
      */
     async applyReplicas(replicasSize: string): Promise<void> {
         let nameField = document.getElementById("replicas-pool");
@@ -261,6 +743,574 @@ export class VMPoolsComponent implements OnInit {
                         alert("Internal Error!");
                     }
                 }
+            }
+        }
+    }
+
+    /*
+     * Show Info Window
+     */
+    async showInfo(poolNamespace: string, poolName: string): Promise<void> {
+        let myInnerHTML = "";
+        let modalDiv = document.getElementById("modal-info");
+        let modalTitle = document.getElementById("info-title");
+        let modalBody = document.getElementById("info-cards");
+        if(modalTitle != null) {
+            modalTitle.replaceChildren("Info");
+        }
+        if(modalBody != null) {
+            let data = await lastValueFrom(this.kubeVirtService.getVMPool(poolNamespace, poolName));
+            myInnerHTML += "<li class=\"nav-item\">Pool Name: <span class=\"float-right badge bg-primary\">" + data.metadata.name + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">Pool Namespace: <span class=\"float-right badge bg-primary\">" + data.metadata.namespace + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">Creation Timestamp: <span class=\"float-right badge bg-primary\">" + data.metadata.creationTimestamp + "</span></li>";
+            if(data.spec.virtualMachineTemplate.metadata.labels != null) {
+                let labels = Object.entries(data.spec.virtualMachineTemplate.metadata.labels);
+                for(let i = 0; i < labels.length; i++){
+                    let thisLabel = labels[i];
+                    myInnerHTML += "<li class=\"nav-item\">Labels: <span class=\"float-right badge bg-primary\">" + thisLabel[0] + ": " + thisLabel[1] + "</span></li>";
+                }
+            }
+            myInnerHTML += "<li class=\"nav-item\">Label Selector: <span class=\"float-right badge bg-primary\">" + data.status.labelSelector + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">Replicas: <span class=\"float-right badge bg-primary\">" + data.status.replicas + "</span></li>";
+            modalBody.innerHTML = myInnerHTML;
+        }
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+    }
+
+    /*
+     * Hide Info Window
+     */
+    hideInfo(): void {
+        let modalDiv = document.getElementById("modal-info");
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade");
+            modalDiv.setAttribute("aria-modal", "false");
+            modalDiv.setAttribute("role", "");
+            modalDiv.setAttribute("aria-hidden", "true");
+            modalDiv.setAttribute("style","display: none;");
+        }
+    }
+
+    /*
+     * Show Delete Window
+     */
+    showDelete(poolNamespace: string, poolName: string): void {
+        let modalDiv = document.getElementById("modal-delete");
+        let modalTitle = document.getElementById("delete-title");
+        let modalBody = document.getElementById("delete-value");
+        if(modalTitle != null) {
+            modalTitle.replaceChildren("Delete!");
+        }
+        if(modalBody != null) {
+            let poolNameInput = document.getElementById("delete-name");
+            let poolNamespaceInput = document.getElementById("delete-namespace");
+            if(poolNameInput != null && poolNamespaceInput != null) {
+                poolNameInput.setAttribute("value", poolName);
+                poolNamespaceInput.setAttribute("value", poolNamespace);
+                modalBody.replaceChildren("Are you sure you want to delete " + poolName + " on namespace: " + poolNamespace + "?");
+            }
+        }
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+    }
+
+  /*
+   * Hide Delete Window
+   */
+    hideDelete(): void {
+        let modalDiv = document.getElementById("modal-delete");
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade");
+            modalDiv.setAttribute("aria-modal", "false");
+            modalDiv.setAttribute("role", "");
+            modalDiv.setAttribute("aria-hidden", "true");
+            modalDiv.setAttribute("style","display: none;");
+        }
+    }
+
+    /*
+     * Delete Virtual Machine Pool
+     */
+    async applyDelete(): Promise<void> {
+        let poolNameInput = document.getElementById("delete-name");
+        let poolNamespaceInput = document.getElementById("delete-namespace");
+        if(poolNameInput != null && poolNamespaceInput != null) {
+            let poolName = poolNameInput.getAttribute("value");
+            let poolNamespace = poolNamespaceInput.getAttribute("value");
+            if(poolName != null && poolNamespace != null) {
+                try {
+                    const data = await lastValueFrom(this.kubeVirtService.deletePool(poolNamespace, poolName));
+                    this.hideDelete();
+                    this.reloadComponent();
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+        }
+    }
+
+    /*
+     * Show Delete VM Window
+     */
+    showDeleteVM(vmName: string, vmNamespace: string): void {
+        let modalDiv = document.getElementById("modal-deletevm");
+        let modalTitle = document.getElementById("deletevm-title");
+        let modalBody = document.getElementById("deletevm-value");
+        if(modalTitle != null) {
+            modalTitle.replaceChildren("Delete!");
+        }
+        if(modalBody != null) {
+            let vmNameInput = document.getElementById("deletevm-name");
+            let vmNamespaceInput = document.getElementById("deletevm-namespace");
+            if(vmNameInput != null && vmNamespaceInput != null) {
+                vmNameInput.setAttribute("value", vmName);
+                vmNamespaceInput.setAttribute("value", vmNamespace);
+                modalBody.replaceChildren("Are you sure you want to delete " + vmName + " on namespace: " + vmNamespace + "?");
+            }
+        }
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+    }
+
+  /*
+   * Hide Delete VM Window
+   */
+    hideDeleteVM(): void {
+        let modalDiv = document.getElementById("modal-deletevm");
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade");
+            modalDiv.setAttribute("aria-modal", "false");
+            modalDiv.setAttribute("role", "");
+            modalDiv.setAttribute("aria-hidden", "true");
+            modalDiv.setAttribute("style","display: none;");
+        }
+    }
+
+    /*
+     * Delete Virtual Machine
+     */
+    async applyDeleteVM(): Promise<void> {
+        let vmNameInput = document.getElementById("deletevm-name");
+        let vmNamespaceInput = document.getElementById("deletevm-namespace");
+        if(vmNameInput != null && vmNamespaceInput != null) {
+            let vmName = vmNameInput.getAttribute("value");
+            let vmNamespace = vmNamespaceInput.getAttribute("value");
+            if(vmName != null && vmNamespace != null) {
+                try {
+                    const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
+                    this.hideDeleteVM();
+                    this.reloadComponent();
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+        }
+    }
+
+    /*
+     * Show Resize Pool Window
+     */
+    showResize(poolName: string, poolNamespace: string, poolSockets: number, poolCores: number, poolThreads: number, poolMemory: string): void {
+        let modalDiv = document.getElementById("modal-resize");
+        let modalTitle = document.getElementById("resize-title");
+        let modalBody = document.getElementById("resize-value");
+        if(modalTitle != null) {
+            modalTitle.replaceChildren("Resize: " + poolName);
+        }
+        if(modalBody != null) {
+            let resizeNameField = document.getElementById("resize-name");
+            let resizeNamespaceField = document.getElementById("resize-namespace");
+            let resizeSocketsField = document.getElementById("resize-sockets");
+            let resizeCoresField = document.getElementById("resize-cores");
+            let resizeThreadsField = document.getElementById("resize-threads");
+            let resizeMemoryField = document.getElementById("resize-memory");
+            if(resizeNameField != null && resizeNamespaceField != null && resizeSocketsField != null && resizeCoresField != null && resizeThreadsField != null && resizeMemoryField != null) {
+                resizeNameField.setAttribute("value", poolName);
+                resizeNamespaceField.setAttribute("value", poolNamespace);
+                resizeSocketsField.setAttribute("placeholder", poolSockets.toString());
+                resizeCoresField.setAttribute("placeholder", poolCores.toString());
+                resizeThreadsField.setAttribute("placeholder", poolThreads.toString());
+                resizeMemoryField.setAttribute("placeholder", poolMemory.toString());
+                resizeSocketsField.setAttribute("value", poolSockets.toString());
+                resizeCoresField.setAttribute("value", poolCores.toString());
+                resizeThreadsField.setAttribute("value", poolThreads.toString());
+                resizeMemoryField.setAttribute("value", poolMemory.replace("Gi", "").toString());
+            }
+        }
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+    }
+
+    /*
+     * Hide Resize Windows
+     */
+    hideResize(): void {
+        let modalDiv = document.getElementById("modal-resize");
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade");
+            modalDiv.setAttribute("aria-modal", "false");
+            modalDiv.setAttribute("role", "");
+            modalDiv.setAttribute("aria-hidden", "true");
+            modalDiv.setAttribute("style","display: none;");
+        }
+    }
+
+    /*
+     * Resize Virtual Machine Pool
+     */
+    async applyResize(sockets: string, cores: string, threads: string, memory: string): Promise<void> {
+        let resizeNameField = document.getElementById("resize-name");
+        let resizeNamespaceField = document.getElementById("resize-namespace");
+        if(sockets != "" && cores != "" && threads != "" && memory != "" && resizeNameField != null && resizeNamespaceField != null) {
+            let resizeName = resizeNameField.getAttribute("value");
+            let resizeNamespace = resizeNamespaceField.getAttribute("value");
+            if(resizeName != null && resizeNamespace != null) {
+                try {
+                    const data = await lastValueFrom(this.kubeVirtService.scalePool(resizeNamespace, resizeName, cores, threads, sockets, memory));
+                    this.hideResize();
+                    this.reloadComponent();
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+        }
+    }
+
+    /*
+     * Show Pool Type Window
+     */
+    async showType(poolName: string, poolNamespace: string): Promise<void> {
+        let modalDiv = document.getElementById("modal-type");
+        let modalTitle = document.getElementById("type-title");
+        let modalBody = document.getElementById("type-value");
+        if(modalTitle != null) {
+            modalTitle.replaceChildren("Change Pool Type");
+        }
+        if(modalBody != null) {
+            let poolNameInput = document.getElementById("type-pool");
+            let poolNamespaceInput = document.getElementById("type-namespace");
+            let selectorTypeFiled = document.getElementById("changepool-type");
+            if(poolNameInput != null && poolNamespaceInput != null) {
+                poolNameInput.setAttribute("value", poolName);
+                poolNamespaceInput.setAttribute("value", poolNamespace);
+                /* Load ClusterInstanceTyle List and Set Selector */
+                let typeSelectorOptions = "";
+                let data = await lastValueFrom(this.kubeVirtService.getClusterInstanceTypes());
+                for (let i = 0; i < data.items.length; i++) {
+                    typeSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
+                }
+                if (selectorTypeFiled != null) {
+                    selectorTypeFiled.innerHTML = typeSelectorOptions;
+                }
+            }
+        }
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+    }
+
+  /*
+   * Hide Pool Type Window
+   */
+    hideType(): void {
+        let modalDiv = document.getElementById("modal-type");
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade");
+            modalDiv.setAttribute("aria-modal", "false");
+            modalDiv.setAttribute("role", "");
+            modalDiv.setAttribute("aria-hidden", "true");
+            modalDiv.setAttribute("style","display: none;");
+        }
+    }
+
+    /*
+     * Change Pool Type
+     */
+    async applyType(poolType: string): Promise<void> {
+        let poolNameInput = document.getElementById("type-pool");
+        let poolNamespaceInput = document.getElementById("type-namespace");
+        if(poolNameInput != null && poolNamespaceInput != null) {
+            let poolName = poolNameInput.getAttribute("value");
+            let poolNamespace = poolNamespaceInput.getAttribute("value");
+            if(poolName != null && poolNamespace != null) {
+                try {
+                    const data = await lastValueFrom(this.kubeVirtService.changePoolType(poolNamespace, poolName, poolType));
+                    this.hideType();
+                    this.reloadComponent();
+                } catch (e) {
+                    console.log(e);
+                }
+            }
+        }
+    }
+
+
+    /*
+     * New Pool: Control Disk1 Options
+     */
+    async onChangeDiskOne(diskType: string, diskNamespace: string) {
+        let diskOneValueField = document.getElementById("newpool-diskonevalue");
+        let diskOneSizeField = document.getElementById("newpool-diskonesize");
+        let diskOneURLField = document.getElementById("import-disk1-url");
+        if(diskType == "none") {
+            if (diskOneValueField != null && diskOneSizeField != null) {
+                diskOneValueField.setAttribute("disabled", "disabled");
+                diskOneSizeField.setAttribute("disabled", "disabled");
+            }
+            if(diskOneURLField != null) {
+                diskOneURLField.setAttribute("class", "modal fade");
+                diskOneURLField.setAttribute("aria-modal", "false");
+                diskOneURLField.setAttribute("role", "");
+                diskOneURLField.setAttribute("aria-hidden", "true");
+                diskOneURLField.setAttribute("style","display: none;");
+            }
+        } else if (diskType == "blank") {
+            if (diskOneValueField != null && diskOneSizeField != null) {
+                diskOneValueField.setAttribute("disabled", "disabled");
+                diskOneSizeField.removeAttribute("disabled");
+            }
+            if(diskOneURLField != null) {
+                diskOneURLField.setAttribute("class", "modal fade");
+                diskOneURLField.setAttribute("aria-modal", "false");
+                diskOneURLField.setAttribute("role", "");
+                diskOneURLField.setAttribute("aria-hidden", "true");
+                diskOneURLField.setAttribute("style","display: none;");
+            }
+        } else if (diskType == "image") {
+            if(diskOneValueField != null && diskOneSizeField != null) {
+                diskOneSizeField.removeAttribute("disabled");
+                diskOneValueField.setAttribute("disabled", "disabled");
+            }
+            if(diskOneURLField != null) {
+                diskOneURLField.setAttribute("class", "modal fade show");
+                diskOneURLField.setAttribute("aria-modal", "true");
+                diskOneURLField.setAttribute("role", "dialog");
+                diskOneURLField.setAttribute("aria-hidden", "false");
+                diskOneURLField.setAttribute("style","display: contents;");
+            }
+        } else if (diskType == "pvc") {
+            if (diskOneValueField != null && diskOneSizeField != null) {
+                diskOneValueField.innerHTML = await this.loadPVCOptions(diskNamespace);
+                diskOneValueField.removeAttribute("disabled");
+                diskOneSizeField.removeAttribute("disabled");
+            }
+            if(diskOneURLField != null) {
+                diskOneURLField.setAttribute("class", "modal fade");
+                diskOneURLField.setAttribute("aria-modal", "false");
+                diskOneURLField.setAttribute("role", "");
+                diskOneURLField.setAttribute("aria-hidden", "true");
+                diskOneURLField.setAttribute("style","display: none;");
+            }
+        } else if (diskType == "dv") {
+            if (diskOneValueField != null && diskOneSizeField != null) {
+                diskOneValueField.innerHTML = await this.loadDiskOptions(diskNamespace);
+                diskOneValueField.removeAttribute("disabled");
+                diskOneSizeField.setAttribute("disabled", "disabled");
+            }
+            if(diskOneURLField != null) {
+                diskOneURLField.setAttribute("class", "modal fade");
+                diskOneURLField.setAttribute("aria-modal", "false");
+                diskOneURLField.setAttribute("role", "");
+                diskOneURLField.setAttribute("aria-hidden", "true");
+                diskOneURLField.setAttribute("style","display: none;");
+            }
+        }
+  }
+
+    /*
+     * New Pool: Control Disk2 Options
+     */
+    async onChangeDiskTwo(diskType: string, diskNamespace: string) {
+        let diskTwoValueField = document.getElementById("newpool-disktwovalue");
+        let diskTwoSizeField = document.getElementById("newpool-disktwosize");
+        let diskTwoURLField = document.getElementById("import-disk2-url");
+        if(diskType == "none") {
+            if (diskTwoValueField != null && diskTwoSizeField != null) {
+                diskTwoValueField.setAttribute("disabled", "disabled");
+                diskTwoSizeField.setAttribute("disabled", "disabled");
+            }
+            if(diskTwoURLField != null) {
+                diskTwoURLField.setAttribute("class", "modal fade");
+                diskTwoURLField.setAttribute("aria-modal", "false");
+                diskTwoURLField.setAttribute("role", "");
+                diskTwoURLField.setAttribute("aria-hidden", "true");
+                diskTwoURLField.setAttribute("style","display: none;");
+            }
+        } else if (diskType == "blank") {
+            if (diskTwoValueField != null && diskTwoSizeField != null) {
+                diskTwoValueField.setAttribute("disabled", "disabled");
+                diskTwoSizeField.removeAttribute("disabled");
+            }
+            if(diskTwoURLField != null) {
+                diskTwoURLField.setAttribute("class", "modal fade");
+                diskTwoURLField.setAttribute("aria-modal", "false");
+                diskTwoURLField.setAttribute("role", "");
+                diskTwoURLField.setAttribute("aria-hidden", "true");
+                diskTwoURLField.setAttribute("style","display: none;");
+            }
+        } else if (diskType == "image") {
+            if (diskTwoValueField != null && diskTwoSizeField != null) {
+                diskTwoValueField.setAttribute("disabled", "disabled");
+                diskTwoSizeField.removeAttribute("disabled");
+            }
+            if(diskTwoURLField != null) {
+                diskTwoURLField.setAttribute("class", "modal fade show");
+                diskTwoURLField.setAttribute("aria-modal", "true");
+                diskTwoURLField.setAttribute("role", "dialog");
+                diskTwoURLField.setAttribute("aria-hidden", "false");
+                diskTwoURLField.setAttribute("style","display: contents;");
+            }
+        } else if (diskType == "pvc") {
+            if (diskTwoValueField != null && diskTwoSizeField != null) {
+                diskTwoValueField.innerHTML = await this.loadPVCOptions(diskNamespace);
+                diskTwoValueField.removeAttribute("disabled");
+                diskTwoSizeField.removeAttribute("disabled");
+            }
+            if(diskTwoURLField != null) {
+                diskTwoURLField.setAttribute("class", "modal fade");
+                diskTwoURLField.setAttribute("aria-modal", "false");
+                diskTwoURLField.setAttribute("role", "");
+                diskTwoURLField.setAttribute("aria-hidden", "true");
+                diskTwoURLField.setAttribute("style","display: none;");
+            }
+        } else if (diskType == "dv") {
+            if (diskTwoValueField != null && diskTwoSizeField != null) {
+                diskTwoValueField.innerHTML = await this.loadDiskOptions(diskNamespace);
+                diskTwoValueField.removeAttribute("disabled");
+                diskTwoSizeField.setAttribute("disabled", "disabled");
+            }
+            if(diskTwoURLField != null) {
+                diskTwoURLField.setAttribute("class", "modal fade");
+                diskTwoURLField.setAttribute("aria-modal", "false");
+                diskTwoURLField.setAttribute("role", "");
+                diskTwoURLField.setAttribute("aria-hidden", "true");
+                diskTwoURLField.setAttribute("style","display: none;");
+            }
+        }
+    }
+
+    /*
+     * New Pool: Load Image Options
+     */
+    async loadPVCOptions(dvNamespace: string){
+        let data = await lastValueFrom(this.k8sService.getNamespacedPersistentVolumeClaims(dvNamespace));
+        let pvcSelectorOptions = "";
+        let pvcs = data.items;
+        for (let i = 0; i < pvcs.length; i++) {
+            pvcSelectorOptions += "<option value=" + pvcs[i].metadata["name"] +">" + pvcs[i].metadata["name"] + "</option>\n";
+        }
+        return pvcSelectorOptions;
+    }
+
+    /*
+     * New Pool: Load Disk Options
+     */
+    async loadDiskOptions(dvNamespace: string) {
+        let diskSelectorOptions = "";
+        let data = await lastValueFrom(await this.dataVolumesService.getNamespacedDataVolumes(dvNamespace));
+        let disks = data.items;
+        for (let i = 0; i < disks.length; i++) {
+
+            diskSelectorOptions += "<option value=" + disks[i].metadata["name"] +">" + disks[i].metadata["name"] + "</option>\n";
+        }
+        return diskSelectorOptions;
+    }
+
+    /*
+     * New Pool: Load Network Options
+     */
+    async onChangeNamespace(namespace: string) {
+        let selectorNetworkField = document.getElementById("newpool-network");
+        let networkSelectorOptions = "<option value=podNetwork>podNetwork</option>\n";
+        if(this.networkCheck) {
+            let data = await lastValueFrom(this.k8sApisService.getNetworkAttachs());
+            let netAttach = data.items;
+            for (let i = 0; i < netAttach.length; i++) {
+                if(namespace == netAttach[i].metadata["namespace"]) {
+                    let currentAttach = new NetworkAttach();
+                    currentAttach.name = netAttach[i].metadata["name"];
+                    currentAttach.namespace = netAttach[i].metadata["namespace"];
+                    currentAttach.config = JSON.parse(netAttach[i].spec["config"]);
+                    this.netAttachList.push(currentAttach);
+                    networkSelectorOptions += "<option value=" + netAttach[i].metadata["name"] + ">" + netAttach[i].metadata["name"] + "</option>\n";
+                }
+            }
+        }
+        if (selectorNetworkField != null && networkSelectorOptions != "") {
+            selectorNetworkField.innerHTML = networkSelectorOptions;
+        }
+    }
+
+    /*
+     * New Pool: Display Custom CPU/MEM
+     */
+    async onChangeType(vmType: string) {
+        let modalDiv = document.getElementById("custom-cpu-memory");
+        if(vmType.toLowerCase() == "custom") {
+            if(modalDiv != null) {
+                modalDiv.setAttribute("class", "modal fade show");
+                modalDiv.setAttribute("aria-modal", "true");
+                modalDiv.setAttribute("role", "dialog");
+                modalDiv.setAttribute("aria-hidden", "false");
+                modalDiv.setAttribute("style","display: contents;");
+            }
+        } else {
+            if(modalDiv != null) {
+                modalDiv.setAttribute("class", "modal fade");
+                modalDiv.setAttribute("aria-modal", "false");
+                modalDiv.setAttribute("role", "");
+                modalDiv.setAttribute("aria-hidden", "true");
+                modalDiv.setAttribute("style","display: none;");
+            }
+        }
+    }
+
+    /*
+     * Check Pool Exists
+     */
+    checkPoolExists(poolName: string, poolNamespace:string): boolean {
+        for (let i = 0; i < this.poolList.length; i++) {
+            if(this.poolList[i].name == poolName && this.poolList[i].namespace == poolNamespace) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /*
+     * Check Multus Support
+     */
+    async checkNetwork(): Promise<void> {
+        const data = await lastValueFrom(this.k8sApisService.getCrds());
+        let crds = data.items;
+        for (let i = 0; i < crds.length; i++) {
+            if(crds[i].metadata["name"] == "network-attachment-definitions.k8s.cni.cncf.io") {
+                this.networkCheck = true;
             }
         }
     }

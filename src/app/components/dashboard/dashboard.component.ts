@@ -29,6 +29,9 @@ export class DashboardComponent implements OnInit {
     memInfo = 0;
     storageInfo = 0;
     netInfo = 0;
+    storageClassesInfo = 0;
+    namespacesInfo = 0;
+    instanceTypesInfo = 0;
 
     constructor(
         private k8sService: K8sService,
@@ -43,6 +46,9 @@ export class DashboardComponent implements OnInit {
         this.getDisks();
         this.getNetworks();
         this.getPools();
+        this.getStorageClasses();
+        this.getNamespaces();
+        this.getInstanceTypes();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Dashboard");
@@ -106,6 +112,30 @@ export class DashboardComponent implements OnInit {
     async getPools(): Promise<void> {
         const data = await lastValueFrom(this.kubeVirtService.getVMPools());
         this.poolInfo = data.items.length;
+    }
+
+    /*
+     *
+     */
+    async getStorageClasses(): Promise<void> {
+        const data = await lastValueFrom(this.k8sApisService.getStorageClasses());
+        this.storageClassesInfo = data.items.length;
+    }
+
+    /*
+     *
+     */
+    async getNamespaces(): Promise<void> {
+        const data = await lastValueFrom(this.k8sService.getNamespaces());
+        this.namespacesInfo = data.items.length;
+    }
+
+    /*
+     *
+     */
+    async getInstanceTypes(): Promise<void> {
+        const data = await lastValueFrom(this.kubeVirtService.getClusterInstanceTypes());
+        this.instanceTypesInfo = data.items.length;
     }
 
     /*

@@ -58,15 +58,21 @@
                     </span>
                   </td>
                   <td style="line-height: 0 !important;">
-                    <!--- PAUSE BUTTON -->
-                    <span [ngSwitch]="thisVM.status">
-                      <a class="btn" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' *ngSwitchCase="'Running'">
-                        <i class="fas fa-pause"></i>
-                      </a>
-                      <a class="btn disabled" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' *ngSwitchDefault>
-                        <i class="fas fa-pause disabled"></i>
+                    <!--- INFO BUTTON -->
+                    <span>
+                      <a class="btn" (click)='showInfo(thisVM.namespace, thisVM.name)'>
+                        <i class="fas fa-info"></i>
                       </a>
                     </span>
+                    <!--- PAUSE BUTTON -->
+                    <span [ngSwitch]="thisVM.status">
+                        <a class="btn" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' *ngSwitchCase="'Running'">
+                          <i class="fas fa-pause"></i>
+                        </a>
+                        <a class="btn disabled" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' *ngSwitchDefault>
+                          <i class="fas fa-pause disabled"></i>
+                        </a>
+                      </span>
                     <!--- PLAY BUTTON -->
                     <span [ngSwitch]="thisVM.status">
                       <a class="btn" (click)='vmOperations("unpause", thisVM.namespace, thisVM.name)' *ngSwitchCase="'Paused'">
@@ -172,7 +178,7 @@
                     <a class="nav-link" id="newvm-labels-tab" data-toggle="pill" href="#newvm-labels" role="tab" aria-controls="newvm-labels" aria-selected="false">Labels</a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" id="newvm-cpumem-tab" data-toggle="pill" href="#newvm-cpumem" role="tab" aria-controls="newmvm-cpumem" aria-selected="false">CPU/Memory</a>
+                    <a class="nav-link" id="newvm-cpumem-tab" data-toggle="pill" href="#newvm-cpumem" role="tab" aria-controls="newvm-cpumem" aria-selected="false">CPU/Memory</a>
                   </li>
                   <li class="nav-item">
                     <a class="nav-link" id="newvm-disks-tab" data-toggle="pill" href="#newvm-disks" role="tab" aria-controls="newvm-disks" aria-selected="false">Disk</a>
@@ -322,7 +328,8 @@
                   <!-- NETWORK TAB -->
                   <div class="tab-pane fade" id="newvm-net" role="tabpanel" aria-labelledby="newvm-net-tab">
                     <label for="newvm-network">Network:</label>
-                    <select #newvmnetwork class="custom-select rounded-0" name="newvm-network" id="newvm-network" disabled>
+                    <select #newvmnetwork class="custom-select rounded-0" name="newvm-network" id="newvm-network">
+                        <option value=podNetwork>podNetwork</option>
                     </select>
                   </div>
                   <!-- CLOUDINIT TAB -->
@@ -389,7 +396,7 @@
     <!-- Modal: Change Type -->
     <!--                    -->
     <div class="modal fade" id="modal-type" style="display: none;" aria-hidden="true">
-      <div class="modal-dialog modal-sm">
+      <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
             <h4 class="modal-title" id="type-title">TITLE_TEMPLATE</h4>
@@ -415,11 +422,38 @@
       <!-- /.modal-dialog -->
     </div>
 
+    <!--                    -->
+    <!-- Modal: INFO        -->
+    <!--                    -->
+    <div class="modal fade" id="modal-info" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="info-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)="hideInfo()">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="info-value">
+                <ul class="nav flex-column" id="info-cards">
+                    TEMPLATE
+                </ul>
+            </div>
+            <div class="modal-footer justify-content-center">
+              <button type="button" class="btn btn-default" (click)="hideInfo()">Close</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+    </div>
+
+
     <!--               -->
     <!-- Modal: Resize -->
     <!--               -->
     <div class="modal fade" id="modal-resize" style="display: none;" aria-hidden="true">
-      <div class="modal-dialog modal-sm">
+      <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
             <h4 class="modal-title" id="resize-title">TITLE_TEMPLATE</h4>
