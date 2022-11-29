@@ -15,6 +15,7 @@ import { NetworkListComponent } from './components/network-list/network-list.com
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { ClusterInstanceTypeListComponent } from './components/cluster-instance-type-list/cluster-instance-type-list.component';
 import { VMPoolsComponent } from './components/vmpools/vmpools.component';
+import { LoadBalancersComponent } from './components/load-balancers/load-balancers.component';
 
 @NgModule({
   declarations: [
@@ -29,7 +30,8 @@ import { VMPoolsComponent } from './components/vmpools/vmpools.component';
     NetworkListComponent,
     DashboardComponent,
     ClusterInstanceTypeListComponent,
-    VMPoolsComponent
+    VMPoolsComponent,
+    LoadBalancersComponent
   ],
   imports: [
     BrowserModule,
