@@ -9,20 +9,20 @@ Simple Angular Frontend and NodeJS + Express Backend to operate [Kubevirt](https
 
 ## INTRODUCTION
 
-I've created this Frontend for `KubeVirt` while I was trying to learn a little bit of `Angular`. Basically this tool uses `kubectl proxy` to proxy API requests to `kubeapiserver`. For `Disks`, today I use `HostDisk` as backend for my `Disks`. To be able to work with these `Disks` a backend was developed in `NodeJS` and `ExpressJS` that uses `qemu-img` utility behind the scenes, to manage the `Images` and `Disks`. This `backend` runs as a `DaemonSet` on every node, to enable this tool to create `Images` and `Disks` on any node of the cluster.
+I've created this Frontend for `KubeVirt` while I was trying to learn a little bit of `Angular`. Basically this tool uses `kubectl proxy` to proxy API requests to `kubeapiserver`. To handle the `Disk`/`Volume` part, the tool works through [CDI](https://github.com/kubevirt/containerized-data-importer/).
 
 ## REQUIREMENTS
 
-Kubevirt featureGate `ExpandDisks`.
+Kubevirt featureGate `ExpandDisks` is required.
 
-CDI featureGate: 
+CDI featureGate `HonorWaitForFirstConsumer` is required: 
 ```
   config:
     featureGates:
     - HonorWaitForFirstConsumer
 ```
 
-StorageClass features `WaitForFirstConsumer` and `allowVolumeExpansion`:
+StorageClass features `WaitForFirstConsumer` and `allowVolumeExpansion` are required:
 ```
 volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true
@@ -55,10 +55,6 @@ kubectl apply -f kubernetes/service.yaml
 
 To use the tool, you can either use `kubectl port-forward` on port 8080, use a `Service` with type `NodePort` or `LoadBalancer`, or, create an `Ingress` for your service.  
 *Note:* As the tool needs Websocket support, if you are using an `Ingress` make sure you set it up accordingly.
-
-## Diagram
-
-<img src="images/diagram.png" width="96%" align="center"/>
 
 ## Screenshot
 
@@ -102,13 +98,13 @@ docker push your-repo/kubevirt-manager-worker:version
 
 1. [Kubernetes](https://kubernetes.io/)
 2. [Kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/)
-3. [Kubevirt](https://kubevirt.io)
-4. [NodeJS](https://nodejs.org/en/)
-5. [ExpressJS](https://expressjs.com/)
-6. [Angular](https://angular.io/)
-7. [AdminLTE](https://adminlte.io/)
-8. [NoVNC](https://github.com/novnc/noVNC)
-9. [QEMU](https://www.qemu.org/)
+3. [CDI](https://github.com/kubevirt/containerized-data-importer/)
+4. [Kubevirt](https://kubevirt.io)
+5. [NodeJS](https://nodejs.org/en/)
+6. [ExpressJS](https://expressjs.com/)
+7. [Angular](https://angular.io/)
+8. [AdminLTE](https://adminlte.io/)
+9. [NoVNC](https://github.com/novnc/noVNC)
 
 ## License
 
