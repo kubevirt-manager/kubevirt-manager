@@ -2,7 +2,7 @@
   <div class="container-fluid">
     <div class="content-wrapper">
       &nbsp;<br>
-      <div class="card card-primary card-outline">
+      <div class="card card-outline">
         <div class="card-header">
           <h3 class="card-title">
             <i class="fas fa-sitemap"></i>
@@ -21,7 +21,7 @@
             </thead>
             <tbody>
                 <tr *ngFor="let thisAttach of netAttachList">
-                  <td style="line-height: 2.2 !important; align-content: center;"><i class="fas fa-microchip"></i></td>
+                  <td style="line-height: 2.2 !important; align-content: center;"><i class="fas fa-network-wired"></i></td>
                   <td style="line-height: 2.2 !important;">{{thisAttach.name}}</td>
                   <td style="line-height: 2.2 !important;">{{thisAttach.namespace}}</td>
                   <td style="line-height: 2.2 !important;"><pre>{{thisAttach.config | json}}</pre></td>

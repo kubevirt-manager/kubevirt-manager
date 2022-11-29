@@ -2,10 +2,10 @@
     <div class="container-fluid">
       <div class="content-wrapper">
         &nbsp;<br>
-        <div class="card card-primary card-outline">
+        <div class="card card-outline">
           <div class="card-header">
             <h3 class="card-title">
-              <i class="fas fa-server"></i>
+              <i class="fas fa-clipboard"></i>
               &nbsp;&nbsp;Cluster Instance Types
             </h3>
             <div class="card-tools">
@@ -27,7 +27,7 @@
               </thead>
               <tbody>
                   <tr *ngFor="let thisType of clusterInstanceTypeList">
-                    <td style="line-height: 2.2 !important; align-content: center;"><i class="fas fa-book"></i></td>
+                    <td style="line-height: 2.2 !important; align-content: center;"><i class="fas fa-clipboard"></i></td>
                     <td style="line-height: 2.2 !important;">{{thisType.name}}</td>
                     <td style="line-height: 2.2 !important;">{{thisType.cpu}}</td>
                     <td style="line-height: 2.2 !important;">{{thisType.memory}}</td>
@@ -51,7 +51,7 @@
       <!-- Modal: EDIT   -->
       <!--               -->
       <div class="modal fade" id="modal-edit" style="display: none;" aria-hidden="true">
-        <div class="modal-dialog modal-sm">
+        <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header">
               <h4 class="modal-title" id="edit-title">TITLE_TEMPLATE</h4>
@@ -70,7 +70,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)="hideEdit()">Close</button>
-              <button type="button" class="btn btn-primary" (click)="applyEdit(cpuinput.value, memoryinput.value)">Save changes</button>
+              <button type="button" class="btn btn-primary" (click)="applyEdit(cpuinput.value, memoryinput.value)">Save</button>
             </div>
           </div>
           <!-- /.modal-content -->
@@ -82,7 +82,7 @@
       <!-- Modal: New -->
       <!--            -->
       <div class="modal fade" id="modal-new" style="display: none;" aria-hidden="true">
-        <div class="modal-dialog modal-sm">
+        <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header">
               <h4 class="modal-title" id="new-title">TITLE_TEMPLATE</h4>
@@ -101,7 +101,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)="hideNew()">Close</button>
-              <button type="button" class="btn btn-primary" (click)="applyNew(newtypename.value, newtypecpu.value, newtypememory.value)">Save changes</button>
+              <button type="button" class="btn btn-primary" (click)="applyNew(newtypename.value, newtypecpu.value, newtypememory.value)">Create</button>
             </div>
           </div>
           <!-- /.modal-content -->
@@ -113,7 +113,7 @@
       <!-- Modal: Delete -->
       <!--               -->
       <div class="modal fade" id="modal-delete" style="display: none;" aria-hidden="true">
-        <div class="modal-dialog modal-sm">
+        <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header">
               <h4 class="modal-title" id="delete-title">TITLE_TEMPLATE</h4>

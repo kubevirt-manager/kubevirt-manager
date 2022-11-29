@@ -21,8 +21,8 @@ export class SideMenuComponent implements OnInit {
 
     /*
      * Check Multus Support
-     */
-    async checkNetwork(): Promise<void> {
+    */
+     async checkNetwork(): Promise<void> {
         const data = await lastValueFrom(this.k8sApisService.getCrds());
         let crds = data.items;
         for (let i = 0; i < crds.length; i++) {

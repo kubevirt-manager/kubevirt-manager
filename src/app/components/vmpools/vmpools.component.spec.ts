@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ImageListComponent } from './image-list.component';
+import { VMPoolsComponent } from './vmpools.component';
 
-describe('ImageListComponent', () => {
-  let component: ImageListComponent;
-  let fixture: ComponentFixture<ImageListComponent>;
+describe('VMPoolsComponent', () => {
+  let component: VMPoolsComponent;
+  let fixture: ComponentFixture<VMPoolsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ImageListComponent ]
+      declarations: [ VMPoolsComponent ]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(ImageListComponent);
+    fixture = TestBed.createComponent(VMPoolsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

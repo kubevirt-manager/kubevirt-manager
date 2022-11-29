@@ -7,7 +7,6 @@ metadata:
     k8s-app: kubevirt-manager
 
 ---
-
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -18,6 +17,12 @@ rules:
     verbs: ["get", "list"]
   - apiGroups: [""]
     resources: ["customresourcedefinitions"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims", persistentvolumes]
+    verbs: ["*"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
     verbs: ["get", "list"]
   - apiGroups: ["apiextensions.k8s.io"]
     resources: ["customresourcedefinitions"]
@@ -33,10 +38,15 @@ rules:
     verbs: ["get", "list", "update", "patch"]
   - apiGroups: ["instancetype.kubevirt.io"]
     resources: ["*"]
-    verbs: ["*"]  
+    verbs: ["*"] 
+  - apiGroups: ["cdi.kubevirt.io"]
+    resources: ["*"]
+    verbs: ["*"]
+  - apiGroups: ["pool.kubevirt.io"]
+    resources: ["*"]
+    verbs: ["*"]
 
 ---
-
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { KubeVMClusterInstanceType } from 'src/app/models/kube-vmcluster-instance-type.model';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
+import { VirtualMachineClusterInstanceType } from 'src/app/templates/virtual-machine-cluster-instance-type.apitemplate';
 
 @Component({
   selector: 'app-cluster-instance-type-list',
@@ -14,21 +15,7 @@ export class ClusterInstanceTypeListComponent implements OnInit {
 
     clusterInstanceTypeList: KubeVMClusterInstanceType [] = [];
 
-    myClusterInstanceTypeTemplate = {
-        'apiVersion': "instancetype.kubevirt.io/v1alpha1",
-        'kind': "VirtualMachineClusterInstancetype",
-        'metadata':{
-          'name': ""
-        },
-        'spec': {
-            'cpu': {
-                'guest': 0
-            },
-            'memory': {
-                'guest': ""
-            }
-        }
-    };
+    myClusterInstanceTypeTemplate = new VirtualMachineClusterInstanceType().template;
 
     constructor(
         private router: Router,
