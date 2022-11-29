@@ -385,6 +385,9 @@ export class VmlistComponent implements OnInit {
             let thisLabel = {'kubevirt.io/domain': newvmname};
             Object.assign(tmpLabels, thisLabel);
 
+            let kubevirtManagerLabel = {'kubevirt-manager.io/managed': "true"};
+            Object.assign(tmpLabels, kubevirtManagerLabel);
+
             /* Check VM Type */
             if(newvmtype.toLowerCase() == "custom") {
                 if(newvmcpumemsockets == "" || newvmcpumemcores == "" || newvmcpumemthreads == "" || newvmcpumemmemory == "") {
@@ -396,7 +399,7 @@ export class VmlistComponent implements OnInit {
                     this.myVmTemplateCustom.metadata.namespace = newvmnamespace;
                     this.myVmTemplateCustom.metadata.labels = tmpLabels;
                     this.myVmTemplateCustom.spec.template.metadata.labels = tmpLabels;
-                    this.myVmTemplateCustom.spec.template.spec.nodeSelector = tmpLabels;
+                    this.myVmTemplateCustom.spec.template.spec.nodeSelector = {"kubernetes.io/hostname": newvmnode};
                     this.myVmTemplateCustom.spec.template.spec.priorityClassName = newvmpriorityclass;
                     this.myVmTemplateCustom.spec.template.spec.domain.cpu.cores = Number(newvmcpumemcores);
                     this.myVmTemplateCustom.spec.template.spec.domain.cpu.threads = Number(newvmcpumemthreads);
@@ -442,7 +445,7 @@ export class VmlistComponent implements OnInit {
                 this.myVmTemplateTyped.metadata.namespace = newvmnamespace;
                 this.myVmTemplateTyped.metadata.labels = tmpLabels;
                 this.myVmTemplateTyped.spec.template.metadata.labels = tmpLabels;
-                this.myVmTemplateTyped.spec.template.spec.nodeSelector = tmpLabels;
+                this.myVmTemplateTyped.spec.template.spec.nodeSelector = {"kubernetes.io/hostname": newvmnode};
                 this.myVmTemplateTyped.spec.template.spec.priorityClassName = newvmpriorityclass;
                 this.myVmTemplateTyped.spec.instancetype.name = newvmtype;
             }
@@ -864,6 +867,9 @@ export class VmlistComponent implements OnInit {
             myInnerHTML += "<li class=\"nav-item\">VM Name: <span class=\"float-right badge bg-primary\">" + data.metadata.name + "</span></li>";
             myInnerHTML += "<li class=\"nav-item\">VM Namespace: <span class=\"float-right badge bg-primary\">" + data.metadata.namespace + "</span></li>";
             myInnerHTML += "<li class=\"nav-item\">Creation Timestamp: <span class=\"float-right badge bg-primary\">" + data.metadata.creationTimestamp + "</span></li>";
+            if(data.spec.template.spec.priorityClassName != null) {
+                myInnerHTML += "<li class=\"nav-item\">Priority Class: <span class=\"float-right badge bg-primary\">" + data.spec.template.spec.priorityClassName + "</span></li>";
+            }
             if(data.metadata.labels != null) {
                 let labels = Object.entries(data.metadata.labels);
                 for(let i = 0; i < labels.length; i++){

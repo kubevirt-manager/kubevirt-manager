@@ -19,7 +19,7 @@ rules:
     resources: ["customresourcedefinitions"]
     verbs: ["get", "list"]
   - apiGroups: [""]
-    resources: ["persistentvolumeclaims", persistentvolumes]
+    resources: ["persistentvolumeclaims", "persistentvolumes", "services"]
     verbs: ["*"]
   - apiGroups: ["storage.k8s.io"]
     resources: ["storageclasses"]

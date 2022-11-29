@@ -50,15 +50,15 @@
             </a>
         </li>
         <li class="nav-item" *ngIf="networkCheck">
-          <a routerLink="/netlist" class="nav-link" alt="#" title="Network...">
-            <i class="nav-icon fas fa-network-wired"></i>
-            <p>Network</p>
-          </a>
-        </li>
-        <li class="nav-item" *ngIf="networkCheck">
           <a routerLink="/lblist" class="nav-link" alt="#" title="Load Balancers...">
             <i class="nav-icon fas fa-sitemap"></i>
             <p>Load Balancers</p>
+           </a>
+        </li>
+        <li class="nav-item" *ngIf="networkCheck">
+          <a routerLink="/netlist" class="nav-link" alt="#" title="Network...">
+            <i class="nav-icon fas fa-network-wired"></i>
+            <p>Network</p>
           </a>
         </li>
       </ul>

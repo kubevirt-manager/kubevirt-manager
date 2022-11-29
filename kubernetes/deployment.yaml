@@ -5,12 +5,12 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    version: 1.1.0
+    version: 1.1.1
 spec:
   selector:
     matchLabels:
       app: kubevirt-manager
-      version: 1.1.0
+      version: 1.1.1
   replicas: 1
   strategy:
     type: Recreate
@@ -18,7 +18,7 @@ spec:
     metadata:
       labels:
         app: kubevirt-manager
-        version: 1.1.0
+        version: 1.1.1
     spec:
       containers:
         - name: kubevirtmgr

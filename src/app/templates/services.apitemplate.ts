@@ -10,12 +10,14 @@ export class Services {
         },
         "spec":{
             "type": "",
-            "ports": [{
-                "port": 0,
-                "protocol": "",
-                "targetPort": 0
-            }],
+            "ports": [{}],
             "selector":{}
         }
+    };
+
+    servicePortTemplate = {
+        "port": 0,
+        "targetPort": 0,
+        "protocol": ""
     };
 }

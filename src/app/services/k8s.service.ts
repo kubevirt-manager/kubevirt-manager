@@ -59,12 +59,37 @@ export class K8sService {
         return this.http.patch(`${baseUrl}/namespaces/${namespace}/persistentvolumeclaims/${name}`, '{"spec":{"resources":{"requests":{"storage":" '+size+'"}}}}', { 'headers': headers } );
     }
 
-    createService(namespace: string, name: string, servicespec: Object): Observable<any> {
+    createService(namespace: string, servicespec: Object): Observable<any> {
         const headers = {
             'content-type': 'application/json',
             'accept': 'application/json'
         };
-        return this.http.post(`${baseUrl}/namespaces/${namespace}/services/${name}`, servicespec, { 'headers': headers } );
+        return this.http.post(`${baseUrl}/namespaces/${namespace}/services`, servicespec, { 'headers': headers } );
     }
+
+    getServices(): Observable<any> {
+        return this.http.get(`${baseUrl}/services?labelSelector=kubevirt-manager.io%2Fmanaged`);
+    }
+
+    getServicesNamespaced(namespace: string): Observable<any> {
+        return this.http.get(`${baseUrl}/namespaces/${namespace}/services?labelSelector=kubevirt-manager.io%2Fmanaged`);
+    }
+
+    getService(namespace: string, name: string): Observable<any> {
+        return this.http.get(`${baseUrl}/namespaces/${namespace}/services/${name}`);
+    }
+
+    deleteService(namespace: string, name: string): Observable<any> {
+        return this.http.delete(`${baseUrl}/namespaces/${namespace}/services/${name}`);
+    }
+
+    changeServiceType(namespace: string, name: string, type: string): Observable<any> {
+        const headers = {
+            'content-type': 'application/merge-patch+json',
+            'accept': 'application/json'
+        };
+        return this.http.patch(`${baseUrl}/namespaces/${namespace}/services/${name}`, '{"spec":{"type":"'+type+'"}}', { 'headers': headers } );
+    }
+
 
 }

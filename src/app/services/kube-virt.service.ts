@@ -37,7 +37,12 @@ export class KubeVirtService {
 
     getVMPools(): Observable<any> {
         var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
-        return this.http.get(`${baseUrl}/virtualmachinepools`);
+        return this.http.get(`${baseUrl}/virtualmachinepools?labelSelector=kubevirt.io%2Fvmpool`);
+    }
+
+    getVMPoolsNamespaced(namespace: string): Observable<any> {
+        var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
+        return this.http.get(`${baseUrl}/namespaces/${namespace}/virtualmachinepools`);
     }
 
     getVMPool(namespace: string, name: string): Observable<any> {
