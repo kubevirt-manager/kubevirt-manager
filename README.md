@@ -71,7 +71,7 @@ Instance List:</br>
 </br>Disk & Cloud Init:</br>
 <img src="images/screenshot_08.png" width="43%"/>
 <img src="images/screenshot_10.png" width="43%"/>
-VM Pool:</br>
+</br>VM Pool:</br>
 <img src="images/screenshot_11.png" width="96%" align="center"/>
 </br>Pool Info & New Pool </br>
 <img src="images/screenshot_12.png" width="43%"/>
