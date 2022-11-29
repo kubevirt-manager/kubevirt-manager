@@ -62,20 +62,28 @@ Dashboard:</br>
 <img src="images/screenshot_01.png" width="96%" align="center"/>
 Instance List:</br>
 <img src="images/screenshot_02.png" width="96%"/>
-</br>Node and Networking:</br>
+</br>Instance Info & New Instance </br>
 <img src="images/screenshot_03.png" width="43%"/>
-<img src="images/screenshot_10.png" width="43%"/>
-</br>Disk Information:</br>
 <img src="images/screenshot_04.png" width="43%"/>
-<img src="images/screenshot_05.png" width="43%"/>
-</br>Image Information:</br>
+</br>Instance CPU/Memory & Priority Class </br>
 <img src="images/screenshot_06.png" width="43%"/>
 <img src="images/screenshot_07.png" width="43%"/>
-</br>Instance Type:</br>
+</br>Disk & Cloud Init:</br>
 <img src="images/screenshot_08.png" width="43%"/>
-<img src="images/screenshot_09.png" width="43%"/>
-</br>VNC Screen:</br>
+<img src="images/screenshot_10.png" width="43%"/>
+VM Pool:</br>
 <img src="images/screenshot_11.png" width="96%" align="center"/>
+</br>Pool Info & New Pool </br>
+<img src="images/screenshot_12.png" width="43%"/>
+<img src="images/screenshot_13.png" width="43%"/>
+</br>Node & Data Volumes</br>
+<img src="images/screenshot_14.png" width="43%"/>
+<img src="images/screenshot_15.png" width="43%"/>
+</br>Instance Type & Networking</br>
+<img src="images/screenshot_17.png" width="43%"/>
+<img src="images/screenshot_18.png" width="43%"/>
+</br>VNC Screen</br>
+<img src="images/screenshot_19.png" width="96%" align="center"/>
 
 *Note:* Check `images` directory for more screenshots.
 
