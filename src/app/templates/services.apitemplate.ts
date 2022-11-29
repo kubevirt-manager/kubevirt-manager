@@ -6,20 +6,16 @@ export class Services {
         "metadata":{
             "name":"",
             "namespace":"",
-            "labels": {
-                "kubevirt.io/vmpool": ""
-            }
+            "labels": {}
         },
         "spec":{
-            "type": "ClusterIP",
+            "type": "",
             "ports": [{
-                "port": 80,
-                "protocol": "TCP",
-                "targetPort": 90
+                "port": 0,
+                "protocol": "",
+                "targetPort": 0
             }],
-            "selector":{
-                "kubevirt.io/vmpool": ""
-            }
+            "selector":{}
         }
     };
 }
