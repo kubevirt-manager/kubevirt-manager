@@ -79,7 +79,9 @@ Instance List:</br>
 </br>Node & Data Volumes</br>
 <img src="images/screenshot_14.png" width="43%"/>
 <img src="images/screenshot_15.png" width="43%"/>
-</br>Load Balancers & New Load Balancer</br>
+</br>Load Balancers:</br>
+<img src="images/screenshot_19.png" width="96%" align="center"/>
+</br>Load Balancer Info & New Load Balancer</br>
 <img src="images/screenshot_20.png" width="43%"/>
 <img src="images/screenshot_21.png" width="43%"/>
 </br>Instance Type & Networking</br>
