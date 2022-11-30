@@ -15,7 +15,7 @@ I've created this Frontend for `KubeVirt` while I was trying to learn a little b
 
 Kubevirt featureGate `ExpandDisks` is required.
 
-CDI featureGate `HonorWaitForFirstConsumer` is required: 
+CDI is required with featureGate `HonorWaitForFirstConsumer` active: 
 ```
   config:
     featureGates:
@@ -79,9 +79,12 @@ Instance List:</br>
 </br>Node & Data Volumes</br>
 <img src="images/screenshot_14.png" width="43%"/>
 <img src="images/screenshot_15.png" width="43%"/>
+</br>Load Balancers & New Load Balancer</br>
+<img src="images/screenshot_20.png" width="43%"/>
+<img src="images/screenshot_21.png" width="43%"/>
 </br>Instance Type & Networking</br>
 <img src="images/screenshot_17.png" width="43%"/>
-<img src="images/screenshot_18.png" width="43%"/>
+<img src="images/screenshot_22.png" width="43%"/>
 </br>VNC Screen</br>
 <img src="images/screenshot_19.png" width="96%" align="center"/>
 
