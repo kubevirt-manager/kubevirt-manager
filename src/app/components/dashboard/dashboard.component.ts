@@ -32,6 +32,7 @@ export class DashboardComponent implements OnInit {
     storageClassesInfo = 0;
     namespacesInfo = 0;
     instanceTypesInfo = 0;
+    loadBalancers = 0;
 
     constructor(
         private k8sService: K8sService,
@@ -49,6 +50,7 @@ export class DashboardComponent implements OnInit {
         this.getStorageClasses();
         this.getNamespaces();
         this.getInstanceTypes();
+        this.getLoadBalancers();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Dashboard");
@@ -136,6 +138,14 @@ export class DashboardComponent implements OnInit {
     async getInstanceTypes(): Promise<void> {
         const data = await lastValueFrom(this.kubeVirtService.getClusterInstanceTypes());
         this.instanceTypesInfo = data.items.length;
+    }
+
+    /*
+     * Get Services from Kubernetes
+     */
+    async getLoadBalancers(): Promise<void> {
+        const data = await lastValueFrom(this.k8sService.getServices());
+        this.loadBalancers = data.items.length;
     }
 
     /*

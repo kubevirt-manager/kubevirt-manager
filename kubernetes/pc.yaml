@@ -4,6 +4,7 @@ kind: PriorityClass
 metadata:
   name: vm-standard
   labels:
+    kubevirt-manager.io/managed: "true"
     kubevirt-manager: "true"
 preemptionPolicy: Never
 value: 999999999
@@ -15,6 +16,7 @@ kind: PriorityClass
 metadata:
   name: vm-preemptible
   labels:
+    kubevirt-manager.io/managed: "true"
     kubevirt-manager: "true"
 preemptionPolicy: PreemptLowerPriority
 value: 1000000

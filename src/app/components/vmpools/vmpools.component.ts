@@ -399,6 +399,9 @@ export class VMPoolsComponent implements OnInit {
             let thisLabel = {'kubevirt.io/vmpool': newpoolname};
             Object.assign(tmpLabels, thisLabel);
 
+            let kubevirtManagerLabel = {'kubevirt-manager.io/managed': "true"};
+            Object.assign(tmpLabels, kubevirtManagerLabel);
+
             /* Check VM Type */
             if(newpooltype.toLowerCase() == "custom") {
                 if(newpoolcpumemsockets == "" || newpoolcpumemcores == "" || newpoolcpumemthreads == "" || newpoolcpumemmemory == "") {
@@ -763,6 +766,9 @@ export class VMPoolsComponent implements OnInit {
             myInnerHTML += "<li class=\"nav-item\">Pool Name: <span class=\"float-right badge bg-primary\">" + data.metadata.name + "</span></li>";
             myInnerHTML += "<li class=\"nav-item\">Pool Namespace: <span class=\"float-right badge bg-primary\">" + data.metadata.namespace + "</span></li>";
             myInnerHTML += "<li class=\"nav-item\">Creation Timestamp: <span class=\"float-right badge bg-primary\">" + data.metadata.creationTimestamp + "</span></li>";
+            if(data.spec.virtualMachineTemplate.spec.template.spec.priorityClassName != null) {
+                myInnerHTML += "<li class=\"nav-item\">Priority Class: <span class=\"float-right badge bg-primary\">" + data.spec.virtualMachineTemplate.spec.template.spec.priorityClassName + "</span></li>";
+            }
             if(data.spec.virtualMachineTemplate.metadata.labels != null) {
                 let labels = Object.entries(data.spec.virtualMachineTemplate.metadata.labels);
                 for(let i = 0; i < labels.length; i++){

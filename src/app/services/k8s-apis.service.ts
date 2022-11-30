@@ -24,7 +24,7 @@ export class K8sApisService {
   }
 
   getPriorityClasses(): Observable<any> {
-    return this.http.get(`${baseUrl}/scheduling.k8s.io/v1/priorityclasses?labelSelector=kubevirt-manager%3Dtrue`);
+    return this.http.get(`${baseUrl}/scheduling.k8s.io/v1/priorityclasses?labelSelector=kubevirt-manager.io/managed%3Dtrue`);
   }
 
 }
