@@ -94,17 +94,10 @@ Instance List:</br>
 
 ## Building
 
-* Frontend 
+To build the tool simply run: 
 ```sh
 docker build -t your-repo/kubevirt-manager:version .
 docker push your-repo/kubevirt-manager:version
-```
-
-* Backend
-```sh
-cd node-backend/
-docker build -t your-repo/kubevirt-manager-worker:version .
-docker push your-repo/kubevirt-manager-worker:version
 ```
 
 ## References
