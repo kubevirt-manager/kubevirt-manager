@@ -88,7 +88,7 @@ Instance List:</br>
 <img src="images/screenshot_17.png" width="43%"/>
 <img src="images/screenshot_22.png" width="43%"/>
 </br>VNC Screen</br>
-<img src="images/screenshot_19.png" width="96%" align="center"/>
+<img src="images/screenshot_32.png" width="96%" align="center"/>
 
 *Note:* Check `images` directory for more screenshots.
 
