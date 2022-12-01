@@ -107,10 +107,9 @@ docker push your-repo/kubevirt-manager:version
 3. [CDI](https://github.com/kubevirt/containerized-data-importer/)
 4. [Kubevirt](https://kubevirt.io)
 5. [NodeJS](https://nodejs.org/en/)
-6. [ExpressJS](https://expressjs.com/)
-7. [Angular](https://angular.io/)
-8. [AdminLTE](https://adminlte.io/)
-9. [NoVNC](https://github.com/novnc/noVNC)
+6. [Angular](https://angular.io/)
+7. [AdminLTE](https://adminlte.io/)
+8. [NoVNC](https://github.com/novnc/noVNC)
 
 ## License
 
