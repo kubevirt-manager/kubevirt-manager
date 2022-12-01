@@ -4,8 +4,9 @@ description: Priority class for VMs which should not be preemtited.
 metadata:
   name: vm-standard
   labels:
+    app: kubevirt-manager
+    kubevirt-manager.io/version: 1.1.1
     kubevirt-manager.io/managed: "true"
-    kubevirt-manager: "true"
 preemptionPolicy: Never
 value: 999999999
 
@@ -16,7 +17,8 @@ description: Priority class for VMs which are allowed to be preemtited.
 metadata:
   name: vm-preemptible
   labels:
+    app: kubevirt-manager
+    kubevirt-manager.io/version: 1.1.1
     kubevirt-manager.io/managed: "true"
-    kubevirt-manager: "true"
 preemptionPolicy: PreemptLowerPriority
 value: 1000000

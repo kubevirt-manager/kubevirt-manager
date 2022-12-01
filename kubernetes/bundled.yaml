@@ -3,6 +3,9 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: kubevirt-manager
+  labels:
+    app: kubevirt-manager
+    kubevirt-manager.io/version: 1.1.1
 
 ---
 apiVersion: v1
@@ -11,13 +14,15 @@ metadata:
   name: kubevirt-manager
   namespace: kubevirt-manager
   labels:
-    k8s-app: kubevirt-manager
+    app: kubevirt-manager
+    kubevirt-manager.io/version: 1.1.1
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: kubevirt-manager
+
 rules:
   - apiGroups: [""]
     resources: ["nodes", "namespaces"]
@@ -63,6 +68,7 @@ metadata:
   name: kubevirt-manager
   labels:
     app: kubevirt-manager
+    kubevirt-manager.io/version: 1.1.1
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -73,15 +79,15 @@ subjects:
   namespace: kubevirt-manager
 
 ---
-
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 description: Priority class for VMs which should not be preemtited.
 metadata:
   name: vm-standard
   labels:
+    app: kubevirt-manager
+    kubevirt-manager.io/version: 1.1.1
     kubevirt-manager.io/managed: "true"
-    kubevirt-manager: "true"
 preemptionPolicy: Never
 value: 999999999
 
@@ -92,13 +98,13 @@ description: Priority class for VMs which are allowed to be preemtited.
 metadata:
   name: vm-preemptible
   labels:
+    app: kubevirt-manager
+    kubevirt-manager.io/version: 1.1.1
     kubevirt-manager.io/managed: "true"
-    kubevirt-manager: "true"
 preemptionPolicy: PreemptLowerPriority
 value: 1000000
 
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -106,12 +112,12 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    version: 1.1.1
+    kubevirt-manager.io/version: 1.1.1
 spec:
   selector:
     matchLabels:
       app: kubevirt-manager
-      version: 1.1.1
+      kubevirt-manager.io/version: 1.1.1
   replicas: 1
   strategy:
     type: Recreate
@@ -119,7 +125,7 @@ spec:
     metadata:
       labels:
         app: kubevirt-manager
-        version: 1.1.1
+        kubevirt-manager.io/version: 1.1.1
     spec:
       containers:
         - name: kubevirtmgr
@@ -147,12 +153,14 @@ spec:
           emptyDir: {}
 
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
   name: kubevirt-manager
   namespace: kubevirt-manager
+  labels:
+    app: kubevirt-manager
+    kubevirt-manager.io/version: 1.1.1
 spec:
   type: ClusterIP
   selector:
