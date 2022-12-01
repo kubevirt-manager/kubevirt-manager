@@ -3,7 +3,7 @@
 
 **Maintainers:** [feitnomore](https://github.com/feitnomore/)
 
-Simple Angular Frontend and NodeJS + Express Backend to operate [Kubevirt](https://kubevirt.io/). This tools lets you perform basic operations around `Virtual Machines`, `Virtual Machine Instances`, and `Disks`. It was built based on requirements I had for my own environment.
+Simple Angular Frontend Web UI Interface to operate [Kubevirt](https://kubevirt.io/). This tools lets you perform basic operations around `Virtual Machines`, `Virtual Machine Instances`, and `Disks`. It was built based on requirements I had for my own environment.
 
 *WARNING:* Use it at your own risk.
 
@@ -63,30 +63,30 @@ Dashboard:</br>
 Instance List:</br>
 <img src="images/screenshot_02.png" width="96%"/>
 </br>Instance Info & New Instance </br>
-<img src="images/screenshot_03.png" width="43%"/>
-<img src="images/screenshot_04.png" width="43%"/>
+<img src="images/screenshot_03.png" width="46%"/>
+<img src="images/screenshot_04.png" width="46%"/>
 </br>Instance CPU/Memory & Priority Class </br>
-<img src="images/screenshot_06.png" width="43%"/>
-<img src="images/screenshot_07.png" width="43%"/>
+<img src="images/screenshot_06.png" width="46%"/>
+<img src="images/screenshot_07.png" width="46%"/>
 </br>Disk & Cloud Init:</br>
-<img src="images/screenshot_08.png" width="43%"/>
-<img src="images/screenshot_10.png" width="43%"/>
+<img src="images/screenshot_08.png" width="46%"/>
+<img src="images/screenshot_10.png" width="46%"/>
 </br>VM Pool:</br>
 <img src="images/screenshot_11.png" width="96%" align="center"/>
 </br>Pool Info & New Pool </br>
-<img src="images/screenshot_12.png" width="43%"/>
-<img src="images/screenshot_13.png" width="43%"/>
+<img src="images/screenshot_12.png" width="46%"/>
+<img src="images/screenshot_13.png" width="46%"/>
 </br>Node & Data Volumes</br>
-<img src="images/screenshot_14.png" width="43%"/>
-<img src="images/screenshot_15.png" width="43%"/>
+<img src="images/screenshot_14.png" width="46%"/>
+<img src="images/screenshot_15.png" width="46%"/>
 </br>Load Balancers:</br>
 <img src="images/screenshot_19.png" width="96%" align="center"/>
 </br>Load Balancer Info & New Load Balancer</br>
-<img src="images/screenshot_20.png" width="43%"/>
-<img src="images/screenshot_21.png" width="43%"/>
+<img src="images/screenshot_20.png" width="46%"/>
+<img src="images/screenshot_21.png" width="46%"/>
 </br>Instance Type & Networking</br>
-<img src="images/screenshot_17.png" width="43%"/>
-<img src="images/screenshot_22.png" width="43%"/>
+<img src="images/screenshot_17.png" width="46%"/>
+<img src="images/screenshot_22.png" width="46%"/>
 </br>VNC Screen</br>
 <img src="images/screenshot_23.png" width="96%" align="center"/>
 
