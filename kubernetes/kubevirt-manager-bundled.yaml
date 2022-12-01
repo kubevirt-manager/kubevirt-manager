@@ -1,0 +1,163 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kubevirt-manager
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kubevirt-manager
+  namespace: kubevirt-manager
+  labels:
+    k8s-app: kubevirt-manager
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubevirt-manager
+rules:
+  - apiGroups: [""]
+    resources: ["nodes", "namespaces"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["customresourcedefinitions"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims", "persistentvolumes", "services"]
+    verbs: ["*"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses"]
+    verbs: ["get", "list"]
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["get", "list"]
+  - apiGroups: ["k8s.cni.cncf.io"]
+    resources: ["network-attachment-definitions"]
+    verbs: ["get", "list"]
+  - apiGroups: ["kubevirt.io"]
+    resources: ["virtualmachines", "virtualmachineinstances"]
+    verbs: ["*"]
+  - apiGroups: ["subresources.kubevirt.io"]
+    resources: ["*"]
+    verbs: ["get", "list", "update", "patch"]
+  - apiGroups: ["instancetype.kubevirt.io"]
+    resources: ["*"]
+    verbs: ["*"] 
+  - apiGroups: ["cdi.kubevirt.io"]
+    resources: ["*"]
+    verbs: ["*"]
+  - apiGroups: ["pool.kubevirt.io"]
+    resources: ["*"]
+    verbs: ["*"]
+  - apiGroups: ["scheduling.k8s.io"]
+    resources: ["priorityclasses"]
+    verbs: ["get", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubevirt-manager
+  labels:
+    app: kubevirt-manager
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubevirt-manager
+subjects:
+- kind: ServiceAccount
+  name: kubevirt-manager
+  namespace: kubevirt-manager
+
+---
+
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+description: Priority class for VMs which should not be preemtited.
+metadata:
+  name: vm-standard
+  labels:
+    kubevirt-manager.io/managed: "true"
+    kubevirt-manager: "true"
+preemptionPolicy: Never
+value: 999999999
+
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+description: Priority class for VMs which are allowed to be preemtited.
+metadata:
+  name: vm-preemptible
+  labels:
+    kubevirt-manager.io/managed: "true"
+    kubevirt-manager: "true"
+preemptionPolicy: PreemptLowerPriority
+value: 1000000
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kubevirt-manager
+  namespace: kubevirt-manager
+  labels:
+    app: kubevirt-manager
+    version: 1.1.1
+spec:
+  selector:
+    matchLabels:
+      app: kubevirt-manager
+      version: 1.1.1
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: kubevirt-manager
+        version: 1.1.1
+    spec:
+      containers:
+        - name: kubevirtmgr
+          image: kubevirtmanager/kubevirt-manager:1.1.1
+          imagePullPolicy: IfNotPresent
+          ports:
+          - name: http
+            containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsUser: 10000
+            runAsGroup: 30000
+          volumeMounts:
+          - name: cache-volume
+            mountPath: /var/cache/nginx
+          - name: run-volume
+            mountPath: /var/run
+      serviceAccountName: kubevirt-manager
+      restartPolicy: Always
+      volumes:
+        - name: cache-volume
+          emptyDir: {}
+        - name: run-volume
+          emptyDir: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubevirt-manager
+  namespace: kubevirt-manager
+spec:
+  type: ClusterIP
+  selector:
+    app: kubevirt-manager
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
