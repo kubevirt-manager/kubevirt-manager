@@ -2,3 +2,6 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: kubevirt-manager
+  labels:
+    app: kubevirt-manager
+    kubevirt-manager.io/version: 1.1.1
