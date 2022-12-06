@@ -490,7 +490,8 @@ export class VMPoolsComponent implements OnInit {
 
             let cloudconfig  = "#cloud-config\n";
                 cloudconfig += "manage_etc_hosts: true\n";
-                cloudconfig += "hostname: " + newpoolname + "\n";
+                // Removed so machines can have pool generated hostnames
+                // cloudconfig += "hostname: " + newpoolname + "\n";
 
             /* Disk1 setup */
             if(newpooldiskonetype == "image") {
@@ -641,12 +642,6 @@ export class VMPoolsComponent implements OnInit {
             }
         }
     }
-
-
-
-
-
-
 
     /*
      * VM Basic Operations (start, stop, etc...)
@@ -1146,7 +1141,7 @@ export class VMPoolsComponent implements OnInit {
                 diskOneURLField.setAttribute("style","display: none;");
             }
         }
-  }
+    }
 
     /*
      * New Pool: Control Disk2 Options

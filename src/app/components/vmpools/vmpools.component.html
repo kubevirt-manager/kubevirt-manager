@@ -217,6 +217,9 @@
                     <li class="nav-item">
                       <a class="nav-link" id="newpool-cloudinit-tab" data-toggle="pill" href="#newpool-cloudinit" role="tab" aria-controls="newpool-cloudinit" aria-selected="false">Cloud Init</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="newpool-initscript-tab" data-toggle="pill" href="#newpool-initscript" role="tab" aria-controls="newpool-initscript" aria-selected="false">Init Script</a>
+                    </li>
                   </ul>
                 </div>
                 <div class="card-body">
@@ -365,6 +368,10 @@
                       <input #newpoolcloudinitusername type="text" class="form-control" id="newpool-cloudinit-username" name="newpool-cloudinit-username">
                       <label for="newpool-cloudinit-password">Password:</label>
                       <input #newpoolcloudinitpassword type="password" class="form-control" id="newpool-cloudinit-password" name="newpool-cloudinit-password">
+                    </div>
+                    <!-- INIT SCRIPT -->
+                    <div class="tab-pane fade" id="newpool-initscript" role="tabpanel" aria-labelledby="newpool-initscript-tab">
+                        <textarea #newpoolinitscript class="form-control" rows="14" cols="10" name="newpool-initscript" id="newpool-initscript" placeholder=""></textarea>
                     </div>
                   </div>
                 </div>

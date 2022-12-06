@@ -189,6 +189,9 @@
                   <li class="nav-item">
                     <a class="nav-link" id="newvm-cloudinit-tab" data-toggle="pill" href="#newvm-cloudinit" role="tab" aria-controls="newvm-cloudinit" aria-selected="false">Cloud Init</a>
                   </li>
+                  <li class="nav-item">
+                    <a class="nav-link" id="newpool-initscript-tab" data-toggle="pill" href="#newpool-initscript" role="tab" aria-controls="newpool-initscript" aria-selected="false">Init Script</a>
+                  </li>
                 </ul>
               </div>
               <div class="card-body">
@@ -348,6 +351,10 @@
                     <input #newvmcloudinitdns1 type="text" class="form-control" id="newvm-cloudinit-dns1" name="newvm-cloudinit-dns1">
                     <label for="newvm-cloudinit-dns2">DNS 2:</label>
                     <input #newvmcloudinitdns2 type="text" class="form-control" id="newvm-cloudinit-dns2" name="newvm-cloudinit-dns2">
+                  </div>
+                  <!-- INIT SCRIPT -->
+                  <div class="tab-pane fade" id="newpool-initscript" role="tabpanel" aria-labelledby="newpool-initscript-tab">
+                    <textarea #newpoolinitscript class="form-control" rows="14" cols="10" name="newpool-initscript" id="newpool-initscript" placeholder=""></textarea>
                   </div>
                 </div>
               </div>
