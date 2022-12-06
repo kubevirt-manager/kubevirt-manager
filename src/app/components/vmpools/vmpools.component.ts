@@ -337,7 +337,8 @@ export class VMPoolsComponent implements OnInit {
         newpooldisktwourl: string,
         newpoolnetwork: string,
         newpoolcloudinitusername: string,
-        newpoolcloudinitpassword: string
+        newpoolcloudinitpassword: string,
+        newpoolinitscript: string
     ) {
         /* Basic Form Fields Check/Validation */
         if(newpoolname == "" || newpoolnamespace == "") {
@@ -576,6 +577,14 @@ export class VMPoolsComponent implements OnInit {
             }
             if (newpoolcloudinitpassword != "") {
                 cloudconfig += "password: " + newpoolcloudinitpassword + "\n";
+            }
+
+            /* Init Script Setup */
+            if(newpoolinitscript != "") {
+                cloudconfig += "runcmd: \n";
+                for (const line of newpoolinitscript.split(/[\r\n]+/)){
+                    cloudconfig += "  - " + line + "\n";
+                }
             }
 
 

@@ -323,7 +323,8 @@ export class VmlistComponent implements OnInit {
         newvmcloudinitnetmask: string,
         newvmcloudinitgw: string,
         newvmcloudinitdns1: string,
-        newvmcloudinitdns2: string
+        newvmcloudinitdns2: string,
+        newpoolinitscript: string
     ) {
         /* Basic Form Fields Check/Validation */
         if(newvmname == "" || newvmnamespace == "") {
@@ -556,6 +557,14 @@ export class VmlistComponent implements OnInit {
             }
             if (newvmcloudinitpassword != "") {
                 cloudconfig += "password: " + newvmcloudinitpassword + "\n";
+            }
+
+            /* Init Script Setup */
+            if(newpoolinitscript != "") {
+                cloudconfig += "runcmd: \n";
+                for (const line of newpoolinitscript.split(/[\r\n]+/)){
+                    cloudconfig += "  - " + line + "\n";
+                }
             }
 
             /* NetworkData Setup */
