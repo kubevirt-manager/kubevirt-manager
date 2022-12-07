@@ -298,10 +298,6 @@ export class VMPoolsComponent implements OnInit {
         }
     }
 
-
-
-
-
     /*
      * New VM: Create the New VM
      */
@@ -1087,7 +1083,6 @@ export class VMPoolsComponent implements OnInit {
             }
         }
     }
-
 
     /*
      * New Pool: Control Disk1 Options

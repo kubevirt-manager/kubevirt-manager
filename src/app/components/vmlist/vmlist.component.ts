@@ -761,9 +761,9 @@ export class VmlistComponent implements OnInit {
         }
     }
 
-  /*
-   * Hide Delete Window
-   */
+    /*
+     * Hide Delete Window
+     */
     hideDelete(): void {
         let modalDiv = document.getElementById("modal-delete");
         if(modalDiv != null) {
@@ -834,9 +834,9 @@ export class VmlistComponent implements OnInit {
         }
     }
 
-  /*
-   * Hide Type Window
-   */
+    /*
+     * Hide Type Window
+     */
     hideType(): void {
         let modalDiv = document.getElementById("modal-type");
         if(modalDiv != null) {
@@ -908,9 +908,9 @@ export class VmlistComponent implements OnInit {
         }
     }
 
-  /*
-   * Hide Info Window
-   */
+    /*
+     * Hide Info Window
+     */
     hideInfo(): void {
         let modalDiv = document.getElementById("modal-info");
         if(modalDiv != null) {
@@ -1143,29 +1143,29 @@ export class VmlistComponent implements OnInit {
         }
     }
 
-  /*
-   * New VM: Display Custom CPU/MEM
-   */
-  async onChangeType(vmType: string) {
-    let modalDiv = document.getElementById("custom-cpu-memory");
-    if(vmType.toLowerCase() == "custom") {
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade show");
-            modalDiv.setAttribute("aria-modal", "true");
-            modalDiv.setAttribute("role", "dialog");
-            modalDiv.setAttribute("aria-hidden", "false");
-            modalDiv.setAttribute("style","display: contents;");
-        }
-    } else {
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
+    /*
+     * New VM: Display Custom CPU/MEM
+     */
+    async onChangeType(vmType: string) {
+        let modalDiv = document.getElementById("custom-cpu-memory");
+        if(vmType.toLowerCase() == "custom") {
+            if(modalDiv != null) {
+                modalDiv.setAttribute("class", "modal fade show");
+                modalDiv.setAttribute("aria-modal", "true");
+                modalDiv.setAttribute("role", "dialog");
+                modalDiv.setAttribute("aria-hidden", "false");
+                modalDiv.setAttribute("style","display: contents;");
+            }
+        } else {
+            if(modalDiv != null) {
+                modalDiv.setAttribute("class", "modal fade");
+                modalDiv.setAttribute("aria-modal", "false");
+                modalDiv.setAttribute("role", "");
+                modalDiv.setAttribute("aria-hidden", "true");
+                modalDiv.setAttribute("style","display: none;");
+            }
         }
     }
-  }
 
     /*
      * New VM: Change between pass/ssh auth
