@@ -317,8 +317,10 @@ export class VmlistComponent implements OnInit {
         newvmdisktwosc: string,
         newvmdisktwourl: string,
         newvmnetwork: string,
-        newvmcloudinitusername: string,
-        newvmcloudinitpassword: string,
+        newvmuserdatausername: string,
+        newvmuserdataauth: string,
+        newvmuserdatapassword: string,
+        newvmuserdatassh: string,
         newvmcloudinitip: string,
         newvmcloudinitnetmask: string,
         newvmcloudinitgw: string,
@@ -552,11 +554,18 @@ export class VmlistComponent implements OnInit {
             }
 
             /* UserData Setup */
-            if(newvmcloudinitusername != "") {
-                cloudconfig += "user: " + newvmcloudinitusername + "\n";
+            if(newvmuserdatausername != "") {
+                cloudconfig += "user: " + newvmuserdatausername + "\n";
             }
-            if (newvmcloudinitpassword != "") {
-                cloudconfig += "password: " + newvmcloudinitpassword + "\n";
+            if(newvmuserdataauth.toLowerCase() == "ssh") {
+                if (newvmuserdatassh != "") {
+                    cloudconfig += "ssh_authorized_keys:\n";
+                    cloudconfig += "  - " + newvmuserdatassh + "\n";
+                }
+            } else {
+                if (newvmuserdatapassword != "") {
+                    cloudconfig += "password: " + newvmuserdatapassword + "\n";
+                }
             }
 
             /* Init Script Setup */
@@ -1008,7 +1017,7 @@ export class VmlistComponent implements OnInit {
                 diskOneURLField.setAttribute("style","display: none;");
             }
         }
-  }
+    }
 
     /*
      * New VM: Control Disk2 Options
@@ -1157,6 +1166,41 @@ export class VmlistComponent implements OnInit {
         }
     }
   }
+
+    /*
+     * New VM: Change between pass/ssh auth
+     */
+    async onChangeAuthType(authType: string) {
+        let modalSSHDiv = document.getElementById("newvm-userdata-ssh-panel");
+        let modelPWDDiv = document.getElementById("newvm-userdata-password-panel");
+        if(authType.toLowerCase() == "ssh") {
+            if(modalSSHDiv != null && modelPWDDiv != null) {
+                modalSSHDiv.setAttribute("class", "modal fade show");
+                modalSSHDiv.setAttribute("aria-modal", "true");
+                modalSSHDiv.setAttribute("role", "dialog");
+                modalSSHDiv.setAttribute("aria-hidden", "false");
+                modalSSHDiv.setAttribute("style","display: contents;");
+                modelPWDDiv.setAttribute("class", "modal fade");
+                modelPWDDiv.setAttribute("aria-modal", "false");
+                modelPWDDiv.setAttribute("role", "");
+                modelPWDDiv.setAttribute("aria-hidden", "true");
+                modelPWDDiv.setAttribute("style","display: none;");
+            }
+        } else {
+            if(modalSSHDiv != null && modelPWDDiv != null) {
+                modelPWDDiv.setAttribute("class", "modal fade show");
+                modelPWDDiv.setAttribute("aria-modal", "true");
+                modelPWDDiv.setAttribute("role", "dialog");
+                modelPWDDiv.setAttribute("aria-hidden", "false");
+                modelPWDDiv.setAttribute("style","display: contents;");
+                modalSSHDiv.setAttribute("class", "modal fade");
+                modalSSHDiv.setAttribute("aria-modal", "false");
+                modalSSHDiv.setAttribute("role", "");
+                modalSSHDiv.setAttribute("aria-hidden", "true");
+                modalSSHDiv.setAttribute("style","display: none;");
+            }
+        }
+    }
 
     /*
      * Check VM Exists

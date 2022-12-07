@@ -336,8 +336,10 @@ export class VMPoolsComponent implements OnInit {
         newpooldisktwosc: string,
         newpooldisktwourl: string,
         newpoolnetwork: string,
-        newpoolcloudinitusername: string,
-        newpoolcloudinitpassword: string,
+        newpooluserdatausername: string,
+        newpooluserdataauth: string,
+        newpooluserdatapassword: string,
+        newpooluserdatassh: string,
         newpoolinitscript: string
     ) {
         /* Basic Form Fields Check/Validation */
@@ -572,11 +574,18 @@ export class VMPoolsComponent implements OnInit {
             }
 
             /* UserData Setup */
-            if(newpoolcloudinitusername != "") {
-                cloudconfig += "user: " + newpoolcloudinitusername + "\n";
+            if(newpooluserdatausername != "") {
+                cloudconfig += "user: " + newpooluserdatausername + "\n";
             }
-            if (newpoolcloudinitpassword != "") {
-                cloudconfig += "password: " + newpoolcloudinitpassword + "\n";
+            if(newpooluserdataauth.toLowerCase() == "ssh") {
+                if (newpooluserdatassh != "") {
+                    cloudconfig += "ssh_authorized_keys:\n";
+                    cloudconfig += "  - " + newpooluserdatassh + "\n";
+                }
+            } else {
+                if (newpooluserdatapassword != "") {
+                    cloudconfig += "password: " + newpooluserdatapassword + "\n";
+                }
             }
 
             /* Init Script Setup */
@@ -1296,6 +1305,41 @@ export class VMPoolsComponent implements OnInit {
                 modalDiv.setAttribute("role", "");
                 modalDiv.setAttribute("aria-hidden", "true");
                 modalDiv.setAttribute("style","display: none;");
+            }
+        }
+    }
+
+    /*
+     * New VM: Change between pass/ssh auth
+     */
+    async onChangeAuthType(authType: string) {
+        let modalSSHDiv = document.getElementById("newpool-userdata-ssh-panel");
+        let modelPWDDiv = document.getElementById("newpool-userdata-password-panel");
+        if(authType.toLowerCase() == "ssh") {
+            if(modalSSHDiv != null && modelPWDDiv != null) {
+                modalSSHDiv.setAttribute("class", "modal fade show");
+                modalSSHDiv.setAttribute("aria-modal", "true");
+                modalSSHDiv.setAttribute("role", "dialog");
+                modalSSHDiv.setAttribute("aria-hidden", "false");
+                modalSSHDiv.setAttribute("style","display: contents;");
+                modelPWDDiv.setAttribute("class", "modal fade");
+                modelPWDDiv.setAttribute("aria-modal", "false");
+                modelPWDDiv.setAttribute("role", "");
+                modelPWDDiv.setAttribute("aria-hidden", "true");
+                modelPWDDiv.setAttribute("style","display: none;");
+            }
+        } else {
+            if(modalSSHDiv != null && modelPWDDiv != null) {
+                modelPWDDiv.setAttribute("class", "modal fade show");
+                modelPWDDiv.setAttribute("aria-modal", "true");
+                modelPWDDiv.setAttribute("role", "dialog");
+                modelPWDDiv.setAttribute("aria-hidden", "false");
+                modelPWDDiv.setAttribute("style","display: contents;");
+                modalSSHDiv.setAttribute("class", "modal fade");
+                modalSSHDiv.setAttribute("aria-modal", "false");
+                modalSSHDiv.setAttribute("role", "");
+                modalSSHDiv.setAttribute("aria-hidden", "true");
+                modalSSHDiv.setAttribute("style","display: none;");
             }
         }
     }
