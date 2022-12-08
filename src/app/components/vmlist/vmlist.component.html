@@ -187,7 +187,13 @@
                     <a class="nav-link" id="newvm-net-tab" data-toggle="pill" href="#newvm-net" role="tab" aria-controls="newvm-net" aria-selected="false">Networking</a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" id="newvm-cloudinit-tab" data-toggle="pill" href="#newvm-cloudinit" role="tab" aria-controls="newvm-cloudinit" aria-selected="false">Cloud Init</a>
+                    <a class="nav-link" id="newvm-userdata-tab" data-toggle="pill" href="#newvm-userdata" role="tab" aria-controls="newvm-userdata" aria-selected="false">User Data</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" id="newvm-netdata-tab" data-toggle="pill" href="#newvm-netdata" role="tab" aria-controls="newvm-netdata" aria-selected="false">Network Data</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" id="newpool-initscript-tab" data-toggle="pill" href="#newpool-initscript" role="tab" aria-controls="newpool-initscript" aria-selected="false">Init Script</a>
                   </li>
                 </ul>
               </div>
@@ -332,22 +338,40 @@
                         <option value=podNetwork>podNetwork</option>
                     </select>
                   </div>
-                  <!-- CLOUDINIT TAB -->
-                  <div class="tab-pane fade" id="newvm-cloudinit" role="tabpanel" aria-labelledby="newvm-cloudinit-tab">
-                    <label for="newvm-cloudinit-username">Username:</label>
-                    <input #newvmcloudinitusername type="text" class="form-control" id="newvm-cloudinit-username" name="newvm-cloudinit-username">
-                    <label for="newvm-cloudinit-password">Password:</label>
-                    <input #newvmcloudinitpassword type="password" class="form-control" id="newvm-cloudinit-password" name="newvm-cloudinit-password">
-                    <label for="newvm-cloudinit-ip">IP:</label>
-                    <input #newvmcloudinitip type="text" class="form-control" id="newvm-cloudinit-ip" name="newvm-cloudinit-ip">
-                    <label for="newvm-cloudinit-netmask">Netmask:</label>
-                    <input #newvmcloudinitnetmask type="text" class="form-control" id="newvm-cloudinit-netmask" name="newvm-cloudinit-netmask">
-                    <label for="newvm-cloudinit-gw">Gateway:</label>
-                    <input #newvmcloudinitgw type="text" class="form-control" id="newvm-cloudinit-gw" name="newvm-cloudinit-gw">
-                    <label for="newvm-cloudinit-dns1">DNS 1:</label>
-                    <input #newvmcloudinitdns1 type="text" class="form-control" id="newvm-cloudinit-dns1" name="newvm-cloudinit-dns1">
-                    <label for="newvm-cloudinit-dns2">DNS 2:</label>
-                    <input #newvmcloudinitdns2 type="text" class="form-control" id="newvm-cloudinit-dns2" name="newvm-cloudinit-dns2">
+                  <!-- USERDATA TAB -->
+                  <div class="tab-pane fade" id="newvm-userdata" role="tabpanel" aria-labelledby="newvm-userdata-tab">
+                    <label for="newvm-userdata-username">Username:</label>
+                    <input #newvmuserdatausername type="text" class="form-control" id="newvm-userdata-username" name="newvm-userdata-username">
+                    <label for="newvm-userdata-auth">Authentication:</label>
+                    <select #newvmuserdataauth class="custom-select rounded-0" name="newvm-userdata-auth" id="newvm-userdata-auth" (change)="onChangeAuthType(newvmuserdataauth.value)">
+                      <option value="password">User/Password</option>
+                      <option value="ssh">SSH Private Key</option>
+                    </select>
+                    <div class="pane fade show" id="newvm-userdata-password-panel" name="newvm-userdata-password-panel" style="display: contents;" aria-hidden="false">
+                        <label for="newvm-userdata-password">Password:</label>
+                        <input #newvmuserdatapassword type="password" class="form-control" id="newvm-userdata-password" name="newvm-userdata-password">
+                    </div>
+                    <div class="pane fade" id="newvm-userdata-ssh-panel" name="newvm-userdata-ssh-panel" style="display: none;" aria-hidden="true">
+                        <label for="newvm-userdata-ssh">SSH Key:</label>
+                        <textarea #newvmuserdatassh class="form-control" rows="3" cols="10" id="newvm-userdata-ssh" name="newvm-userdata-ssh"></textarea>
+                    </div>
+                  </div>
+                  <!-- NETWORK DATA TAB -->
+                  <div class="tab-pane fade" id="newvm-netdata" role="tabpanel" aria-labelledby="newvm-netdata-tab">
+                    <label for="newvm-netdata-ip">IP:</label>
+                    <input #newvmnetdataip type="text" class="form-control" id="newvm-netdata-ip" name="newvm-netdata-ip">
+                    <label for="newvm-netdata-netmask">Netmask:</label>
+                    <input #newvmnetdatanetmask type="text" class="form-control" id="newvm-netdata-netmask" name="newvm-netdata-netmask">
+                    <label for="newvm-netdata-gw">Gateway:</label>
+                    <input #newvmnetdatagw type="text" class="form-control" id="newvm-netdata-gw" name="newvm-netdata-gw">
+                    <label for="newvm-netdata-dns1">DNS 1:</label>
+                    <input #newvmnetdatadns1 type="text" class="form-control" id="newvm-netdata-dns1" name="newvm-netdata-dns1">
+                    <label for="newvm-netdata-dns2">DNS 2:</label>
+                    <input #newvmnetdatadns2 type="text" class="form-control" id="newvm-netdata-dns2" name="newvm-netdata-dns2">
+                  </div>
+                  <!-- INIT SCRIPT -->
+                  <div class="tab-pane fade" id="newpool-initscript" role="tabpanel" aria-labelledby="newpool-initscript-tab">
+                    <textarea #newpoolinitscript class="form-control" rows="14" cols="10" name="newpool-initscript" id="newpool-initscript" placeholder=""></textarea>
                   </div>
                 </div>
               </div>
@@ -356,7 +380,7 @@
           </div>
           <div class="modal-footer justify-content-between">
             <button type="button" class="btn btn-default" (click)="hideNewVm()">Close</button>
-            <button type="button" class="btn btn-primary" (click)="applyNewVm(newvmname.value, newvmnamespace.value, newvmnode.value, newvmlabelkeyone.value, newvmlabelvalueone.value, newvmlabelkeytwo.value, newvmlabelvaluetwo.value, newvmlabelkeythree.value, newvmlabelvaluethree.value, newvmlabelkeyfour.value, newvmlabelvaluefour.value, newvmlabelkeyfive.value, newvmlabelvaluefive.value, newvmtype.value, newvmcpumemsockets.value, newvmcpumemcores.value, newvmcpumemthreads.value, newvmcpumemmemory.value, newvmpc.value, newvmdiskonetype.value, newvmdiskonevalue.value, newvmdiskonesize.value, newvmdiskonesc.value, newvmdiskoneurl.value, newvmdisktwotype.value, newvmdisktwovalue.value, newvmdisktwosize.value, newvmdisktwosc.value, newvmdisktwourl.value, newvmnetwork.value, newvmcloudinitusername.value, newvmcloudinitpassword.value, newvmcloudinitip.value, newvmcloudinitnetmask.value, newvmcloudinitgw.value, newvmcloudinitdns1.value, newvmcloudinitdns2.value)">Create</button>
+            <button type="button" class="btn btn-primary" (click)="applyNewVm(newvmname.value, newvmnamespace.value, newvmnode.value, newvmlabelkeyone.value, newvmlabelvalueone.value, newvmlabelkeytwo.value, newvmlabelvaluetwo.value, newvmlabelkeythree.value, newvmlabelvaluethree.value, newvmlabelkeyfour.value, newvmlabelvaluefour.value, newvmlabelkeyfive.value, newvmlabelvaluefive.value, newvmtype.value, newvmcpumemsockets.value, newvmcpumemcores.value, newvmcpumemthreads.value, newvmcpumemmemory.value, newvmpc.value, newvmdiskonetype.value, newvmdiskonevalue.value, newvmdiskonesize.value, newvmdiskonesc.value, newvmdiskoneurl.value, newvmdisktwotype.value, newvmdisktwovalue.value, newvmdisktwosize.value, newvmdisktwosc.value, newvmdisktwourl.value, newvmnetwork.value, newvmuserdatausername.value, newvmuserdataauth.value, newvmuserdatapassword.value, newvmuserdatassh.value, newvmnetdataip.value, newvmnetdatanetmask.value, newvmnetdatagw.value, newvmnetdatadns1.value, newvmnetdatadns2.value, newpoolinitscript.value)">Create</button>
           </div>
         </form>
         </div>

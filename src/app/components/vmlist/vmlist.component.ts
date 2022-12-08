@@ -317,13 +317,16 @@ export class VmlistComponent implements OnInit {
         newvmdisktwosc: string,
         newvmdisktwourl: string,
         newvmnetwork: string,
-        newvmcloudinitusername: string,
-        newvmcloudinitpassword: string,
+        newvmuserdatausername: string,
+        newvmuserdataauth: string,
+        newvmuserdatapassword: string,
+        newvmuserdatassh: string,
         newvmcloudinitip: string,
         newvmcloudinitnetmask: string,
         newvmcloudinitgw: string,
         newvmcloudinitdns1: string,
-        newvmcloudinitdns2: string
+        newvmcloudinitdns2: string,
+        newpoolinitscript: string
     ) {
         /* Basic Form Fields Check/Validation */
         if(newvmname == "" || newvmnamespace == "") {
@@ -551,11 +554,26 @@ export class VmlistComponent implements OnInit {
             }
 
             /* UserData Setup */
-            if(newvmcloudinitusername != "") {
-                cloudconfig += "user: " + newvmcloudinitusername + "\n";
+            if(newvmuserdatausername != "") {
+                cloudconfig += "user: " + newvmuserdatausername + "\n";
             }
-            if (newvmcloudinitpassword != "") {
-                cloudconfig += "password: " + newvmcloudinitpassword + "\n";
+            if(newvmuserdataauth.toLowerCase() == "ssh") {
+                if (newvmuserdatassh != "") {
+                    cloudconfig += "ssh_authorized_keys:\n";
+                    cloudconfig += "  - " + newvmuserdatassh + "\n";
+                }
+            } else {
+                if (newvmuserdatapassword != "") {
+                    cloudconfig += "password: " + newvmuserdatapassword + "\n";
+                }
+            }
+
+            /* Init Script Setup */
+            if(newpoolinitscript != "") {
+                cloudconfig += "runcmd: \n";
+                for (const line of newpoolinitscript.split(/[\r\n]+/)){
+                    cloudconfig += "  - " + line + "\n";
+                }
             }
 
             /* NetworkData Setup */
@@ -743,9 +761,9 @@ export class VmlistComponent implements OnInit {
         }
     }
 
-  /*
-   * Hide Delete Window
-   */
+    /*
+     * Hide Delete Window
+     */
     hideDelete(): void {
         let modalDiv = document.getElementById("modal-delete");
         if(modalDiv != null) {
@@ -816,9 +834,9 @@ export class VmlistComponent implements OnInit {
         }
     }
 
-  /*
-   * Hide Type Window
-   */
+    /*
+     * Hide Type Window
+     */
     hideType(): void {
         let modalDiv = document.getElementById("modal-type");
         if(modalDiv != null) {
@@ -890,9 +908,9 @@ export class VmlistComponent implements OnInit {
         }
     }
 
-  /*
-   * Hide Info Window
-   */
+    /*
+     * Hide Info Window
+     */
     hideInfo(): void {
         let modalDiv = document.getElementById("modal-info");
         if(modalDiv != null) {
@@ -999,7 +1017,7 @@ export class VmlistComponent implements OnInit {
                 diskOneURLField.setAttribute("style","display: none;");
             }
         }
-  }
+    }
 
     /*
      * New VM: Control Disk2 Options
@@ -1125,29 +1143,64 @@ export class VmlistComponent implements OnInit {
         }
     }
 
-  /*
-   * New VM: Display Custom CPU/MEM
-   */
-  async onChangeType(vmType: string) {
-    let modalDiv = document.getElementById("custom-cpu-memory");
-    if(vmType.toLowerCase() == "custom") {
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade show");
-            modalDiv.setAttribute("aria-modal", "true");
-            modalDiv.setAttribute("role", "dialog");
-            modalDiv.setAttribute("aria-hidden", "false");
-            modalDiv.setAttribute("style","display: contents;");
-        }
-    } else {
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
+    /*
+     * New VM: Display Custom CPU/MEM
+     */
+    async onChangeType(vmType: string) {
+        let modalDiv = document.getElementById("custom-cpu-memory");
+        if(vmType.toLowerCase() == "custom") {
+            if(modalDiv != null) {
+                modalDiv.setAttribute("class", "modal fade show");
+                modalDiv.setAttribute("aria-modal", "true");
+                modalDiv.setAttribute("role", "dialog");
+                modalDiv.setAttribute("aria-hidden", "false");
+                modalDiv.setAttribute("style","display: contents;");
+            }
+        } else {
+            if(modalDiv != null) {
+                modalDiv.setAttribute("class", "modal fade");
+                modalDiv.setAttribute("aria-modal", "false");
+                modalDiv.setAttribute("role", "");
+                modalDiv.setAttribute("aria-hidden", "true");
+                modalDiv.setAttribute("style","display: none;");
+            }
         }
     }
-  }
+
+    /*
+     * New VM: Change between pass/ssh auth
+     */
+    async onChangeAuthType(authType: string) {
+        let modalSSHDiv = document.getElementById("newvm-userdata-ssh-panel");
+        let modelPWDDiv = document.getElementById("newvm-userdata-password-panel");
+        if(authType.toLowerCase() == "ssh") {
+            if(modalSSHDiv != null && modelPWDDiv != null) {
+                modalSSHDiv.setAttribute("class", "modal fade show");
+                modalSSHDiv.setAttribute("aria-modal", "true");
+                modalSSHDiv.setAttribute("role", "dialog");
+                modalSSHDiv.setAttribute("aria-hidden", "false");
+                modalSSHDiv.setAttribute("style","display: contents;");
+                modelPWDDiv.setAttribute("class", "modal fade");
+                modelPWDDiv.setAttribute("aria-modal", "false");
+                modelPWDDiv.setAttribute("role", "");
+                modelPWDDiv.setAttribute("aria-hidden", "true");
+                modelPWDDiv.setAttribute("style","display: none;");
+            }
+        } else {
+            if(modalSSHDiv != null && modelPWDDiv != null) {
+                modelPWDDiv.setAttribute("class", "modal fade show");
+                modelPWDDiv.setAttribute("aria-modal", "true");
+                modelPWDDiv.setAttribute("role", "dialog");
+                modelPWDDiv.setAttribute("aria-hidden", "false");
+                modelPWDDiv.setAttribute("style","display: contents;");
+                modalSSHDiv.setAttribute("class", "modal fade");
+                modalSSHDiv.setAttribute("aria-modal", "false");
+                modalSSHDiv.setAttribute("role", "");
+                modalSSHDiv.setAttribute("aria-hidden", "true");
+                modalSSHDiv.setAttribute("style","display: none;");
+            }
+        }
+    }
 
     /*
      * Check VM Exists
