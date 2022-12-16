@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-const baseUrl ='/k8s/api/v1'
+const baseUrl ='./k8s/api/v1'
 
 @Injectable({
   providedIn: 'root'
