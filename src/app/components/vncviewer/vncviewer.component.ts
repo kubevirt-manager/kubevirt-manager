@@ -29,7 +29,8 @@ export class VNCViewerComponent implements OnInit {
 
         const host = window.location.hostname;
         const port = window.location.port;
-        const path = "k8s/apis/subresources.kubevirt.io/v1alpha3/namespaces/" + this.vmNamespace + "/virtualmachineinstances/" + this.vmName + "/vnc";
+        const rootPath = window.location.pathname.split('/').slice(1,-3).join('/'); // Dropping first `/` and trailing `/vncviewer/<vmNamespace>/<vmName>` from path to get back to "root"
+        const path = rootPath + "/k8s/apis/subresources.kubevirt.io/v1alpha3/namespaces/" + this.vmNamespace + "/virtualmachineinstances/" + this.vmName + "/vnc";
 
         // Build the websocket URL used to connect
         let url = "ws";
