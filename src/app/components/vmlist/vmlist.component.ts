@@ -104,11 +104,19 @@ export class VmlistComponent implements OnInit {
             }
 
             if(currentVm.instType == "custom") {
-                /* Custom VM has cpu / mem parameters */
-                currentVm.cores = vms[i].spec.template.spec.domain.cpu["cores"];
-                currentVm.sockets = vms[i].spec.template.spec.domain.cpu["sockets"];
-                currentVm.threads = vms[i].spec.template.spec.domain.cpu["threads"];
-                currentVm.memory = vms[i].spec.template.spec.domain.resources.requests["memory"];
+                try {
+                    /* Custom VM has cpu / mem parameters */
+                    currentVm.cores = vms[i].spec.template.spec.domain.cpu["cores"];
+                    currentVm.sockets = vms[i].spec.template.spec.domain.cpu["sockets"];
+                    currentVm.threads = vms[i].spec.template.spec.domain.cpu["threads"];
+                    currentVm.memory = vms[i].spec.template.spec.domain.resources.requests["memory"];
+                } catch (_){
+                    currentVm.cores = currentVm.cores || 0;
+                    currentVm.sockets = currentVm.sockets || 0;
+                    currentVm.threads = currentVm.threads || 0;
+                    currentVm.memory = currentVm.memory || "N/A";
+                }
+
             } else {
                 /* load vCPU / Mem from type */
                 try {
