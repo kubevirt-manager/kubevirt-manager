@@ -15,22 +15,22 @@ export class DataVolumesService {
     constructor(private http: HttpClient) { }
 
     getDataVolumes(): Observable<any> {
-        var baseUrl ='/k8s/apis/cdi.kubevirt.io/v1beta1';
+        var baseUrl ='./k8s/apis/cdi.kubevirt.io/v1beta1';
         return this.http.get(`${baseUrl}/datavolumes`);
     }
 
     getNamespacedDataVolumes(dvNamespace: string): Observable<any> {
-        var baseUrl ='/k8s/apis/cdi.kubevirt.io/v1beta1';
+        var baseUrl ='./k8s/apis/cdi.kubevirt.io/v1beta1';
         return this.http.get(`${baseUrl}/namespaces/${dvNamespace}/datavolumes`);
     }
 
     getDataVolumeInfo(namespace: string, name: string): Observable<any> {
-        var baseUrl ='/k8s/apis/cdi.kubevirt.io/v1beta1';
+        var baseUrl ='./k8s/apis/cdi.kubevirt.io/v1beta1';
         return this.http.get(`${baseUrl}/namespaces/${namespace}/datavolumes/${name}`);
     }
 
     deleteDataVolume(namespace: string, name: string): Observable<any> {
-        var baseUrl ='/k8s/apis/cdi.kubevirt.io/v1beta1';
+        var baseUrl ='./k8s/apis/cdi.kubevirt.io/v1beta1';
         return this.http.delete(`${baseUrl}/namespaces/${namespace}/datavolumes/${name}`);
     }
 
@@ -40,7 +40,7 @@ export class DataVolumesService {
         thisDv.metadata["namespace"] = dvNamespace;
         thisDv.spec.pvc.resources.requests["storage"] = dvSize + "Gi";
         thisDv.spec.pvc["storageClassName"] = dvSc;
-        var baseUrl ='/k8s/apis/cdi.kubevirt.io/v1beta1';
+        var baseUrl ='./k8s/apis/cdi.kubevirt.io/v1beta1';
         const headers = {
             'content-type': 'application/json',
             'accept': 'application/json'
@@ -55,7 +55,7 @@ export class DataVolumesService {
         thisDv.spec.pvc.resources.requests["storage"] = dvSize + "Gi";
         thisDv.spec.pvc["storageClassName"] = dvSc;
         thisDv.spec.source.http["url"] = dvUrl;
-        var baseUrl ='/k8s/apis/cdi.kubevirt.io/v1beta1';
+        var baseUrl ='./k8s/apis/cdi.kubevirt.io/v1beta1';
         const headers = {
             'content-type': 'application/json',
             'accept': 'application/json'
@@ -71,7 +71,7 @@ export class DataVolumesService {
         thisDv.spec.pvc["storageClassName"] = dvSc;
         thisDv.spec.source.pvc["name"] = fromName;
         thisDv.spec.source.pvc["namespace"] = dvNamespace;
-        var baseUrl ='/k8s/apis/cdi.kubevirt.io/v1beta1';
+        var baseUrl ='./k8s/apis/cdi.kubevirt.io/v1beta1';
         const headers = {
             'content-type': 'application/json',
             'accept': 'application/json'

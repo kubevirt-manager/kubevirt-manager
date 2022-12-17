@@ -11,47 +11,47 @@ export class KubeVirtService {
     constructor(private http: HttpClient) { }
 
     getVMs(): Observable<any> {
-        var baseUrl ='/k8s/apis/kubevirt.io/v1alpha3';
+        var baseUrl ='./k8s/apis/kubevirt.io/v1alpha3';
         return this.http.get(`${baseUrl}/virtualmachines`);
     }
 
     getVM(namespace: string, name: string): Observable<any> {
-        var baseUrl ='/k8s/apis/kubevirt.io/v1alpha3';
+        var baseUrl ='./k8s/apis/kubevirt.io/v1alpha3';
         return this.http.get(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`);
     }
 
     getPooledVM(namespace: string, pool: string): Observable<any> {
-        var baseUrl ='/k8s/apis/kubevirt.io/v1alpha3';
+        var baseUrl ='./k8s/apis/kubevirt.io/v1alpha3';
         return this.http.get(`${baseUrl}/namespaces/${namespace}/virtualmachines?labelSelector=kubevirt.io%2Fvmpool%3D${pool}`);
     }
 
     getVMis(): Observable<any> {
-        var baseUrl ='/k8s/apis/kubevirt.io/v1alpha3';
+        var baseUrl ='./k8s/apis/kubevirt.io/v1alpha3';
         return this.http.get(`${baseUrl}/virtualmachineinstances`);
     }
 
     getVMi(namespace: string, name: string): Observable<any> {
-        var baseUrl ='/k8s/apis/kubevirt.io/v1alpha3';
+        var baseUrl ='./k8s/apis/kubevirt.io/v1alpha3';
         return this.http.get(`${baseUrl}/namespaces/${namespace}/virtualmachineinstances/${name}`);
     }
 
     getVMPools(): Observable<any> {
-        var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/pool.kubevirt.io/v1alpha1';
         return this.http.get(`${baseUrl}/virtualmachinepools?labelSelector=kubevirt.io%2Fvmpool`);
     }
 
     getVMPoolsNamespaced(namespace: string): Observable<any> {
-        var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/pool.kubevirt.io/v1alpha1';
         return this.http.get(`${baseUrl}/namespaces/${namespace}/virtualmachinepools`);
     }
 
     getVMPool(namespace: string, name: string): Observable<any> {
-        var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/pool.kubevirt.io/v1alpha1';
         return this.http.get(`${baseUrl}/namespaces/${namespace}/virtualmachinepools/${name}`);
     }
 
     startVm(namespace: string, name: string): Observable<any> {
-        var baseUrl ='/k8s/apis/kubevirt.io/v1alpha3';
+        var baseUrl ='./k8s/apis/kubevirt.io/v1alpha3';
         const headers = {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'
@@ -64,7 +64,7 @@ export class KubeVirtService {
     }
 
     stopVm(namespace: string, name: string): Observable<any> {
-        var baseUrl ='/k8s/apis/kubevirt.io/v1alpha3';
+        var baseUrl ='./k8s/apis/kubevirt.io/v1alpha3';
         const headers = {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'
@@ -73,7 +73,7 @@ export class KubeVirtService {
     }
 
     powerOffVm(namespace: string, name: string): Observable<any> {
-        var baseUrl ='/k8s/apis/kubevirt.io/v1alpha3';
+        var baseUrl ='./k8s/apis/kubevirt.io/v1alpha3';
         const headers = {
             'content-type': 'application/json',
             'accept': 'application/json'
@@ -83,7 +83,7 @@ export class KubeVirtService {
     }
 
     restartVm(namespace: string, name: string): Observable<any> {
-        var baseUrl ='/k8s/apis/subresources.kubevirt.io/v1';
+        var baseUrl ='./k8s/apis/subresources.kubevirt.io/v1';
         const headers = {
             'accept': 'application/json'
         };
@@ -91,7 +91,7 @@ export class KubeVirtService {
     }
 
     pauseVm(namespace: string, name: string): Observable<any> {
-        var baseUrl ='/k8s/apis/subresources.kubevirt.io/v1';
+        var baseUrl ='./k8s/apis/subresources.kubevirt.io/v1';
         const headers = {
             'accept': 'application/json'
         };
@@ -99,7 +99,7 @@ export class KubeVirtService {
     }
 
     unpauseVm(namespace: string, name: string): Observable<any> {
-        var baseUrl ='/k8s/apis/subresources.kubevirt.io/v1';
+        var baseUrl ='./k8s/apis/subresources.kubevirt.io/v1';
         const headers = {
             'accept': 'application/json'
         };
@@ -107,7 +107,7 @@ export class KubeVirtService {
     }
 
     scaleVm(namespace: string, name: string, cores: string, threads: string, sockets: string, memory: string): Observable<any> {
-        var baseUrl ='/k8s/apis/kubevirt.io/v1alpha3';
+        var baseUrl ='./k8s/apis/kubevirt.io/v1alpha3';
         const headers = {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'
@@ -116,7 +116,7 @@ export class KubeVirtService {
     }
 
     changeVmType(namespace: string, name: string, type: string): Observable<any> {
-        var baseUrl ='/k8s/apis/kubevirt.io/v1alpha3';
+        var baseUrl ='./k8s/apis/kubevirt.io/v1alpha3';
         const headers = {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'
@@ -125,12 +125,12 @@ export class KubeVirtService {
     }
 
     deleteVm(namespace: string, name: string): Observable<any> {
-        var baseUrl ='/k8s/apis/kubevirt.io/v1alpha3';
+        var baseUrl ='./k8s/apis/kubevirt.io/v1alpha3';
         return this.http.delete(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`);
     }
 
     createVm(namespace: string, name: string, vmvalue: Object): Observable<any> {
-        var baseUrl ='/k8s/apis/kubevirt.io/v1alpha3';
+        var baseUrl ='./k8s/apis/kubevirt.io/v1alpha3';
         const headers = {
             'content-type': 'application/json',
             'accept': 'application/json'
@@ -139,22 +139,22 @@ export class KubeVirtService {
     }
 
     getClusterInstanceTypes(): Observable<any> {
-        var baseUrl ='/k8s/apis/instancetype.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1alpha1';
         return this.http.get(`${baseUrl}/virtualmachineclusterinstancetypes`);
     }
 
     getClusterInstanceType(instType: string): Observable<any> {
-        var baseUrl ='/k8s/apis/instancetype.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1alpha1';
         return this.http.get(`${baseUrl}/virtualmachineclusterinstancetypes/${instType}`);
     }
 
     deleteClusterInstanceType(typeName: string): Observable<any> {
-        var baseUrl ='/k8s/apis/instancetype.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1alpha1';
         return this.http.delete(`${baseUrl}/virtualmachineclusterinstancetypes/${typeName}`);
     }
 
     createClusterInstanceType(typeName: string, typeValue: Object): Observable<any> {
-        var baseUrl ='/k8s/apis/instancetype.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1alpha1';
         const headers = {
             'content-type': 'application/json',
             'accept': 'application/json'
@@ -163,7 +163,7 @@ export class KubeVirtService {
     }
 
     editClusterInstanceType(typeName: string, typeCPU: string, typeMemory: string): Observable<any> {
-        var baseUrl ='/k8s/apis/instancetype.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1alpha1';
         const headers = {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'
@@ -172,7 +172,7 @@ export class KubeVirtService {
     }
 
     startPool(namespace: string, name: string): Observable<any> {
-        var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/pool.kubevirt.io/v1alpha1';
         const headers = {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'
@@ -181,7 +181,7 @@ export class KubeVirtService {
     }
 
     stopPool(namespace: string, name: string): Observable<any> {
-        var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/pool.kubevirt.io/v1alpha1';
         const headers = {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'
@@ -190,12 +190,12 @@ export class KubeVirtService {
     }
 
     deletePool(namespace: string, name: string): Observable<any> {
-        var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/pool.kubevirt.io/v1alpha1';
         return this.http.delete(`${baseUrl}/namespaces/${namespace}/virtualmachinepools/${name}`);
     }
 
     scalePoolReplicas(namespace: string, name: string, size: string): Observable<any> {
-        var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/pool.kubevirt.io/v1alpha1';
         const headers = {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'
@@ -204,7 +204,7 @@ export class KubeVirtService {
     }
 
     scalePool(namespace: string, name: string, cores: string, threads: string, sockets: string, memory: string): Observable<any> {
-        var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/pool.kubevirt.io/v1alpha1';
         const headers = {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'
@@ -213,7 +213,7 @@ export class KubeVirtService {
     }
 
     createPool(namespace: string, name: string, poolvalue: Object): Observable<any> {
-        var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/pool.kubevirt.io/v1alpha1';
         const headers = {
             'content-type': 'application/json',
             'accept': 'application/json'
@@ -222,7 +222,7 @@ export class KubeVirtService {
     }
 
     changePoolType(namespace: string, name: string, type: string): Observable<any> {
-        var baseUrl ='/k8s/apis/pool.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/pool.kubevirt.io/v1alpha1';
         const headers = {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'
