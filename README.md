@@ -100,6 +100,21 @@ docker build -t your-repo/kubevirt-manager:version .
 docker push your-repo/kubevirt-manager:version
 ```
 
+## Building & Running Locally
+To build the tool run:
+```sh
+npm install
+ng build
+```
+To run the tool:
+```sh
+kubectl proxy --www=./dist/kubevirtmgr-webui/ --accept-hosts=^.*$ --address=[::] --api-prefix=/k8s/ --www-prefix=
+```
+Access the tool at: http://localhost:8001/
+
+*Note:* Make sure your `kubectl` is pointing to the right cluster.
+*Note:* Make sure the account your `kubectl` is using has correct RBAC.
+
 ## References
 
 1. [Kubernetes](https://kubernetes.io/)
