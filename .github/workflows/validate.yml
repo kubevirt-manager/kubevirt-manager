@@ -1,8 +1,9 @@
 name: Validate Merge
 on:
-  push:
+  pull_request:
+    types: [opened, reopened, ready_for_review, unlocked, synchronize]
 jobs:
-  deploy:
+  basic-testing:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
