@@ -3,7 +3,8 @@ on:
   pull_request:
     types: [opened, reopened, ready_for_review, unlocked, synchronize]
 jobs:
-  basic-testing:
+  prepare-environment:
+    name: prepare-environment
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -14,9 +15,20 @@ jobs:
         node-version: '16'
     - name: Install Angular
       run: npm install -g @angular/cli@14.2.9
+  building-artifacts:
+    name: building-artifacts
+    runs-on: ubuntu-latest
+    needs: prepare-environment
     - name: Install dependencies
       run: npm install
     - name: Testing Build
       run: npm run build
+  unit-testing:
+    name: unit-testing
+    runs-on: ubuntu-latest
+    needs: building-artifacts
+    steps:
+    - name: Install dependencies
+      run: npm install
     - name: Running tests
       run: npm run test
