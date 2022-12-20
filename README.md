@@ -112,8 +112,8 @@ kubectl proxy --www=./dist/kubevirtmgr-webui/ --accept-hosts=^.*$ --address=[::]
 ```
 Access the tool at: http://localhost:8001/
 
-*Note:* Make sure your `kubectl` is pointing to the right cluster.
-*Note:* Make sure the account your `kubectl` is using has correct RBAC.
+*Note:* Make sure your `kubectl` is pointing to the right cluster.   
+*Note:* Make sure the account your `kubectl` is using has correct RBAC.   
 
 ## References
 
