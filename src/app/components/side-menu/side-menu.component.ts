@@ -5,7 +5,7 @@ import { K8sApisService } from 'src/app/services/k8s-apis.service';
 @Component({
   selector: 'app-side-menu',
   templateUrl: './side-menu.component.html',
-  styleUrls: ['./side-menu.component.css']
+  styleUrls: ['./side-menu.component.css'],
 })
 export class SideMenuComponent implements OnInit {
 

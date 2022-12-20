@@ -1,0 +1,22 @@
+name: Validate Merge
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, unlocked, synchronize]
+jobs:
+  basic-testing:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+    - name: Install Angular
+      run: npm install -g @angular/cli@14.2.9
+    - name: Install dependencies
+      run: npm install
+    - name: Testing Build
+      run: npm run build
+    - name: Running tests
+      run: npm run test
