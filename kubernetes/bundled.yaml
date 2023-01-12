@@ -5,7 +5,7 @@ metadata:
   name: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.1.2
+    kubevirt-manager.io/version: 1.1.3
 
 ---
 apiVersion: v1
@@ -15,14 +15,13 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.1.2
+    kubevirt-manager.io/version: 1.1.3
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: kubevirt-manager
-
 rules:
   - apiGroups: [""]
     resources: ["nodes", "namespaces"]
@@ -68,7 +67,7 @@ metadata:
   name: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.1.2
+    kubevirt-manager.io/version: 1.1.3
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -86,7 +85,7 @@ metadata:
   name: vm-standard
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.1.2
+    kubevirt-manager.io/version: 1.1.3
     kubevirt-manager.io/managed: "true"
 preemptionPolicy: Never
 value: 999999999
@@ -99,7 +98,7 @@ metadata:
   name: vm-preemptible
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.1.2
+    kubevirt-manager.io/version: 1.1.3
     kubevirt-manager.io/managed: "true"
 preemptionPolicy: PreemptLowerPriority
 value: 1000000
@@ -112,12 +111,12 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.1.2
+    kubevirt-manager.io/version: 1.1.3
 spec:
   selector:
     matchLabels:
       app: kubevirt-manager
-      kubevirt-manager.io/version: 1.1.2
+      kubevirt-manager.io/version: 1.1.3
   replicas: 1
   strategy:
     type: Recreate
@@ -125,11 +124,11 @@ spec:
     metadata:
       labels:
         app: kubevirt-manager
-        kubevirt-manager.io/version: 1.1.2
+        kubevirt-manager.io/version: 1.1.3
     spec:
       containers:
         - name: kubevirtmgr
-          image: kubevirtmanager/kubevirt-manager:1.1.2
+          image: kubevirtmanager/kubevirt-manager:1.1.3
           imagePullPolicy: IfNotPresent
           ports:
           - name: http
@@ -160,7 +159,7 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.1.2
+    kubevirt-manager.io/version: 1.1.3
 spec:
   type: ClusterIP
   selector:

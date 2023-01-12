@@ -749,7 +749,7 @@ export class VmlistComponent implements OnInit {
         let modalTitle = document.getElementById("delete-title");
         let modalBody = document.getElementById("delete-value");
         if(modalTitle != null) {
-            modalTitle.replaceChildren("Delete!");
+            modalTitle.replaceChildren("Delete");
         }
         if(modalBody != null) {
             let vmNameInput = document.getElementById("delete-name");

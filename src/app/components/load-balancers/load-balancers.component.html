@@ -9,7 +9,7 @@
               &nbsp;&nbsp;Load Balancers
             </h3>
             <div class="card-tools">
-                <button type="button" class="btn btn-tool" (click)="showNew()">
+                <button type="button" class="btn btn-tool" (click)="showNew()" title="New Load Balancer...">
                 <i class="fas fa-plus" (click)="showNew()"></i>
                 </button>
             </div>
@@ -42,13 +42,13 @@
                     <td style="line-height: 2.2 !important;">{{thisLoadBalancer.ports[0].targetport}}</td>
                     <td style="line-height: 2.2 !important;">{{thisLoadBalancer.targetPool}}</td>
                     <td style="line-height: 0 !important;">
-                        <a class="btn" (click)="showInfo(thisLoadBalancer.namespace, thisLoadBalancer.name)">
+                        <a class="btn" (click)="showInfo(thisLoadBalancer.namespace, thisLoadBalancer.name)" title="Info...">
                           <i class="fas fa-info" (click)="showInfo(thisLoadBalancer.namespace, thisLoadBalancer.name)"></i>
                         </a>
-                        <a class="btn" (click)="showType(thisLoadBalancer.namespace, thisLoadBalancer.name)">
+                        <a class="btn" (click)="showType(thisLoadBalancer.namespace, thisLoadBalancer.name)" title="Config...">
                             <i class="fas fa-cog" (click)="showType(thisLoadBalancer.namespace, thisLoadBalancer.name)"></i>
                           </a>
-                        <a class="btn" (click)="showDelete(thisLoadBalancer.namespace, thisLoadBalancer.name)">
+                        <a class="btn" (click)="showDelete(thisLoadBalancer.namespace, thisLoadBalancer.name)" title="Delete...">
                           <i class="fas fa-trash" (click)="showDelete(thisLoadBalancer.namespace, thisLoadBalancer.name)"></i>
                         </a>
                     </td>
