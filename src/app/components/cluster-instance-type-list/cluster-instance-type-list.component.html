@@ -9,7 +9,7 @@
               &nbsp;&nbsp;Cluster Instance Types
             </h3>
             <div class="card-tools">
-              <button type="button" class="btn btn-tool" (click)="showNew()">
+              <button type="button" class="btn btn-tool" (click)="showNew()" title="New Type...">
                 <i class="fas fa-plus"></i>
             </button>
             </div>
@@ -32,10 +32,10 @@
                     <td style="line-height: 2.2 !important;">{{thisType.cpu}}</td>
                     <td style="line-height: 2.2 !important;">{{thisType.memory}}</td>
                     <td style="line-height: 0 !important;">
-                      <a class="btn" (click)="showEdit(thisType.name)">
+                      <a class="btn" (click)="showEdit(thisType.name)" title="Edit...">
                         <i class="fas fa-pen"></i>
                       </a>
-                      <a class="btn" (click)="showDelete(thisType.name)">
+                      <a class="btn" (click)="showDelete(thisType.name)" title="Delete...">
                         <i class="fas fa-trash"></i>
                       </a>
                     </td>

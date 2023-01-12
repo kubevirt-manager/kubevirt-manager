@@ -117,7 +117,7 @@ export class ClusterInstanceTypeListComponent implements OnInit {
         let modalTitle = document.getElementById("delete-title");
         let modalBody = document.getElementById("delete-value");
         if(modalTitle != null) {
-            modalTitle.replaceChildren("Delete!");
+            modalTitle.replaceChildren("Delete");
         }
         if(modalBody != null) {
             let deleteTypeInput = document.getElementById("delete-type");

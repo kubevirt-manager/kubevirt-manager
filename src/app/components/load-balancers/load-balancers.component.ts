@@ -129,7 +129,7 @@ export class LoadBalancersComponent implements OnInit {
         let modalTitle = document.getElementById("delete-title");
         let modalBody = document.getElementById("delete-value");
         if(modalTitle != null) {
-            modalTitle.replaceChildren("Delete!");
+            modalTitle.replaceChildren("Delete");
         }
         if(modalBody != null) {
             let lbNamespaceInput = document.getElementById("delete-namespace");
@@ -197,7 +197,7 @@ export class LoadBalancersComponent implements OnInit {
         let modalTitle = document.getElementById("type-title");
         let modalBody = document.getElementById("type-value");
         if(modalTitle != null) {
-            modalTitle.replaceChildren("Config!");
+            modalTitle.replaceChildren("Config");
         }
         if(modalBody != null) {
             let lbNamespaceInput = document.getElementById("type-namespace");
@@ -277,7 +277,7 @@ export class LoadBalancersComponent implements OnInit {
         }
 
         if(modalTitle != null) {
-            modalTitle.replaceChildren("New Load Balancer!");
+            modalTitle.replaceChildren("New Load Balancer");
             
         }
         

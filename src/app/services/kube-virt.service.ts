@@ -230,4 +230,13 @@ export class KubeVirtService {
         return this.http.patch(`${baseUrl}/namespaces/${namespace}/virtualmachinepools/${name}`, '{"spec":{"virtualMachineTemplate":{"spec":{"instancetype":{"name":"'+type+'"}}}}}', { 'headers': headers } );
     }
 
+    removeVmFromPool(namespace: string, name: string, node: string): Observable<any> {
+        var baseUrl ='./k8s/apis/kubevirt.io/v1alpha3';
+        const headers = {
+            'content-type': 'application/merge-patch+json',
+            'accept': 'application/json'
+        };
+        return this.http.patch(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`, '{"metadata":{"labels":{"kubevirt.io/domain":"'+ name +'","kubevirt.io/vm-pool-revision-name":null,"kubevirt.io/vmpool":null},"ownerReferences":null},"spec":{"template":{"spec": {"nodeSelector":{"kubernetes.io/hostname": "'+ node +'"}},"metadata":{"labels":{"kubevirt.io/domain":"'+ name +'","kubevirt.io/vm-pool-revision-name":null,"kubevirt.io/vmpool":null}}}}}', { 'headers': headers } );
+    }
+
 }

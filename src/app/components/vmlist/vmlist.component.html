@@ -9,7 +9,7 @@
             &nbsp;&nbsp;{{thisNode.name}} 
           </h3>
           <div class="card-tools">
-            <button type="button" class="btn btn-tool" (click)="showNewVm(thisNode.name)">
+            <button type="button" class="btn btn-tool" (click)="showNewVm(thisNode.name)" title="New VM...">
                 <i class="fas fa-plus-square"></i>
             </button>
           </div>
@@ -60,49 +60,49 @@
                   <td style="line-height: 0 !important;">
                     <!--- INFO BUTTON -->
                     <span>
-                      <a class="btn" (click)='showInfo(thisVM.namespace, thisVM.name)'>
+                      <a class="btn" (click)='showInfo(thisVM.namespace, thisVM.name)' title="Show info...">
                         <i class="fas fa-info"></i>
                       </a>
                     </span>
                     <!--- PAUSE BUTTON -->
                     <span [ngSwitch]="thisVM.status">
-                        <a class="btn" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' *ngSwitchCase="'Running'">
+                        <a class="btn" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' title="Pause..." *ngSwitchCase="'Running'">
                           <i class="fas fa-pause"></i>
                         </a>
-                        <a class="btn disabled" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' *ngSwitchDefault>
+                        <a class="btn disabled" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' title="Pause..." *ngSwitchDefault>
                           <i class="fas fa-pause disabled"></i>
                         </a>
                       </span>
                     <!--- PLAY BUTTON -->
                     <span [ngSwitch]="thisVM.status">
-                      <a class="btn" (click)='vmOperations("unpause", thisVM.namespace, thisVM.name)' *ngSwitchCase="'Paused'">
+                      <a class="btn" (click)='vmOperations("unpause", thisVM.namespace, thisVM.name)' title="Resume..." *ngSwitchCase="'Paused'">
                         <i class="fas fa-play"></i>
                       </a>
-                      <a class="btn disabled" (click)='vmOperations("unpause", thisVM.namespace, thisVM.name)' *ngSwitchDefault>
+                      <a class="btn disabled" (click)='vmOperations("unpause", thisVM.namespace, thisVM.name)' title="Resume..." *ngSwitchDefault>
                         <i class="fas fa-play disabled"></i>
                       </a>
                     </span>
                     <!--- VNC BUTTON -->
                     <span [ngSwitch]="thisVM.status">
-                      <a class="btn" routerLink="/vncviewer/{{thisVM.namespace}}/{{thisVM.name}}" *ngSwitchCase="'Running'">
+                      <a class="btn" routerLink="/vncviewer/{{thisVM.namespace}}/{{thisVM.name}}" title="Open console..." *ngSwitchCase="'Running'">
                         <i class="fas fa-desktop"></i>
                       </a>
-                      <a class="btn disabled" routerLink="/vncviewer/{{thisVM.namespace}}/{{thisVM.name}}" *ngSwitchDefault>
+                      <a class="btn disabled" routerLink="/vncviewer/{{thisVM.namespace}}/{{thisVM.name}}" title="Open console..." *ngSwitchDefault>
                         <i class="fas fa-desktop disabled"></i>
                       </a>
                     </span>
                     <!--- CONFIG BUTTON -->
                     <span [ngSwitch]="thisVM.running">
-                      <a class="btn disabled" *ngSwitchCase="true">
+                      <a class="btn disabled" title="Config..." *ngSwitchCase="true">
                         <i class="fas fa-cog disabled"></i>
                       </a>
                       <!-- Check if this VM is custom or not -->
                       <span *ngSwitchDefault>
                         <span [ngSwitch]="thisVM.instType">
-                          <a class="btn" (click)="showResize(thisVM.name, thisVM.namespace, thisVM.sockets, thisVM.cores, thisVM.threads, thisVM.memory)" *ngSwitchCase="'custom'">
+                          <a class="btn" (click)="showResize(thisVM.name, thisVM.namespace, thisVM.sockets, thisVM.cores, thisVM.threads, thisVM.memory)" title="Config..." *ngSwitchCase="'custom'">
                             <i class="fas fa-cog"></i>
                           </a>
-                          <a class="btn" (click)="showType(thisVM.name, thisVM.namespace)" *ngSwitchDefault>
+                          <a class="btn" (click)="showType(thisVM.name, thisVM.namespace)" title="Config..." *ngSwitchDefault>
                             <i class="fas fa-cog"></i>
                           </a>
                           </span>
@@ -110,37 +110,37 @@
                     </span>
                     <!--- POWER ON BUTTON -->
                     <span [ngSwitch]="thisVM.running">
-                      <a class="btn disabled" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' *ngSwitchCase="true">
+                      <a class="btn disabled" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchCase="true">
                         <i class="fas fa-plug disabled"></i>
                       </a>
-                      <a class="btn" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' *ngSwitchDefault>
+                      <a class="btn" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchDefault>
                         <i class="fas fa-plug"></i>
                       </a>
                     </span>
                     <!--- POWER OFF BUTTON -->
                     <span [ngSwitch]="thisVM.running">
-                      <a class="btn" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' *ngSwitchCase="true">
+                      <a class="btn" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchCase="true">
                         <i class="fas fa-power-off"></i>
                       </a>
-                      <a class="btn disabled" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' *ngSwitchDefault>
+                      <a class="btn disabled" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchDefault>
                         <i class="fas fa-power-off disabled"></i>
                       </a>
                     </span>
                     <!--- RESTART BUTTON -->
                     <span [ngSwitch]="thisVM.running">
-                      <a class="btn" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' *ngSwitchCase="true">
+                      <a class="btn" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchCase="true">
                         <i class="fas fa-redo"></i>
                       </a>
-                      <a class="btn disabled" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' *ngSwitchDefault>
+                      <a class="btn disabled" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchDefault>
                         <i class="fas fa-redo disabled"></i>
                       </a>
                     </span>
                      <!--- DELETE BUTTON -->
                      <span [ngSwitch]="thisVM.running">
-                      <a class="btn disabled" (click)="showDelete(thisVM.name, thisVM.namespace)" *ngSwitchCase="true">
+                      <a class="btn disabled" (click)="showDelete(thisVM.name, thisVM.namespace)" title="Delete..." *ngSwitchCase="true">
                         <i class="fas fa-trash disabled"></i>
                       </a>
-                      <a class="btn" (click)="showDelete(thisVM.name, thisVM.namespace)" *ngSwitchDefault>
+                      <a class="btn" (click)="showDelete(thisVM.name, thisVM.namespace)" title="Delete..." *ngSwitchDefault>
                         <i class="fas fa-trash"></i>
                       </a>
                     </span>

@@ -4,4 +4,4 @@ metadata:
   name: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.1.2
+    kubevirt-manager.io/version: 1.1.3

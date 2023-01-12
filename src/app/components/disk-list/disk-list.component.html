@@ -12,7 +12,7 @@
             <!--<button type="button" class="btn btn-tool">
                 <i class="fas fa-upload"></i>
             </button> -->
-            <button type="button" class="btn btn-tool"  (click)="showNew()">
+            <button type="button" class="btn btn-tool"  (click)="showNew()" title="New Disk...">
               <i class="fas fa-plus"></i>
           </button>
           </div>
@@ -42,17 +42,17 @@
                   <td style="line-height: 2.2 !important;">{{thisDisk.storageclass}}</td>
                   <td style="line-height: 0 !important;">
                     <a class="btn">
-                      <i class="fas fa-info" (click)="showInfo(thisDisk.namespace, thisDisk.name)"></i>
+                      <i class="fas fa-info" (click)="showInfo(thisDisk.namespace, thisDisk.name)" title="Info..."></i>
                     </a>
                     <span [ngSwitch]="thisDisk.bound">
-                        <a class="btn" (click)="showResize(thisDisk.namespace, thisDisk.name)" *ngSwitchCase="true"> 
+                        <a class="btn" (click)="showResize(thisDisk.namespace, thisDisk.name)" title="Resize..." *ngSwitchCase="true"> 
                             <i class="fas fa-arrow-up" ></i>
                         </a>
-                        <a class="btn disabled" *ngSwitchDefault> 
+                        <a class="btn disabled" title="Resize..." *ngSwitchDefault> 
                             <i class="fas fa-arrow-up"></i>
                         </a>
                     </span>
-                    <a class="btn">
+                    <a class="btn" title="Delete...">
                       <i class="fas fa-trash" (click)="showDelete(thisDisk.namespace, thisDisk.name)"></i>
                     </a>
                   </td>
