@@ -4,6 +4,8 @@ import { DataVolumesService } from 'src/app/services/data-volumes.service';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { K8sService } from 'src/app/services/k8s.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
+import { PrometheusService } from 'src/app/services/prometheus.service';
+import { Chart } from 'chart.js/auto'
 
 @Component({
   selector: 'app-dashboard',
@@ -34,14 +36,30 @@ export class DashboardComponent implements OnInit {
     instanceTypesInfo = 0;
     loadBalancers = 0;
 
+    /* Prometheus query data */
+    prometheusEnabled = false
+    promStartTime = 0;
+    promEndTime = 0;
+    promInterval = 900; // Prometheus window 5 minutes
+    promStep = 15;      // Prometheus Step
+
+    /* Chart.JS placeholder */
+    cpuChart: any;
+    memChart: any;
+    netChart: any;
+    stgChart: any;
+
+
     constructor(
         private k8sService: K8sService,
         private k8sApisService: K8sApisService,
         private kubeVirtService: KubeVirtService,
-        private dataVolumesService: DataVolumesService
+        private dataVolumesService: DataVolumesService,
+        private prometheusService: PrometheusService
     ) { }
 
     ngOnInit(): void {
+        this.getTimestamps();
         this.getNodes();
         this.getVMs();
         this.getDisks();
@@ -55,6 +73,20 @@ export class DashboardComponent implements OnInit {
         if(navTitle != null) {
             navTitle.replaceChildren("Dashboard");
         }
+        if(this.prometheusEnabled) {
+            this.cpuGraph();
+            this.memGraph();
+            this.netGraph();
+            this.stgGraph();
+        }
+    }
+
+    /*
+     * Generate timestamps for Prometheus Query
+     */
+    async getTimestamps(): Promise<void>  {
+        this.promEndTime = Math.floor(Date.now() / 1000)
+        this.promStartTime = this.promEndTime - this.promInterval;
     }
 
     /*
@@ -76,6 +108,270 @@ export class DashboardComponent implements OnInit {
             }
         }
         this.storageInfo = Math.round((this.storageInfo * 100) / 100);
+    }
+
+    /*
+     * Generate CPU Graph
+     */
+    async cpuGraph(): Promise<void> {
+        let response = await lastValueFrom(this.prometheusService.getCpuSummary(this.promStartTime, this.promEndTime, this.promStep));
+        let data = response.data.result[0].values;
+
+        let cpuData = data.map(function(value: any[],index: any) { return value[1]; });
+        let labelData = Array(cpuData.length).fill("");
+
+        this.cpuChart = new Chart("CpuChart", {
+            type: 'line', //this denotes tha type of chart
+      
+            data: {// values on X-Axis
+              labels: labelData, 
+                 datasets: [
+                {
+                  label: "CPU Usage",
+                  pointRadius: 1,
+                  pointBorderWidth: 0,
+                  tension: 1,
+                  borderWidth: 3,
+                  data: cpuData,
+                  backgroundColor: 'blue',
+                  borderColor: 'blue',
+                  fill: true
+                }  
+              ]
+            },
+            options: {
+              aspectRatio:5,
+              animations: {
+                tension: {
+                  duration: 1000,
+                  easing: 'linear',
+                  from: 1,
+                  to: 0,
+                  loop: false
+                }
+              },
+              scales: {
+                x: {
+                    grid: {
+                      display: false
+                    }
+                  },
+                  y: {
+                    min: 0,
+                    max: (this.cpuInfo + 1)/10,
+                    grid: {
+                      display: true
+                    }
+                  }
+              }
+            }
+            
+        });
+    }
+
+    /*
+     * Generate Memory Graph
+     */
+    async memGraph(): Promise<void> {
+        let response = await lastValueFrom(this.prometheusService.getMemSummary(this.promStartTime, this.promEndTime, this.promStep));
+        let data = response.data.result[0].values;
+
+        let memData = data.map(function(value: any[],index: any) { return value[1]; });
+        let labelData = Array(memData.length).fill("");
+
+        this.memChart = new Chart("MemChart", {
+            type: 'line', //this denotes tha type of chart
+      
+            data: {// values on X-Axis
+              labels: labelData, 
+                 datasets: [
+                {
+                  label: "Mem Usage",
+                  pointRadius: 1,
+                  pointBorderWidth: 0,
+                  tension: 1,
+                  borderWidth: 3,
+                  data: memData,
+                  backgroundColor: 'green',
+                  borderColor: 'green',
+                  fill: true
+                }  
+              ]
+            },
+            options: {
+              aspectRatio:5,
+              animations: {
+                tension: {
+                  duration: 1000,
+                  easing: 'linear',
+                  from: 1,
+                  to: 0,
+                  loop: false
+                }
+              },
+              scales: {
+                x: {
+                    grid: {
+                      display: false
+                    }
+                  },
+                  y: {
+                    min: 0,
+                    max: Math.round(this.memInfo * 1024),
+                    grid: {
+                      display: true
+                    }
+                  }
+              }
+            }
+            
+        });
+    }
+
+    /*
+     * Generate Network Graph
+     */
+    async netGraph(): Promise<void> {
+        let response = await lastValueFrom(this.prometheusService.getNetSent(this.promStartTime, this.promEndTime, this.promStep));
+        let data = response.data.result[0].values;
+
+        let sentData = data.map(function(value: any[],index: any) { return value[1]; });
+
+        response = await lastValueFrom(this.prometheusService.getNetRecv(this.promStartTime, this.promEndTime, this.promStep));
+        data = response.data.result[0].values;
+
+        let recvData = data.map(function(value: any[],index: any) { return value[1]; });
+
+        let labelData = Array(sentData.length).fill("");
+
+        this.netChart = new Chart("NetChart", {
+            type: 'line', //this denotes tha type of chart
+      
+            data: {// values on X-Axis
+              labels: labelData, 
+                 datasets: [
+                {
+                  label: "Sent",
+                  data: sentData,
+                  pointRadius: 1,
+                  pointBorderWidth: 0,
+                  tension: 1,
+                  borderWidth: 3,
+                  borderColor: 'green',
+                  backgroundColor: 'green'
+                },
+                {
+                  label: "Recv",
+                  data: recvData,
+                  pointRadius: 1,
+                  pointBorderWidth: 0,
+                  tension: 1,
+                  borderWidth: 3,
+                  borderColor: 'blue',
+                  backgroundColor: 'blue'
+                }
+              ]
+            },
+            options: {
+                aspectRatio:5,
+                animations: {
+                  tension: {
+                    duration: 1000,
+                    easing: 'linear',
+                    from: 1,
+                    to: 0,
+                    loop: false
+                  }
+                },
+                scales: {
+                  x: {
+                      grid: {
+                        display: false
+                      }
+                    },
+                    y: {
+                      min: 0,
+                      grid: {
+                        display: true
+                      }
+                    }
+                }
+              }
+            
+        });
+    }
+
+    /*
+     * Generate Storage Graph
+     */
+    async stgGraph(): Promise<void> {
+        let response = await lastValueFrom(this.prometheusService.getStorageRead(this.promStartTime, this.promEndTime, this.promStep));
+        let data = response.data.result[0].values;
+
+        let readData = data.map(function(value: any[],index: any) { return value[1]; });
+
+        response = await lastValueFrom(this.prometheusService.getStorageWrite(this.promStartTime, this.promEndTime, this.promStep));
+        data = response.data.result[0].values;
+
+        let writeData = data.map(function(value: any[],index: any) { return value[1]; });
+
+        let labelData = Array(readData.length).fill("");
+
+        this.stgChart = new Chart("StgChart", {
+            type: 'line', //this denotes tha type of chart
+      
+            data: {// values on X-Axis
+              labels: labelData, 
+                 datasets: [
+                {
+                  label: "Read",
+                  data: readData,
+                  pointRadius: 1,
+                  pointBorderWidth: 0,
+                  tension: 1,
+                  borderWidth: 3,
+                  borderColor: 'green',
+                  backgroundColor: 'green'
+                },
+                {
+                  label: "Write",
+                  data: writeData,
+                  pointRadius: 1,
+                  pointBorderWidth: 0,
+                  tension: 1,
+                  borderWidth: 3,
+                  borderColor: 'blue',
+                  backgroundColor: 'blue'
+                  }
+              ]
+            },
+            options: {
+                aspectRatio:5,
+                animations: {
+                  tension: {
+                    duration: 1000,
+                    easing: 'linear',
+                    from: 1,
+                    to: 0,
+                    loop: false
+                  }
+                },
+                scales: {
+                  x: {
+                      grid: {
+                        display: false
+                      }
+                    },
+                    y: {
+                      min: 0,
+                      grid: {
+                        display: true
+                      }
+                    }
+                }
+              }
+            
+        });
     }
 
     /*

@@ -3,6 +3,78 @@
     <div class="content-wrapper">
       <div class="row">&nbsp;</div>
 
+      <!-- PROMETHEUS: CPU / MEMORY display: none;-->
+      <div class="row" id="prometheus-row-one">
+        <div class="col-lg-6 col-6">
+          <div class="card">
+            <div class="card-header border-0">
+              <div class="d-flex justify-content-between">
+                <h3 class="card-title">CPU Usage</h3>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="position-relative mb-4"><div class="chartjs-size-monitor">
+              <div class="chart-container">
+                <canvas  id="CpuChart" >{{ cpuChart }}</canvas>
+              </div>
+              </div></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6 col-6">
+          <div class="card">
+            <div class="card-header border-0">
+              <div class="d-flex justify-content-between">
+                <h3 class="card-title">Memory Usage</h3>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="position-relative mb-4"><div class="chartjs-size-monitor">
+              <div class="chart-container">
+                <canvas  id="MemChart" >{{ memChart }}</canvas>
+              </div>
+              </div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROMETHEUS: NET / STORAGE display: none;-->
+      <div class="row" id="prometheus-row-two">
+        <div class="col-lg-6 col-6">
+          <div class="card">
+            <div class="card-header border-0">
+              <div class="d-flex justify-content-between">
+                <h3 class="card-title">Network</h3>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="position-relative mb-4"><div class="chartjs-size-monitor">
+              <div class="chart-container">
+                <canvas  id="NetChart" >{{ netChart }}</canvas>
+              </div>
+              </div></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6 col-6">
+          <div class="card">
+            <div class="card-header border-0">
+              <div class="d-flex justify-content-between">
+                <h3 class="card-title">Storage</h3>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="position-relative mb-4"><div class="chartjs-size-monitor">
+              <div class="chart-container">
+                <canvas  id="StgChart" >{{ stgChart }}</canvas>
+              </div>
+              </div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- FIRST ROW -->
       <div class="row">
         <!-- NODE INFO -->
