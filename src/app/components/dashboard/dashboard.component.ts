@@ -24,9 +24,9 @@ export class DashboardComponent implements OnInit {
         'running': 0
     };
 
+    /* Dashboard data */
     discInfo = 0;
     poolInfo = 0;
-
     cpuInfo = 0;
     memInfo = 0;
     storageInfo = 0;
@@ -40,8 +40,8 @@ export class DashboardComponent implements OnInit {
     prometheusEnabled = false
     promStartTime = 0;
     promEndTime = 0;
-    promInterval = 900; // Prometheus window 5 minutes
-    promStep = 15;      // Prometheus Step
+    promInterval = 1800; // Prometheus window 30 minutes
+    promStep = 15;       // Prometheus Step
 
     /* Chart.JS placeholder */
     cpuChart: any;
@@ -58,9 +58,9 @@ export class DashboardComponent implements OnInit {
         private prometheusService: PrometheusService
     ) { }
 
-    ngOnInit(): void {
-        this.getTimestamps();
-        this.getNodes();
+    async ngOnInit(): Promise<void> {
+        await this.checkPrometheus();
+        await this.getNodes();
         this.getVMs();
         this.getDisks();
         this.getNetworks();
@@ -73,11 +73,24 @@ export class DashboardComponent implements OnInit {
         if(navTitle != null) {
             navTitle.replaceChildren("Dashboard");
         }
+        /* If prometheus is present */
         if(this.prometheusEnabled) {
+            await this.getTimestamps();
+            await this.enableRows();
             this.cpuGraph();
             this.memGraph();
             this.netGraph();
             this.stgGraph();
+        }
+    }
+
+    /*
+     * Check if Prometheus is Present
+     */
+    async checkPrometheus(): Promise<void>  {
+        const data = await lastValueFrom(this.prometheusService.checkPrometheus());
+        if(data["status"].toLowerCase() == "success") {
+            this.prometheusEnabled = true;
         }
     }
 
@@ -87,6 +100,21 @@ export class DashboardComponent implements OnInit {
     async getTimestamps(): Promise<void>  {
         this.promEndTime = Math.floor(Date.now() / 1000)
         this.promStartTime = this.promEndTime - this.promInterval;
+    }
+
+    /*
+     * Enable the dashboard widgets
+     */
+    async enableRows(): Promise<void>  {
+        let rowOne = document.getElementById("prometheus-row-one");
+        if(rowOne != null) {
+            rowOne.setAttribute("style","display: flex;");
+        }
+
+        let rowTwo = document.getElementById("prometheus-row-two");
+        if(rowTwo != null) {
+            rowTwo.setAttribute("style","display: flex;");
+        }
     }
 
     /*
@@ -121,9 +149,8 @@ export class DashboardComponent implements OnInit {
         let labelData = Array(cpuData.length).fill("");
 
         this.cpuChart = new Chart("CpuChart", {
-            type: 'line', //this denotes tha type of chart
-      
-            data: {// values on X-Axis
+            type: 'line',
+            data: {
               labels: labelData, 
                  datasets: [
                 {
@@ -180,9 +207,8 @@ export class DashboardComponent implements OnInit {
         let labelData = Array(memData.length).fill("");
 
         this.memChart = new Chart("MemChart", {
-            type: 'line', //this denotes tha type of chart
-      
-            data: {// values on X-Axis
+            type: 'line',
+            data: {
               labels: labelData, 
                  datasets: [
                 {
@@ -229,7 +255,7 @@ export class DashboardComponent implements OnInit {
     }
 
     /*
-     * Generate Network Graph
+     * Generate Network Graph (bytes)
      */
     async netGraph(): Promise<void> {
         let response = await lastValueFrom(this.prometheusService.getNetSent(this.promStartTime, this.promEndTime, this.promStep));
@@ -237,17 +263,28 @@ export class DashboardComponent implements OnInit {
 
         let sentData = data.map(function(value: any[],index: any) { return value[1]; });
 
+        let i = 0;
+
+        /* Convert sent data to kbytes */
+        for(i = 0; i < sentData.length; i++) {
+            sentData[i] = sentData[i]/1024;
+        }
+
         response = await lastValueFrom(this.prometheusService.getNetRecv(this.promStartTime, this.promEndTime, this.promStep));
         data = response.data.result[0].values;
 
         let recvData = data.map(function(value: any[],index: any) { return value[1]; });
 
+        /* Convert received data to kbytes */
+        for(i = 0; i < recvData.length; i++) {
+            recvData[i] = recvData[i]/1024;
+        }
+
         let labelData = Array(sentData.length).fill("");
 
         this.netChart = new Chart("NetChart", {
-            type: 'line', //this denotes tha type of chart
-      
-            data: {// values on X-Axis
+            type: 'line',
+            data: {
               labels: labelData, 
                  datasets: [
                 {
@@ -302,7 +339,7 @@ export class DashboardComponent implements OnInit {
     }
 
     /*
-     * Generate Storage Graph
+     * Generate Storage Graph (bytes)
      */
     async stgGraph(): Promise<void> {
         let response = await lastValueFrom(this.prometheusService.getStorageRead(this.promStartTime, this.promEndTime, this.promStep));
@@ -310,17 +347,28 @@ export class DashboardComponent implements OnInit {
 
         let readData = data.map(function(value: any[],index: any) { return value[1]; });
 
+        let i = 0;
+
+        /* Convert read data to mbytes */
+        for(i = 0; i < readData.length; i++) {
+            readData[i] = (readData[i]/1024)/1024;
+        }
+
         response = await lastValueFrom(this.prometheusService.getStorageWrite(this.promStartTime, this.promEndTime, this.promStep));
         data = response.data.result[0].values;
 
         let writeData = data.map(function(value: any[],index: any) { return value[1]; });
 
+        /* Convert write data to mbytes */
+        for(i = 0; i < writeData.length; i++) {
+            writeData[i] = (writeData[i]/1024)/1024;
+        }
+
         let labelData = Array(readData.length).fill("");
 
         this.stgChart = new Chart("StgChart", {
-            type: 'line', //this denotes tha type of chart
-      
-            data: {// values on X-Axis
+            type: 'line',
+            data: {
               labels: labelData, 
                  datasets: [
                 {
