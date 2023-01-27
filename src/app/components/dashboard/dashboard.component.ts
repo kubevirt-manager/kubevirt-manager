@@ -103,7 +103,7 @@ export class DashboardComponent implements OnInit {
     }
 
     /*
-     * Enable the dashboard widgets
+     * Enable the Prometheus dashboard widgets
      */
     async enableRows(): Promise<void>  {
         let rowOne = document.getElementById("prometheus-row-one");
@@ -142,9 +142,11 @@ export class DashboardComponent implements OnInit {
      * Generate CPU Graph
      */
     async cpuGraph(): Promise<void> {
+        /* get CPU data from Prometheus */
         let response = await lastValueFrom(this.prometheusService.getCpuSummary(this.promStartTime, this.promEndTime, this.promStep));
         let data = response.data.result[0].values;
 
+        /* prepare Data for Graph */
         let cpuData = data.map(function(value: any[],index: any) { return value[1]; });
         let labelData = Array(cpuData.length).fill("");
 
@@ -200,9 +202,11 @@ export class DashboardComponent implements OnInit {
      * Generate Memory Graph
      */
     async memGraph(): Promise<void> {
+        /* get Memory data from Prometheus */
         let response = await lastValueFrom(this.prometheusService.getMemSummary(this.promStartTime, this.promEndTime, this.promStep));
         let data = response.data.result[0].values;
 
+        /* prepare Data for Graph */
         let memData = data.map(function(value: any[],index: any) { return value[1]; });
         let labelData = Array(memData.length).fill("");
 
@@ -258,26 +262,30 @@ export class DashboardComponent implements OnInit {
      * Generate Network Graph (bytes)
      */
     async netGraph(): Promise<void> {
+        /* get Network Sent data from Prometheus */
         let response = await lastValueFrom(this.prometheusService.getNetSent(this.promStartTime, this.promEndTime, this.promStep));
         let data = response.data.result[0].values;
 
+        /* prepare Sent Data for Graph */
         let sentData = data.map(function(value: any[],index: any) { return value[1]; });
 
         let i = 0;
 
         /* Convert sent data to kbytes */
         for(i = 0; i < sentData.length; i++) {
-            sentData[i] = sentData[i]/1024;
+            sentData[i] = (sentData[i]/1024)/1024;
         }
 
+        /* get Network Received data from Prometheus */
         response = await lastValueFrom(this.prometheusService.getNetRecv(this.promStartTime, this.promEndTime, this.promStep));
         data = response.data.result[0].values;
 
+        /* prepare Received Data for Graph */
         let recvData = data.map(function(value: any[],index: any) { return value[1]; });
 
         /* Convert received data to kbytes */
         for(i = 0; i < recvData.length; i++) {
-            recvData[i] = recvData[i]/1024;
+            recvData[i] = (recvData[i]/1024)/1024;
         }
 
         let labelData = Array(sentData.length).fill("");
@@ -342,9 +350,11 @@ export class DashboardComponent implements OnInit {
      * Generate Storage Graph (bytes)
      */
     async stgGraph(): Promise<void> {
+        /* get Storage Read data from Prometheus */
         let response = await lastValueFrom(this.prometheusService.getStorageRead(this.promStartTime, this.promEndTime, this.promStep));
         let data = response.data.result[0].values;
 
+        /* prepare Read Data for Graph */
         let readData = data.map(function(value: any[],index: any) { return value[1]; });
 
         let i = 0;
@@ -354,9 +364,11 @@ export class DashboardComponent implements OnInit {
             readData[i] = (readData[i]/1024)/1024;
         }
 
+        /* get Storage Write data from Prometheus */
         response = await lastValueFrom(this.prometheusService.getStorageWrite(this.promStartTime, this.promEndTime, this.promStep));
         data = response.data.result[0].values;
 
+        /* prepare Write Data for Graph */
         let writeData = data.map(function(value: any[],index: any) { return value[1]; });
 
         /* Convert write data to mbytes */
@@ -461,7 +473,7 @@ export class DashboardComponent implements OnInit {
     }
 
     /*
-     *
+     * Get Storage Classes
      */
     async getStorageClasses(): Promise<void> {
         const data = await lastValueFrom(this.k8sApisService.getStorageClasses());
@@ -469,7 +481,7 @@ export class DashboardComponent implements OnInit {
     }
 
     /*
-     *
+     * Get Namespaces
      */
     async getNamespaces(): Promise<void> {
         const data = await lastValueFrom(this.k8sService.getNamespaces());
@@ -477,7 +489,7 @@ export class DashboardComponent implements OnInit {
     }
 
     /*
-     *
+     * Get Cluster Instance Types
      */
     async getInstanceTypes(): Promise<void> {
         const data = await lastValueFrom(this.kubeVirtService.getClusterInstanceTypes());

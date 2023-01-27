@@ -190,7 +190,8 @@
                     <a class="nav-link" id="newvm-userdata-tab" data-toggle="pill" href="#newvm-userdata" role="tab" aria-controls="newvm-userdata" aria-selected="false">User Data</a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" id="newvm-netdata-tab" data-toggle="pill" href="#newvm-netdata" role="tab" aria-controls="newvm-netdata" aria-selected="false">Network Data</a>
+                    <!-- This is hidden by default, and only shown if Network != podNetwork -->
+                    <a class="nav-link" id="newvm-netdata-tab" data-toggle="pill" href="#newvm-netdata" role="tab" aria-controls="newvm-netdata" aria-selected="false" style="display: none;">Network Data</a>
                   </li>
                   <li class="nav-item">
                     <a class="nav-link" id="newpool-initscript-tab" data-toggle="pill" href="#newpool-initscript" role="tab" aria-controls="newpool-initscript" aria-selected="false">Init Script</a>
@@ -334,7 +335,7 @@
                   <!-- NETWORK TAB -->
                   <div class="tab-pane fade" id="newvm-net" role="tabpanel" aria-labelledby="newvm-net-tab">
                     <label for="newvm-network">Network:</label>
-                    <select #newvmnetwork class="custom-select rounded-0" name="newvm-network" id="newvm-network">
+                    <select #newvmnetwork class="custom-select rounded-0" name="newvm-network" id="newvm-network" (change)="onChangeNetwork(newvmnetwork.value)">
                         <option value=podNetwork>podNetwork</option>
                     </select>
                   </div>

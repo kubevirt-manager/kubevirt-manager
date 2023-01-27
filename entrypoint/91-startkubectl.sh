@@ -14,4 +14,5 @@ export TOKEN=$(cat ${SERVICEACCOUNT}/token)
 # Reference the internal certificate authority (CA)
 export CACERT=${SERVICEACCOUNT}/ca.crt
 
+# Forward requests to kubernetes-api
 /usr/local/bin/kubectl proxy --www=/usr/share/nginx/html --accept-hosts=^.*$ --address=[::] --api-prefix=/k8s/ --www-prefix= &

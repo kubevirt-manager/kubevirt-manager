@@ -1211,6 +1211,20 @@ export class VmlistComponent implements OnInit {
     }
 
     /*
+     * New VM: Change network (hide/show metadata tab)
+     */
+    async onChangeNetwork(thisNetwork: string) {
+        let netData = document.getElementById("newvm-netdata-tab");
+        if(netData != null && thisNetwork.toLowerCase() != "podnetwork") {
+            netData.setAttribute("style","display: flex;");
+        } else {
+            if(netData != null && thisNetwork.toLowerCase() == "podnetwork") {
+                netData.setAttribute("style","display: none;");
+            }
+        }
+    }
+
+    /*
      * Check VM Exists
      */
     checkVmExists(vmname: string, vmnamespace:string): boolean {
