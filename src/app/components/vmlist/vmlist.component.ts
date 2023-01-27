@@ -1131,6 +1131,7 @@ export class VmlistComponent implements OnInit {
      */
     async onChangeNamespace(namespace: string) {
         let selectorNetworkField = document.getElementById("newvm-network");
+        let netData = document.getElementById("newvm-netdata-tab");
         let networkSelectorOptions = "<option value=podNetwork>podNetwork</option>\n";
         if(this.networkCheck) {
             let data = await lastValueFrom(this.k8sApisService.getNetworkAttachs());
@@ -1148,6 +1149,9 @@ export class VmlistComponent implements OnInit {
         }
         if (selectorNetworkField != null && networkSelectorOptions != "") {
             selectorNetworkField.innerHTML = networkSelectorOptions;
+        }
+        if (netData != null) {
+            netData.setAttribute("style","display: none;");
         }
     }
 
