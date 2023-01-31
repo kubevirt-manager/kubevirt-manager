@@ -143,6 +143,8 @@ spec:
             mountPath: /var/cache/nginx
           - name: run-volume
             mountPath: /var/run
+          - name: prometheus-config
+            mountPath: /etc/nginx/location.d/
       serviceAccountName: kubevirt-manager
       restartPolicy: Always
       volumes:
@@ -150,6 +152,10 @@ spec:
           emptyDir: {}
         - name: run-volume
           emptyDir: {}
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+            optional: true
 
 ---
 apiVersion: v1

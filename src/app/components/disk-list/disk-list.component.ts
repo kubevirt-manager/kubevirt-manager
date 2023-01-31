@@ -33,7 +33,7 @@ export class DiskListComponent implements OnInit {
         await this.getNamespaces();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
-            navTitle.replaceChildren("Virtual Machine Disks");
+            navTitle.replaceChildren("Virtual Machine Data Volumes");
         }
     }
 
@@ -327,8 +327,8 @@ export class DiskListComponent implements OnInit {
     }
 
     /*
-    * Delete DV, PV, PVC
-    */
+     * Delete DV, PV, PVC
+     */
     async applyDelete(): Promise<void> {
         let diskField = document.getElementById("delete-disk");
         let namespaceField = document.getElementById("delete-namespace");

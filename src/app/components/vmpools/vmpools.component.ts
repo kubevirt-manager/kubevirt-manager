@@ -911,9 +911,9 @@ export class VMPoolsComponent implements OnInit {
         }
     }
 
-  /*
-   * Hide Delete VM Window
-   */
+   /*
+    * Hide Delete VM Window
+    */
     hideDeleteVM(): void {
         let modalDiv = document.getElementById("modal-deletevm");
         if(modalDiv != null) {

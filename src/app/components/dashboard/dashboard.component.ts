@@ -16,12 +16,14 @@ export class DashboardComponent implements OnInit {
 
     nodeInfo = {
         'total': 0,
-        'running': 0
+        'running': 0,
+        'percent': 0
     };
 
     vmInfo = {
         'total': 0,
-        'running': 0
+        'running': 0,
+        'percent': 0
     };
 
     /* Dashboard data */
@@ -88,9 +90,13 @@ export class DashboardComponent implements OnInit {
      * Check if Prometheus is Present
      */
     async checkPrometheus(): Promise<void>  {
-        const data = await lastValueFrom(this.prometheusService.checkPrometheus());
-        if(data["status"].toLowerCase() == "success") {
-            this.prometheusEnabled = true;
+        try {
+            const data = await lastValueFrom(this.prometheusService.checkPrometheus());
+            if(data["status"].toLowerCase() == "success") {
+                this.prometheusEnabled = true;
+            }
+        } catch (e) {
+            this.prometheusEnabled = false;
         }
     }
 
@@ -135,6 +141,7 @@ export class DashboardComponent implements OnInit {
                 }
             }
         }
+        this.nodeInfo.percent = Math.round((this.nodeInfo.running * 100) / this.nodeInfo.total);
         this.storageInfo = Math.round((this.storageInfo * 100) / 100);
     }
 
@@ -443,9 +450,10 @@ export class DashboardComponent implements OnInit {
         this.vmInfo.total = data.items.length;
         for (let i = 0; i < vms.length; i++) {
             if(vms[i].status["printableStatus"] == "Running") {
-            this.vmInfo.running += 1;
+                this.vmInfo.running += 1;
             }
         }
+        this.vmInfo.percent = Math.round((this.vmInfo.running * 100) / this.vmInfo.total);
     }
 
     /*

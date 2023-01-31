@@ -9,7 +9,7 @@ metadata:
     kubevirt-manager.io/managed: "true"
 data:
   prometheus.conf: |
-    location /prom {
+    location /api {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
@@ -18,5 +18,5 @@ data:
        	client_max_body_size 5g;
        	proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection $connection_upgrade;
-        proxy_pass http://127.0.0.1:9091;
+        proxy_pass http://prometheus-service.prometheus-namespace.svc:9090;
     }

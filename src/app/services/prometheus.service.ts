@@ -14,7 +14,7 @@ export class PrometheusService {
      */
     checkPrometheus(): Observable<any> {
         var metric = "kubevirt_info";
-        var baseUrl ='http://172.16.145.3:9091/api/v1/query?query';
+        var baseUrl ='./api/v1/query?query';
         var promQuery = metric;
         return this.http.get(`${baseUrl}=${promQuery}`);
     }
@@ -24,7 +24,7 @@ export class PrometheusService {
      */
     getStorageWrite(start: Number, end: Number, step: Number): Observable<any> {
         var metric = "kubevirt_vmi_storage_write_traffic_bytes_total";
-        var baseUrl ='http://172.16.145.3:9091/api/v1/query_range?query';
+        var baseUrl ='./api/v1/query_range?query';
         var promQuery = "sum(" + metric + ")or%20vector(0)&start=" + start.toString() + "&end=" + end.toString() + "&step=" + step.toString();
         return this.http.get(`${baseUrl}=${promQuery}`);
     }
@@ -34,7 +34,7 @@ export class PrometheusService {
      */
     getStorageRead(start: Number, end: Number, step: Number): Observable<any> {
         var metric = "kubevirt_vmi_storage_read_traffic_bytes_total";
-        var baseUrl ='http://172.16.145.3:9091/api/v1/query_range?query';
+        var baseUrl ='./api/v1/query_range?query';
         var promQuery = "sum(" + metric + ")or%20vector(0)&start=" + start.toString() + "&end=" + end.toString() + "&step=" + step.toString();
         return this.http.get(`${baseUrl}=${promQuery}`);
     }
@@ -44,7 +44,7 @@ export class PrometheusService {
      */
     getNetSent(start: Number, end: Number, step: Number): Observable<any> {
         var metric = "kubevirt_vmi_network_transmit_bytes_total";
-        var baseUrl ='http://172.16.145.3:9091/api/v1/query_range?query';
+        var baseUrl ='./api/v1/query_range?query';
         var promQuery = "sum(" + metric + ")or%20vector(0)&start=" + start.toString() + "&end=" + end.toString() + "&step=" + step.toString();
         return this.http.get(`${baseUrl}=${promQuery}`);
     }
@@ -54,7 +54,7 @@ export class PrometheusService {
      */
     getNetRecv(start: Number, end: Number, step: Number): Observable<any> {
         var metric = "kubevirt_vmi_network_receive_bytes_total";
-        var baseUrl ='http://172.16.145.3:9091/api/v1/query_range?query';
+        var baseUrl ='./api/v1/query_range?query';
         var promQuery = "sum(" + metric + ")or%20vector(0)&start=" + start.toString() + "&end=" + end.toString() + "&step=" + step.toString();
         return this.http.get(`${baseUrl}=${promQuery}`);
     }
@@ -64,7 +64,7 @@ export class PrometheusService {
      */
     getCpuSummary(start: Number, end: Number, step: Number): Observable<any> {
         var metric = "kube_pod_container_resource_requests";
-        var baseUrl ='http://172.16.145.3:9091/api/v1/query_range?query';
+        var baseUrl ='./api/v1/query_range?query';
         var promQuery = "sum(" + metric + "{container=\"compute\",resource=\"cpu\"})or%20vector(0)&start=" + start.toString() + "&end=" + end.toString() + "&step=" + step.toString();
         return this.http.get(`${baseUrl}=${promQuery}`);
     }
@@ -74,7 +74,7 @@ export class PrometheusService {
      */
     getMemSummary(start: Number, end: Number, step: Number): Observable<any> {
         var metric = "kubevirt_vmi_memory_domain_total_bytes";
-        var baseUrl ='http://172.16.145.3:9091/api/v1/query_range?query';
+        var baseUrl ='./api/v1/query_range?query';
         var promQuery = "sum(" + metric + "/1024000)or%20vector(0)&start=" + start.toString() + "&end=" + end.toString() + "&step=" + step.toString();
         return this.http.get(`${baseUrl}=${promQuery}`);
     }
