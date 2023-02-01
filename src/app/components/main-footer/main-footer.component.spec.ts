@@ -1,5 +1,6 @@
 import { DebugElement } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 
 import { MainFooterComponent } from './main-footer.component';
 
@@ -21,10 +22,16 @@ describe('MainFooterComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-  it('should contain status bar', () => {
+  it('should contain version', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
     const contentValue = componentElem.querySelector('b');
     expect(contentValue.textContent).toContain('Version');
+  });
+  it('should contain main-footer item', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.query(By.css('.main-footer'))
+    const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
   });
 });

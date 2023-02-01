@@ -3,6 +3,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { HttpClientModule } from '@angular/common/http';
 import { LoadBalancersComponent } from './load-balancers.component';
 import { DebugElement } from '@angular/core';
+import { By } from '@angular/platform-browser';
 
 describe('LoadBalancersComponent', () => {
   let component: LoadBalancersComponent;
@@ -28,5 +29,11 @@ describe('LoadBalancersComponent', () => {
     const componentElem = componentDoc.nativeElement;
     const contentValue = componentElem.querySelector('h3');
     expect(contentValue.textContent).toContain('Load Balancers');
+  });
+  it('should contain New Load Balancer item', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.query(By.css('.fa-plus'))
+    const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
   });
 });

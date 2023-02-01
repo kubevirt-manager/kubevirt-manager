@@ -80,12 +80,12 @@
       </div>
 
       <!-- FIRST ROW -->
-      <div class="row">
+      <div class="row" id="row-one">
         <!-- NODE INFO -->
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.nodeInfo.running}}/{{this.nodeInfo.total}}</h3>
+              <h3 id="node-info">{{this.nodeInfo.running}}/{{this.nodeInfo.total}}</h3>
 
               <p>Kubernetes Nodes</p>
             </div>
@@ -100,7 +100,7 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.vmInfo.running}}/{{this.vmInfo.total}}</h3>
+              <h3 id="vm-info">{{this.vmInfo.running}}/{{this.vmInfo.total}}</h3>
 
               <p>Virtual Machines</p>
             </div>
@@ -115,7 +115,7 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.discInfo}}</h3>
+              <h3 id="disk-info">{{this.discInfo}}</h3>
 
               <p>Data Volumes</p>
             </div>
@@ -130,7 +130,7 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.poolInfo}}</h3>
+              <h3 id="pool-info">{{this.poolInfo}}</h3>
 
               <p>VM Pools</p>
             </div>
@@ -144,12 +144,12 @@
       <div class="row">&nbsp;</div>
 
       <!-- SECOND ROW -->
-      <div class="row">
+      <div class="row" id="row-two">
         <!-- CPU INFO -->
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.cpuInfo}}</h3>
+              <h3 id="cpu-info">{{this.cpuInfo}}</h3>
 
               <p>Total Node CPUs</p>
             </div>
@@ -164,7 +164,7 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.memInfo}} GB</h3>
+              <h3 id="mem-info">{{this.memInfo}} GB</h3>
 
               <p>Total Node Memory</p>
             </div>
@@ -179,7 +179,7 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.storageInfo}} GB</h3>
+              <h3 id="storage-info">{{this.storageInfo}} GB</h3>
 
               <p>Total Node Storage</p>
             </div>
@@ -194,7 +194,7 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.netInfo}}</h3>
+              <h3 id="net-info">{{this.netInfo}}</h3>
 
               <p>Available Networks</p>
             </div>
@@ -208,12 +208,12 @@
       <div class="row">&nbsp;</div>
 
       <!-- THIRD ROW -->
-      <div class="row">
+      <div class="row" id="row-three">
         <!-- STORAGE CLASS -->
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.storageClassesInfo}}</h3>
+              <h3 id="sc-info">{{this.storageClassesInfo}}</h3>
 
               <p>Storage Classes</p>
             </div>
@@ -228,7 +228,7 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.namespacesInfo}}</h3>
+              <h3 id="ns-info">{{this.namespacesInfo}}</h3>
 
               <p>Namespaces</p>
             </div>
@@ -243,7 +243,7 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.instanceTypesInfo}}</h3>
+              <h3 id="it-info">{{this.instanceTypesInfo}}</h3>
 
               <p>Instance Types</p>
             </div>
@@ -258,7 +258,7 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.loadBalancers}}</h3>
+              <h3 id="svc-info">{{this.loadBalancers}}</h3>
 
               <p>Load Balancers</p>
             </div>

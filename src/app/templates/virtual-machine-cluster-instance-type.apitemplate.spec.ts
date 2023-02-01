@@ -4,4 +4,8 @@ describe('VirtualMachineClusterInstanceType', () => {
   it('should create an instance', () => {
     expect(new VirtualMachineClusterInstanceType()).toBeTruthy();
   });
+  it('should have template', () => {
+    let template = new VirtualMachineClusterInstanceType().template;
+    expect(template).toBeTruthy();
+  });
 });

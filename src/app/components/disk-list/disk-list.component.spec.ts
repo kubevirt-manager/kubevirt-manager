@@ -3,6 +3,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { HttpClientModule } from '@angular/common/http';
 import { DiskListComponent } from './disk-list.component';
 import { DebugElement } from '@angular/core';
+import { By } from '@angular/platform-browser';
 
 describe('DiskListComponent', () => {
   let component: DiskListComponent;
@@ -28,5 +29,11 @@ describe('DiskListComponent', () => {
     const componentElem = componentDoc.nativeElement;
     const contentValue = componentElem.querySelector('h3');
     expect(contentValue.textContent).toContain('Data Volumes');
+  });
+  it('should contain New Disk item', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.query(By.css('.fa-plus'))
+    const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
   });
 });

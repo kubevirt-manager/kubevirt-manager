@@ -28,4 +28,10 @@ describe('MainHeaderComponent', () => {
     const contentValue = componentElem.nativeElement;
     expect(contentValue.textContent).toContain('Dashboard');
   });
+  it('should contain main-header item', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.query(By.css('.main-header'))
+    const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
+  });
 });
