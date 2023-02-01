@@ -59,7 +59,11 @@ After adjusting the endpoint, apply the configmap:
 $ kubectl apply -f kubernetes/prometheus-config.yaml
 ```
 
-This integration was tested using `prometheus-operator`. A `ServiceMonitor` descriptor to integrate `KubeVirt` with `prometheus-operator` has been provided as an example at `kubernetes/servicemonitor.yaml`.
+This integration was tested using `prometheus-operator`. A `ServiceMonitor` descriptor to integrate `KubeVirt` with `prometheus-operator` has been provided as an example at `kubernetes/servicemonitor.yaml`. Note that you need to set the `namespace` on the `ServiceMonitor` accordingly and you need to update your `KubeVirt` resource to reflect the `namespace` as well:
+```
+spec:
+  monitorNamespace: monitoring
+```
 
 *Note:* The tool assumes Prometheus is exposing the following metrics: kubevirt_vmi_storage_write_traffic_bytes_total, kubevirt_vmi_storage_read_traffic_bytes_total, kubevirt_vmi_network_transmit_bytes_total, kubevirt_vmi_network_receive_bytes_total, kube_pod_container_resource_requests and kubevirt_vmi_memory_domain_total_bytes. These metrics are exposed by `KubeVirt` and `kube-state-metrics`. 
 
