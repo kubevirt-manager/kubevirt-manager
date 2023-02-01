@@ -51,6 +51,18 @@ $ kubectl apply -f kubernetes/pc.yaml
 kubectl apply -f kubernetes/service.yaml
 ```
 
+## PROMETHEUS INTEGRATION
+
+To integrate `kubevirt-manager` with `prometheus`, you need to edit `kubernetes/prometheus-config.yaml` and adjust your endpoint on line 21.
+After adjusting the endpoint, apply the configmap:
+```sh
+$ kubectl apply -f kubernetes/prometheus-config.yaml
+```
+
+This integration was tested using `prometheus-operator`. A `ServiceMonitor` descriptor to integrate `KubeVirt` with `prometheus-operator` has been provided as an example at `kubernetes/servicemonitor.yaml`.
+
+*Note:* The tool assumes Prometheus is exposing the following metrics: kubevirt_vmi_storage_write_traffic_bytes_total, kubevirt_vmi_storage_read_traffic_bytes_total, kubevirt_vmi_network_transmit_bytes_total, kubevirt_vmi_network_receive_bytes_total, kube_pod_container_resource_requests and kubevirt_vmi_memory_domain_total_bytes. These metrics are exposed by `KubeVirt` and `kube-state-metrics`. 
+
 ## HOW TO USE IT
 
 To use the tool, you can either use `kubectl port-forward` on port 8080, use a `Service` with type `NodePort` or `LoadBalancer`, or, create an `Ingress` for your service.  
@@ -113,18 +125,21 @@ kubectl proxy --www=./dist/kubevirtmgr-webui/ --accept-hosts=^.*$ --address=[::]
 Access the tool at: http://localhost:8001/
 
 *Note:* Make sure your `kubectl` is pointing to the right cluster.   
-*Note:* Make sure the account your `kubectl` is using has correct RBAC.   
+*Note:* Make sure the account your `kubectl` is using has correct RBAC.  
+*Note:* This method doesn't support `Prometheus` integration.   
 
 ## References
 
-1. [Kubernetes](https://kubernetes.io/)
-2. [Kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/)
-3. [CDI](https://github.com/kubevirt/containerized-data-importer/)
-4. [Kubevirt](https://kubevirt.io)
-5. [NodeJS](https://nodejs.org/en/)
-6. [Angular](https://angular.io/)
-7. [AdminLTE](https://adminlte.io/)
-8. [NoVNC](https://github.com/novnc/noVNC)
+01. [Kubernetes](https://kubernetes.io/)
+02. [Kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/)
+03. [CDI](https://github.com/kubevirt/containerized-data-importer/)
+04. [Kubevirt](https://kubevirt.io)
+05. [NodeJS](https://nodejs.org/en/)
+06. [Angular](https://angular.io/)
+07. [AdminLTE](https://adminlte.io/)
+08. [NoVNC](https://github.com/novnc/noVNC)
+09. [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator)
+10. [kube-state-metrics](https://github.com/kubernetes/kube-state-metrics)
 
 ## License
 
