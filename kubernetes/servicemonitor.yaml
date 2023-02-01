@@ -4,22 +4,15 @@ metadata:
   name: prometheus-kubevirt-rules
   namespace: monitoring
   labels:
-    app.kubernetes.io/component: kubevirt
-    app.kubernetes.io/managed-by: virt-operator
-    k8s-app: kubevirt
-    openshift.io/cluster-monitoring: ""
     prometheus.kubevirt.io: "true"
 spec:
   endpoints:
-  - bearerTokenSecret:
-      key: ""
-    honorLabels: true
+  - honorLabels: true
     port: metrics
     scheme: https
     tlsConfig:
-      ca: {}
-      cert: {}
       insecureSkipVerify: true
+  jobLabel: prometheus.kubevirt.io
   namespaceSelector:
     matchNames:
     - kubevirt
