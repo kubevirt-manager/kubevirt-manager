@@ -2,7 +2,7 @@
 FROM node:16.18-bullseye-slim as builder
 WORKDIR /usr/src/app
 COPY . /usr/src/app
-RUN npm install -g @angular/cli@14.2.9 && npm install && ng build --configuration production
+RUN npm run clean && npm install -g @angular/cli@14.2.9 && npm install && npm run build
 
 # NGINX Image
 FROM nginx:1.23-alpine
