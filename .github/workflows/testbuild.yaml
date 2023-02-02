@@ -12,9 +12,13 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: '16'
+    - name: Initial Cleanup
+      run: npm run cleanup
     - name: Install Angular
       run: npm install -g @angular/cli@14.2.9
     - name: Install dependencies
       run: npm install
     - name: Building Artifact
       run: npm run build
+    - name: Final Cleanup
+      run: npm run cleanup
