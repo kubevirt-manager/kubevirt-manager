@@ -62,7 +62,7 @@ export class DashboardComponent implements OnInit {
 
     async ngOnInit(): Promise<void> {
         await this.checkPrometheus();
-        await this.getNodes();
+        this.getNodes();
         this.getVMs();
         this.getDisks();
         this.getNetworks();
@@ -78,7 +78,7 @@ export class DashboardComponent implements OnInit {
         /* If prometheus is present */
         if(this.prometheusEnabled) {
             await this.getTimestamps();
-            await this.enableRows();
+            this.enableRows();
             this.cpuGraph();
             this.memGraph();
             this.netGraph();
