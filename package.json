@@ -7,6 +7,7 @@
     "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test --watch=false --browsers=ChromeHeadless",
+    "clean": "rm -rf node_modules && rm -rf .angular && rm -rf dist && rm -rf coverage",
     "postinstall": "cat novnc.fix > ./node_modules/@novnc/novnc/core/rfb.d.ts"
   },
   "private": true,
