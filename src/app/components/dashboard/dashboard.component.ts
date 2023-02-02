@@ -39,11 +39,10 @@ export class DashboardComponent implements OnInit {
     loadBalancers = 0;
 
     /* Prometheus query data */
-    prometheusEnabled = false
     promStartTime = 0;
     promEndTime = 0;
-    promInterval = 1800; // Prometheus window 30 minutes
-    promStep = 15;       // Prometheus Step
+    promInterval = 1200; // Prometheus window 20 minutes
+    promStep = 30;       // Prometheus Step
 
     /* Chart.JS placeholder */
     cpuChart: any;
@@ -61,8 +60,7 @@ export class DashboardComponent implements OnInit {
     ) { }
 
     async ngOnInit(): Promise<void> {
-        await this.checkPrometheus();
-        this.getNodes();
+        await this.getNodes();   // Needed to calculate CPU Graph
         this.getVMs();
         this.getDisks();
         this.getNetworks();
@@ -71,32 +69,29 @@ export class DashboardComponent implements OnInit {
         this.getNamespaces();
         this.getInstanceTypes();
         this.getLoadBalancers();
+        this.loadPrometheus();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Dashboard");
         }
-        /* If prometheus is present */
-        if(this.prometheusEnabled) {
-            await this.getTimestamps();
-            this.enableRows();
-            this.cpuGraph();
-            this.memGraph();
-            this.netGraph();
-            this.stgGraph();
-        }
     }
 
     /*
-     * Check if Prometheus is Present
+     * Load Prometheus Metrics
      */
-    async checkPrometheus(): Promise<void>  {
+    async loadPrometheus(): Promise<void>  {
         try {
             const data = await lastValueFrom(this.prometheusService.checkPrometheus());
             if(data["status"].toLowerCase() == "success") {
-                this.prometheusEnabled = true;
+                await this.getTimestamps();
+                this.cpuGraph();
+                this.memGraph();
+                this.netGraph();
+                this.stgGraph();
+                this.enableRows();
             }
         } catch (e) {
-            this.prometheusEnabled = false;
+            console.log("No prometheus...");
         }
     }
 
@@ -194,7 +189,7 @@ export class DashboardComponent implements OnInit {
                   },
                   y: {
                     min: 0,
-                    max: (this.cpuInfo + 1)/10,
+                    max: (this.cpuInfo / 10) + 1,
                     grid: {
                       display: true
                     }
