@@ -25,7 +25,7 @@ describe('KubeVirtService', () => {
   });
   it('stub should be created', () => {
     expect(stubService).toBeTruthy();
-  });
+  }); 
   it('testing getVM', () => {
     let stubVM = KubeVirtTestdata.getVM;
     stubVM.metadata.name = "this-test-vm";

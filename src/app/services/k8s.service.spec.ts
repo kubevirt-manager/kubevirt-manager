@@ -38,5 +38,5 @@ describe('K8sService', () => {
       .toBe(1);
     expect(stubService.getNodes.calls.mostRecent().returnValue)
       .toBe(<any>stubCrds);
-  });
+  }); 
 });
