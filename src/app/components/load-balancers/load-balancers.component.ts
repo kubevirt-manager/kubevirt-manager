@@ -108,20 +108,6 @@ export class LoadBalancersComponent implements OnInit {
     }
 
     /*
-     * Hide Info Window
-     */
-    hideInfo(): void {
-        let modalDiv = document.getElementById("modal-info");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
      * Show Delete Window
      */
     showDelete(lbNamespace: string, lbName: string): void {
@@ -150,20 +136,6 @@ export class LoadBalancersComponent implements OnInit {
     }
 
     /*
-     * Hide Delete Window
-     */
-    hideDelete(): void {
-        let modalDiv = document.getElementById("modal-delete");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
      * Delete Kubernetes Service
      */
     async applyDelete(): Promise<void> {
@@ -175,7 +147,7 @@ export class LoadBalancersComponent implements OnInit {
             if(lbName != null && lbNamespace != null) {
                 try {
                     let deleteService = await lastValueFrom(this.k8sService.deleteService(lbNamespace, lbName));
-                    this.hideDelete();
+                    this.hideComponent("modal-delete");
                     this.reloadComponent();
                 } catch (e) {
                     if (e instanceof HttpErrorResponse) {
@@ -242,7 +214,7 @@ export class LoadBalancersComponent implements OnInit {
             if(lbName != null && lbNamespace != null) {
                 try {
                     let newTypeData = await lastValueFrom(this.k8sService.changeServiceType(lbNamespace, lbName, newType));
-                    this.hideDelete();
+                    this.hideComponent("modal-type");
                     this.reloadComponent();
                 } catch (e) {
                     if (e instanceof HttpErrorResponse) {
@@ -287,20 +259,6 @@ export class LoadBalancersComponent implements OnInit {
             modalDiv.setAttribute("role", "dialog");
             modalDiv.setAttribute("aria-hidden", "false");
             modalDiv.setAttribute("style","display: block;");
-        }
-    }
-
-    /*
-     * Hide New Window
-     */
-    hideNew(): void {
-        let modalDiv = document.getElementById("modal-new");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
         }
     }
 
@@ -353,7 +311,7 @@ export class LoadBalancersComponent implements OnInit {
 
             try {
                 let newLbData = await lastValueFrom(this.k8sService.createService(newlbnamespace, myNewService));
-                this.hideDelete();
+                this.hideComponent("modal-new");
                 this.reloadComponent();
             } catch (e) {
                 if (e instanceof HttpErrorResponse) {
@@ -379,6 +337,20 @@ export class LoadBalancersComponent implements OnInit {
         }
         if (selectorPoolField != null && poolSelectorOptions != "") {
             selectorPoolField.innerHTML = poolSelectorOptions;
+        }
+    }
+
+    /*
+     * Hide Component
+     */
+    hideComponent(divId: string): void {
+        let modalDiv = document.getElementById(divId);
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade");
+            modalDiv.setAttribute("aria-modal", "false");
+            modalDiv.setAttribute("role", "");
+            modalDiv.setAttribute("aria-hidden", "true");
+            modalDiv.setAttribute("style","display: none;");
         }
     }
 

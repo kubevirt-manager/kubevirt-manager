@@ -196,7 +196,7 @@
           <form name="newpoolform" id="newpoolform">
             <div class="modal-header">
               <h4 class="modal-title" id="newpool-title">TITLE_TEMPLATE</h4>
-              <button type="button" class="close" (click)="hideNewPool()">
+              <button type="button" class="close" (click)='hideComponent("modal-newpool")'>
                 <span aria-hidden="true">×</span>
               </button>
             </div>
@@ -396,7 +396,7 @@
               </div>
             </div>
             <div class="modal-footer justify-content-between">
-              <button type="button" class="btn btn-default" (click)="hideNewPool()">Close</button>
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-newpool")'>Close</button>
               <button type="button" class="btn btn-primary" (click)="applyNewPool(newpoolname.value, newpoolnamespace.value, newpoolreplicas.value, newpoollabelkeyone.value, newpoollabelvalueone.value, newpoollabelkeytwo.value, newpoollabelvaluetwo.value, newpoollabelkeythree.value, newpoollabelvaluethree.value, newpoollabelkeyfour.value, newpoollabelvaluefour.value, newpoollabelkeyfive.value, newpoollabelvaluefive.value, newpooltype.value, newpoolcpumemsockets.value, newpoolcpumemcores.value, newpoolcpumemthreads.value, newpoolcpumemmemory.value, newpoolpc.value, newpooldiskonetype.value, newpooldiskonevalue.value, newpooldiskonesize.value, newpooldiskonesc.value, newpooldiskoneurl.value, newpooldisktwotype.value, newpooldisktwovalue.value, newpooldisktwosize.value, newpooldisktwosc.value, newpooldisktwourl.value, newpoolnetwork.value, newpooluserdatausername.value, newpooluserdataauth.value, newpooluserdatapassword.value, newpooluserdatassh.value, newpoolinitscript.value)">Create</button>
             </div>
           </form>
@@ -405,13 +405,6 @@
         </div>
         <!-- /.modal-dialog -->
       </div>
-  
-
-
-
-
-
-
 
 
     <!--                    -->
@@ -422,7 +415,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h4 class="modal-title" id="info-title">TITLE_TEMPLATE</h4>
-              <button type="button" class="close" (click)="hideInfo()">
+              <button type="button" class="close" (click)='hideComponent("modal-info")'>
                 <span aria-hidden="true">×</span>
               </button>
             </div>
@@ -432,7 +425,7 @@
                 </ul>
             </div>
             <div class="modal-footer justify-content-center">
-              <button type="button" class="btn btn-default" (click)="hideInfo()">Close</button>
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-info")'>Close</button>
             </div>
           </div>
           <!-- /.modal-content -->
@@ -448,7 +441,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h4 class="modal-title" id="delete-title">TITLE_TEMPLATE</h4>
-              <button type="button" class="close" (click)="hideDelete()">
+              <button type="button" class="close" (click)='hideComponent("modal-delete")'>
                 <span aria-hidden="true">×</span>
               </button>
             </div>
@@ -458,7 +451,7 @@
               <p>BODY_TEMPLATE</p>
             </div>
             <div class="modal-footer justify-content-between">
-              <button type="button" class="btn btn-default" (click)="hideDelete()">Close</button>
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-delete")'>Close</button>
               <button type="button" class="btn btn-danger" (click)="applyDelete()">Delete</button>
             </div>
           </div>
@@ -475,7 +468,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h4 class="modal-title" id="deletevm-title">TITLE_TEMPLATE</h4>
-              <button type="button" class="close" (click)="hideDeleteVM()">
+              <button type="button" class="close" (click)='hideComponent("modal-deletevm")'>
                 <span aria-hidden="true">×</span>
               </button>
             </div>
@@ -485,7 +478,7 @@
               <p>BODY_TEMPLATE</p>
             </div>
             <div class="modal-footer justify-content-between">
-              <button type="button" class="btn btn-default" (click)="hideDeleteVM()">Close</button>
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-deletevm")'>Close</button>
               <button type="button" class="btn btn-danger" (click)="applyDeleteVM()">Delete</button>
             </div>
           </div>
@@ -502,7 +495,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h4 class="modal-title" id="type-title">TITLE_TEMPLATE</h4>
-              <button type="button" class="close" (click)="hideType()">
+              <button type="button" class="close" (click)='hideComponent("modal-type")'>
                 <span aria-hidden="true">×</span>
               </button>
             </div>
@@ -515,7 +508,7 @@
               </select>
             </div>
             <div class="modal-footer justify-content-between">
-              <button type="button" class="btn btn-default" (click)="hideType()">Close</button>
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-type")'>Close</button>
               <button type="button" class="btn btn-primary" (click)="applyType(changepooltype.value)">Save changes</button>
             </div>
           </div>
@@ -533,7 +526,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h4 class="modal-title" id="resize-title">TITLE_TEMPLATE</h4>
-              <button type="button" class="close" (click)="hideResize()">
+              <button type="button" class="close" (click)='hideComponent("modal-resize")'>
                 <span aria-hidden="true">×</span>
               </button>
             </div>
@@ -550,7 +543,7 @@
               <input #resizeMemory type="number" class="form-control" id="resize-memory" name="resize-memory">
             </div>
             <div class="modal-footer justify-content-between">
-              <button type="button" class="btn btn-default" (click)="hideResize()">Close</button>
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-resize")'>Close</button>
               <button type="button" class="btn btn-primary" (click)="applyResize(resizeSockets.value, resizeCores.value, resizeThreads.value, resizeMemory.value)">Save changes</button>
             </div>
           </div>
@@ -568,7 +561,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h4 class="modal-title" id="replicas-title">TITLE_TEMPLATE</h4>
-              <button type="button" class="close" (click)="hideReplicas()">
+              <button type="button" class="close" (click)='hideComponent("modal-replicas")'>
                 <span aria-hidden="true">×</span>
               </button>
             </div>
@@ -581,7 +574,7 @@
               </div>
             </div>
             <div class="modal-footer justify-content-between">
-              <button type="button" class="btn btn-default" (click)="hideReplicas()">Close</button>
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-replicas")'>Close</button>
               <button type="button" class="btn btn-primary" (click)="applyReplicas(replicasinput.value)">Resize</button>
             </div>
           </div>

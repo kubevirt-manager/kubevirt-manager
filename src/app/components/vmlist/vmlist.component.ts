@@ -278,20 +278,6 @@ export class VmlistComponent implements OnInit {
     }
 
     /*
-     * Hide New VM Window
-     */
-    hideNewVm(): void {
-        let modalDiv = document.getElementById("modal-newvm");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
      * New VM: Create the New VM
      */
     async applyNewVm(
@@ -638,7 +624,7 @@ export class VmlistComponent implements OnInit {
                 this.myVmTemplateCustom.spec.template.spec.domain.devices.interfaces.push(iface1);
                 try {
                     data = await lastValueFrom(this.kubeVirtService.createVm(newvmnamespace,newvmname, this.myVmTemplateCustom));
-                    this.hideNewVm();
+                    this.hideComponent("modal-newvm");
                     this.reloadComponent();
                 } catch (e) {
                     alert(e);
@@ -657,7 +643,7 @@ export class VmlistComponent implements OnInit {
                 this.myVmTemplateTyped.spec.template.spec.domain.devices.interfaces.push(iface1);
                 try {
                     data = await lastValueFrom(this.kubeVirtService.createVm(newvmnamespace,newvmname, this.myVmTemplateTyped));
-                    this.hideNewVm();
+                    this.hideComponent("modal-newvm");
                     this.reloadComponent();
                 } catch (e) {
                     alert(e);
@@ -707,20 +693,6 @@ export class VmlistComponent implements OnInit {
     }
 
     /*
-     * Hide Resize Windows
-     */
-    hideResize(): void {
-        let modalDiv = document.getElementById("modal-resize");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
      * Resize Virtual Machine
      */
     async applyResize(sockets: string, cores: string, threads: string, memory: string): Promise<void> {
@@ -732,7 +704,7 @@ export class VmlistComponent implements OnInit {
             if(resizeName != null && resizeNamespace != null) {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.scaleVm(resizeNamespace, resizeName, cores, threads, sockets, memory));
-                    this.hideResize();
+                    this.hideComponent("modal-resize");
                     this.reloadComponent();
                 } catch (e) {
                     console.log(e);
@@ -770,20 +742,6 @@ export class VmlistComponent implements OnInit {
     }
 
     /*
-     * Hide Delete Window
-     */
-    hideDelete(): void {
-        let modalDiv = document.getElementById("modal-delete");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
      * Delete Virtual Machine
      */
     async applyDelete(): Promise<void> {
@@ -795,7 +753,7 @@ export class VmlistComponent implements OnInit {
             if(vmName != null && vmNamespace != null) {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
-                    this.hideDelete();
+                    this.hideComponent("modal-delete");
                     this.reloadComponent();
                 } catch (e) {
                     console.log(e);
@@ -843,20 +801,6 @@ export class VmlistComponent implements OnInit {
     }
 
     /*
-     * Hide Type Window
-     */
-    hideType(): void {
-        let modalDiv = document.getElementById("modal-type");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
      * Change VM Type
      */
     async applyType(vmType: string): Promise<void> {
@@ -868,7 +812,7 @@ export class VmlistComponent implements OnInit {
             if(vmName != null && vmNamespace != null) {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.changeVmType(vmNamespace, vmName, vmType));
-                    this.hideType();
+                    this.hideComponent("modal-type");
                     this.reloadComponent();
                 } catch (e) {
                     console.log(e);
@@ -913,20 +857,6 @@ export class VmlistComponent implements OnInit {
             modalDiv.setAttribute("role", "dialog");
             modalDiv.setAttribute("aria-hidden", "false");
             modalDiv.setAttribute("style","display: block;");
-        }
-    }
-
-    /*
-     * Hide Info Window
-     */
-    hideInfo(): void {
-        let modalDiv = document.getElementById("modal-info");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
         }
     }
 
@@ -1250,6 +1180,20 @@ export class VmlistComponent implements OnInit {
             if(crds[i].metadata["name"] == "network-attachment-definitions.k8s.cni.cncf.io") {
                 this.networkCheck = true;
             }
+        }
+    }
+
+    /*
+     * Hide Component
+     */
+    hideComponent(divId: string): void {
+        let modalDiv = document.getElementById(divId);
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade");
+            modalDiv.setAttribute("aria-modal", "false");
+            modalDiv.setAttribute("role", "");
+            modalDiv.setAttribute("aria-hidden", "true");
+            modalDiv.setAttribute("style","display: none;");
         }
     }
 
