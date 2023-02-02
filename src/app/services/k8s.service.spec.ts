@@ -1,6 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HttpClientModule } from '@angular/common/http';
 import { K8sService } from './k8s.service';
 import { K8sTestdata } from '../test-data/k8s-testdata.model';
 

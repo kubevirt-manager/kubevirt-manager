@@ -1,6 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HttpClientModule } from '@angular/common/http';
 import { KubeVirtService } from './kube-virt.service';
 import { KubeVirtTestdata } from '../test-data/kube-virt-testdata.model';
 
