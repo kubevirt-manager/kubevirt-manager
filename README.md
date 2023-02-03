@@ -119,13 +119,14 @@ Access the tool at: http://localhost:8001/
 01. [Kubernetes](https://kubernetes.io/)
 02. [Kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/)
 03. [CDI](https://github.com/kubevirt/containerized-data-importer/)
-04. [Kubevirt](https://kubevirt.io)
+04. [KubeVirt](https://kubevirt.io)
 05. [NodeJS](https://nodejs.org/en/)
 06. [Angular](https://angular.io/)
 07. [AdminLTE](https://adminlte.io/)
 08. [NoVNC](https://github.com/novnc/noVNC)
 09. [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator)
 10. [kube-state-metrics](https://github.com/kubernetes/kube-state-metrics)
+11. [KubeVirt Monitoring](https://kubevirt.io/user-guide/operations/component_monitoring/)
 
 ## License
 
