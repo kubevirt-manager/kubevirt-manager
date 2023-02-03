@@ -1,4 +1,4 @@
-name: Test Build
+name: Build Artifact
 on:
   pull_request:
     types: [opened, reopened, ready_for_review, unlocked, synchronize]
