@@ -75,38 +75,20 @@ To use the tool, you can either use `kubectl port-forward` on port 8080, use a `
 ## Screenshot
 
 Dashboard:</br>
-<img src="images/screenshot_01.png" width="96%" align="center"/>
-Instance List:</br>
+<img src="images/screenshot_01.png" width="96%"/>
+</br>Virtual Machines:</br>
 <img src="images/screenshot_02.png" width="96%"/>
-</br>Instance Info & New Instance </br>
-<img src="images/screenshot_03.png" width="46%"/>
-<img src="images/screenshot_04.png" width="46%"/>
-</br>Instance CPU/Memory & Priority Class </br>
-<img src="images/screenshot_06.png" width="46%"/>
+</br>Node Pools:</br>
+<img src="images/screenshot_03.png" width="96%"/>
+</br>Instance Types & Network: </br>
+<img src="images/screenshot_05.png" width="46%"/>
 <img src="images/screenshot_07.png" width="46%"/>
-</br>Disk & Cloud Init:</br>
-<img src="images/screenshot_08.png" width="46%"/>
-<img src="images/screenshot_11.png" width="46%"/>
-</br>VM Pool:</br>
-<img src="images/screenshot_15.png" width="96%" align="center"/>
-</br>Pool Info & New Pool </br>
-<img src="images/screenshot_16.png" width="46%"/>
-<img src="images/screenshot_17.png" width="46%"/>
-</br>Node & Data Volumes</br>
-<img src="images/screenshot_24.png" width="46%"/>
-<img src="images/screenshot_25.png" width="46%"/>
-</br>Load Balancers:</br>
-<img src="images/screenshot_28.png" width="96%" align="center"/>
-</br>Load Balancer Info & New Load Balancer</br>
-<img src="images/screenshot_29.png" width="46%"/>
-<img src="images/screenshot_30.png" width="46%"/>
-</br>Instance Type & Networking</br>
-<img src="images/screenshot_26.png" width="46%"/>
-<img src="images/screenshot_33.png" width="46%"/>
+</br>Data Volumes & Load Balancers: </br>
+<img src="images/screenshot_04.png" width="46%"/>
+<img src="images/screenshot_06.png" width="46%"/>
 </br>VNC Screen</br>
-<img src="images/screenshot_34.png" width="96%" align="center"/>
+<img src="images/screenshot_09.png" width="96%"/>
 
-*Note:* Check `images` directory for more screenshots.
 
 ## Building
 
