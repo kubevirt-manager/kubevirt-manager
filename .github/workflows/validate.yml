@@ -13,12 +13,12 @@ jobs:
       with:
         node-version: '16'
     - name: Initial Cleanup
-      run: npm run cleanup
+      run: npm run-script cleanup
     - name: Install Angular
       run: npm install -g @angular/cli@14.2.9
     - name: Install dependencies
       run: npm install
     - name: Running Unit Test
-      run: npm run test
+      run: npm run-script test
     - name: Final Cleanup
-      run: npm run cleanup
+      run: npm run-script cleanup
