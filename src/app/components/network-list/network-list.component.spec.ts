@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NetworkListComponent } from './network-list.component';
+import { DebugElement } from '@angular/core';
 
 describe('NetworkListComponent', () => {
   let component: NetworkListComponent;
@@ -21,5 +21,11 @@ describe('NetworkListComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+  it('should contain component title', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('h3');
+    expect(contentValue.textContent).toContain('Network Attachment Definitions');
   });
 });

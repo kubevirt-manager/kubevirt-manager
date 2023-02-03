@@ -33,7 +33,7 @@ export class DiskListComponent implements OnInit {
         await this.getNamespaces();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
-            navTitle.replaceChildren("Virtual Machine Disks");
+            navTitle.replaceChildren("Virtual Machine Data Volumes");
         }
     }
 
@@ -117,20 +117,6 @@ export class DiskListComponent implements OnInit {
     }
 
     /*
-     * Hide Resize Window
-     */
-    hideResize(): void {
-        let modalDiv = document.getElementById("modal-resize");
-        if(modalDiv != null) {
-        modalDiv.setAttribute("class", "modal fade");
-        modalDiv.setAttribute("aria-modal", "false");
-        modalDiv.setAttribute("role", "");
-        modalDiv.setAttribute("aria-hidden", "true");
-        modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
      * Perform Resize of PVC
      */
     async applyResize(diskSize: string): Promise<void> {
@@ -143,7 +129,7 @@ export class DiskListComponent implements OnInit {
                 try {
                     let newSize = diskSize.trim() + "Gi"
                     const data = await lastValueFrom(this.k8sService.resizePersistentVolumeClaims(diskNamespace, diskName, newSize));
-                    this.hideResize();
+                    this.hideComponent("modal-resize");
                     this.reloadComponent();
                 } catch (e) {
                     if (e instanceof HttpErrorResponse) {
@@ -196,20 +182,6 @@ export class DiskListComponent implements OnInit {
     }
 
     /*
-     * Hide Info Window
-     */
-    hideInfo(): void {
-        let modalDiv = document.getElementById("modal-info");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
      * Show New Window
      */
     async showNew(): Promise<void> {
@@ -251,38 +223,24 @@ export class DiskListComponent implements OnInit {
     }
 
     /*
-     * Hide New Window
+     * Create the DataVolume
      */
-    hideNew(): void {
-        let modalDiv = document.getElementById("modal-new");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-  /*
-   * Create the DataVolume
-   */
-  async applyNew(diskNamespace: string, diskName: string, diskSc: string, diskSize: string): Promise<void> {
-    if(diskNamespace != null && diskSize != null && diskName != null && diskSc != null) {
-        try {
-            const data = await lastValueFrom(this.dataVolumesService.createBlankDataVolume(diskNamespace, diskName, diskSize, diskSc));
-            this.hideNew();
-            this.reloadComponent();
-        } catch (e) {
-            if (e instanceof HttpErrorResponse) {
-                alert(e.error["message"])
-            } else {
-                console.log(e);
-            alert("Internal Error!");
+    async applyNew(diskNamespace: string, diskName: string, diskSc: string, diskSize: string): Promise<void> {
+        if(diskNamespace != null && diskSize != null && diskName != null && diskSc != null) {
+            try {
+                const data = await lastValueFrom(this.dataVolumesService.createBlankDataVolume(diskNamespace, diskName, diskSize, diskSc));
+                this.hideComponent("modal-new");
+                this.reloadComponent();
+            } catch (e) {
+                if (e instanceof HttpErrorResponse) {
+                    alert(e.error["message"])
+                } else {
+                    console.log(e);
+                    alert("Internal Error!");
+                }
             }
         }
     }
-  }
 
     /*
     * Show Delete Window
@@ -313,22 +271,8 @@ export class DiskListComponent implements OnInit {
     }
 
     /*
-     * Hide Delete Window
+     * Delete DV, PV, PVC
      */
-    hideDelete(): void {
-        let modalDiv = document.getElementById("modal-delete");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
-    * Delete DV, PV, PVC
-    */
     async applyDelete(): Promise<void> {
         let diskField = document.getElementById("delete-disk");
         let namespaceField = document.getElementById("delete-namespace");
@@ -345,7 +289,7 @@ export class DiskListComponent implements OnInit {
                         deleteData = await lastValueFrom(this.k8sService.deletePersistentVolume(pv));
                     }
                     let deleteDataVolume = await lastValueFrom(this.dataVolumesService.deleteDataVolume(diskNamespace, diskName));
-                    this.hideDelete();
+                    this.hideComponent("modal-delete");
                     this.reloadComponent();
                 } catch (e) {
                     if (e instanceof HttpErrorResponse) {
@@ -356,6 +300,20 @@ export class DiskListComponent implements OnInit {
                     }
                 }
             }
+        }
+    }
+
+    /*
+     * Hide Component
+     */
+    hideComponent(divId: string): void {
+        let modalDiv = document.getElementById(divId);
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade");
+            modalDiv.setAttribute("aria-modal", "false");
+            modalDiv.setAttribute("role", "");
+            modalDiv.setAttribute("aria-hidden", "true");
+            modalDiv.setAttribute("style","display: none;");
         }
     }
 

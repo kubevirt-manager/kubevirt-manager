@@ -8,6 +8,7 @@ import RFB from '@novnc/novnc/core/rfb';
   templateUrl: './vncviewer.component.html',
   styleUrls: ['./vncviewer.component.css']
 })
+
 export class VNCViewerComponent implements OnInit {
 
     vmName: string = "";

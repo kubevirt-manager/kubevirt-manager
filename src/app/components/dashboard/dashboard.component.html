@@ -3,13 +3,89 @@
     <div class="content-wrapper">
       <div class="row">&nbsp;</div>
 
+      <!-- PROMETHEUS: CPU / MEMORY display: none;-->
+      <div class="row" id="prometheus-row-one" style="display: none;">
+        <div class="col-lg-6 col-6">
+          <!-- CPU GRAPH -->
+          <div class="card">
+            <div class="card-header border-0">
+              <div class="d-flex justify-content-between">
+                <h3 class="card-title">CPU Usage</h3>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="position-relative"><div class="chartjs-size-monitor">
+              <div class="chart-container">
+                <canvas  id="CpuChart" >{{ cpuChart }}</canvas>
+              </div>
+              </div></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6 col-6">
+          <!-- MEMORY GRAPH -->
+          <div class="card">
+            <div class="card-header border-0">
+              <div class="d-flex justify-content-between">
+                <h3 class="card-title">Memory Usage <i>(GB)</i></h3>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="position-relative"><div class="chartjs-size-monitor">
+              <div class="chart-container">
+                <canvas  id="MemChart" >{{ memChart }}</canvas>
+              </div>
+              </div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROMETHEUS: NET / STORAGE display: none;-->
+      <div class="row" id="prometheus-row-two" style="display: none;">
+        <div class="col-lg-6 col-6">
+          <!-- NET GRAPH -->
+          <div class="card">
+            <div class="card-header border-0">
+              <div class="d-flex justify-content-between">
+                <h3 class="card-title">Network <i>Total Traffic (MB)</i></h3>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="position-relative"><div class="chartjs-size-monitor">
+              <div class="chart-container">
+                <canvas  id="NetChart" >{{ netChart }}</canvas>
+              </div>
+              </div></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6 col-6">
+          <!-- STORAGE GRAPH -->
+          <div class="card">
+            <div class="card-header border-0">
+              <div class="d-flex justify-content-between">
+                <h3 class="card-title">Storage <i>Total Traffic (MB)</i></h3>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="position-relative"><div class="chartjs-size-monitor">
+              <div class="chart-container">
+                <canvas  id="StgChart" >{{ stgChart }}</canvas>
+              </div>
+              </div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- FIRST ROW -->
-      <div class="row">
+      <div class="row" id="row-one">
         <!-- NODE INFO -->
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.nodeInfo.running}}/{{this.nodeInfo.total}}</h3>
+              <h3 id="node-info">{{this.nodeInfo.running}}/{{this.nodeInfo.total}}</h3>
 
               <p>Kubernetes Nodes</p>
             </div>
@@ -24,7 +100,7 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.vmInfo.running}}/{{this.vmInfo.total}}</h3>
+              <h3 id="vm-info">{{this.vmInfo.running}}/{{this.vmInfo.total}}</h3>
 
               <p>Virtual Machines</p>
             </div>
@@ -39,9 +115,9 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.discInfo}}</h3>
+              <h3 id="disk-info">{{this.discInfo}}</h3>
 
-              <p>Disks</p>
+              <p>Data Volumes</p>
             </div>
             <div class="icon">
               <i class="ion ion-disc"></i>
@@ -54,7 +130,7 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.poolInfo}}</h3>
+              <h3 id="pool-info">{{this.poolInfo}}</h3>
 
               <p>VM Pools</p>
             </div>
@@ -68,14 +144,14 @@
       <div class="row">&nbsp;</div>
 
       <!-- SECOND ROW -->
-      <div class="row">
+      <div class="row" id="row-two">
         <!-- CPU INFO -->
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.cpuInfo}}</h3>
+              <h3 id="cpu-info">{{this.cpuInfo}}</h3>
 
-              <p>Total CPUs</p>
+              <p>Total Node CPUs</p>
             </div>
             <div class="icon">
               <i class="ion ion-flash"></i>
@@ -88,9 +164,9 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.memInfo}} GB</h3>
+              <h3 id="mem-info">{{this.memInfo}} GB</h3>
 
-              <p>Total Memory</p>
+              <p>Total Node Memory</p>
             </div>
             <div class="icon">
               <i class="ion ion-gear-b"></i>
@@ -103,9 +179,9 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.storageInfo}} GB</h3>
+              <h3 id="storage-info">{{this.storageInfo}} GB</h3>
 
-              <p>Total Storage</p>
+              <p>Total Node Storage</p>
             </div>
             <div class="icon">
               <i class="ion ion-folder"></i>
@@ -118,7 +194,7 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.netInfo}}</h3>
+              <h3 id="net-info">{{this.netInfo}}</h3>
 
               <p>Available Networks</p>
             </div>
@@ -132,12 +208,12 @@
       <div class="row">&nbsp;</div>
 
       <!-- THIRD ROW -->
-      <div class="row">
+      <div class="row" id="row-three">
         <!-- STORAGE CLASS -->
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.storageClassesInfo}}</h3>
+              <h3 id="sc-info">{{this.storageClassesInfo}}</h3>
 
               <p>Storage Classes</p>
             </div>
@@ -152,7 +228,7 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.namespacesInfo}}</h3>
+              <h3 id="ns-info">{{this.namespacesInfo}}</h3>
 
               <p>Namespaces</p>
             </div>
@@ -167,7 +243,7 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.instanceTypesInfo}}</h3>
+              <h3 id="it-info">{{this.instanceTypesInfo}}</h3>
 
               <p>Instance Types</p>
             </div>
@@ -182,7 +258,7 @@
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3>{{this.loadBalancers}}</h3>
+              <h3 id="svc-info">{{this.loadBalancers}}</h3>
 
               <p>Load Balancers</p>
             </div>

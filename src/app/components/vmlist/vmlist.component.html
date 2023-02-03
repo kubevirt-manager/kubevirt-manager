@@ -44,7 +44,7 @@
                   <td style="line-height: 2.2 !important;">{{thisVM.namespace}}</td>
                   <td style="line-height: 2.2 !important;">{{thisVM.name}}</td>
                   <td style="line-height: 2.2 !important;">{{thisVM.instType}}</td>
-                  <td style="line-height: 2.2 !important;">{{(thisVM.sockets || 0) * (thisVM.sockets || 0) * (thisVM.threads || 0)}}</td>
+                  <td style="line-height: 2.2 !important;">{{(thisVM.cores || 0) * (thisVM.sockets || 0) * (thisVM.threads || 0)}}</td>
                   <td style="line-height: 2.2 !important;">{{thisVM.memory}}</td>
                   <td style="line-height: 2.2 !important;">{{thisVM.status}}</td>
                   <td style="line-height: 2.2 !important;">
@@ -162,7 +162,7 @@
         <form name="newvmform" id="newvmform">
           <div class="modal-header">
             <h4 class="modal-title" id="newvm-title">TITLE_TEMPLATE</h4>
-            <button type="button" class="close" (click)="hideNewVm()">
+            <button type="button" class="close" (click)='hideComponent("modal-newvm")'>
               <span aria-hidden="true">×</span>
             </button>
           </div>
@@ -190,7 +190,8 @@
                     <a class="nav-link" id="newvm-userdata-tab" data-toggle="pill" href="#newvm-userdata" role="tab" aria-controls="newvm-userdata" aria-selected="false">User Data</a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" id="newvm-netdata-tab" data-toggle="pill" href="#newvm-netdata" role="tab" aria-controls="newvm-netdata" aria-selected="false">Network Data</a>
+                    <!-- This is hidden by default, and only shown if Network != podNetwork -->
+                    <a class="nav-link" id="newvm-netdata-tab" data-toggle="pill" href="#newvm-netdata" role="tab" aria-controls="newvm-netdata" aria-selected="false" style="display: none;">Network Data</a>
                   </li>
                   <li class="nav-item">
                     <a class="nav-link" id="newpool-initscript-tab" data-toggle="pill" href="#newpool-initscript" role="tab" aria-controls="newpool-initscript" aria-selected="false">Init Script</a>
@@ -334,7 +335,7 @@
                   <!-- NETWORK TAB -->
                   <div class="tab-pane fade" id="newvm-net" role="tabpanel" aria-labelledby="newvm-net-tab">
                     <label for="newvm-network">Network:</label>
-                    <select #newvmnetwork class="custom-select rounded-0" name="newvm-network" id="newvm-network">
+                    <select #newvmnetwork class="custom-select rounded-0" name="newvm-network" id="newvm-network" (change)="onChangeNetwork(newvmnetwork.value)">
                         <option value=podNetwork>podNetwork</option>
                     </select>
                   </div>
@@ -379,7 +380,7 @@
             </div>
           </div>
           <div class="modal-footer justify-content-between">
-            <button type="button" class="btn btn-default" (click)="hideNewVm()">Close</button>
+            <button type="button" class="btn btn-default" (click)='hideComponent("modal-newvm")'>Close</button>
             <button type="button" class="btn btn-primary" (click)="applyNewVm(newvmname.value, newvmnamespace.value, newvmnode.value, newvmlabelkeyone.value, newvmlabelvalueone.value, newvmlabelkeytwo.value, newvmlabelvaluetwo.value, newvmlabelkeythree.value, newvmlabelvaluethree.value, newvmlabelkeyfour.value, newvmlabelvaluefour.value, newvmlabelkeyfive.value, newvmlabelvaluefive.value, newvmtype.value, newvmcpumemsockets.value, newvmcpumemcores.value, newvmcpumemthreads.value, newvmcpumemmemory.value, newvmpc.value, newvmdiskonetype.value, newvmdiskonevalue.value, newvmdiskonesize.value, newvmdiskonesc.value, newvmdiskoneurl.value, newvmdisktwotype.value, newvmdisktwovalue.value, newvmdisktwosize.value, newvmdisktwosc.value, newvmdisktwourl.value, newvmnetwork.value, newvmuserdatausername.value, newvmuserdataauth.value, newvmuserdatapassword.value, newvmuserdatassh.value, newvmnetdataip.value, newvmnetdatanetmask.value, newvmnetdatagw.value, newvmnetdatadns1.value, newvmnetdatadns2.value, newpoolinitscript.value)">Create</button>
           </div>
         </form>
@@ -397,7 +398,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h4 class="modal-title" id="delete-title">TITLE_TEMPLATE</h4>
-            <button type="button" class="close" (click)="hideDelete()">
+            <button type="button" class="close" (click)='hideComponent("modal-delete")'>
               <span aria-hidden="true">×</span>
             </button>
           </div>
@@ -407,7 +408,7 @@
             <p>BODY_TEMPLATE</p>
           </div>
           <div class="modal-footer justify-content-between">
-            <button type="button" class="btn btn-default" (click)="hideDelete()">Close</button>
+            <button type="button" class="btn btn-default" (click)='hideComponent("modal-delete")'>Close</button>
             <button type="button" class="btn btn-danger" (click)="applyDelete()">Delete</button>
           </div>
         </div>
@@ -424,7 +425,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h4 class="modal-title" id="type-title">TITLE_TEMPLATE</h4>
-            <button type="button" class="close" (click)="hideType()">
+            <button type="button" class="close" (click)='hideComponent("modal-type")'>
               <span aria-hidden="true">×</span>
             </button>
           </div>
@@ -437,7 +438,7 @@
             </select>
           </div>
           <div class="modal-footer justify-content-between">
-            <button type="button" class="btn btn-default" (click)="hideType()">Close</button>
+            <button type="button" class="btn btn-default" (click)='hideComponent("modal-type")'>Close</button>
             <button type="button" class="btn btn-primary" (click)="applyType(changevmtype.value)">Save changes</button>
           </div>
         </div>
@@ -454,7 +455,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h4 class="modal-title" id="info-title">TITLE_TEMPLATE</h4>
-              <button type="button" class="close" (click)="hideInfo()">
+              <button type="button" class="close" (click)='hideComponent("modal-info")'>
                 <span aria-hidden="true">×</span>
               </button>
             </div>
@@ -464,7 +465,7 @@
                 </ul>
             </div>
             <div class="modal-footer justify-content-center">
-              <button type="button" class="btn btn-default" (click)="hideInfo()">Close</button>
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-info")'>Close</button>
             </div>
           </div>
           <!-- /.modal-content -->
@@ -481,7 +482,7 @@
         <div class="modal-content">
           <div class="modal-header">
             <h4 class="modal-title" id="resize-title">TITLE_TEMPLATE</h4>
-            <button type="button" class="close" (click)="hideResize()">
+            <button type="button" class="close" (click)='hideComponent("modal-resize")'>
               <span aria-hidden="true">×</span>
             </button>
           </div>
@@ -498,7 +499,7 @@
             <input #resizeMemory type="number" class="form-control" id="resize-memory" name="resize-memory">
           </div>
           <div class="modal-footer justify-content-between">
-            <button type="button" class="btn btn-default" (click)="hideResize()">Close</button>
+            <button type="button" class="btn btn-default" (click)='hideComponent("modal-resize")'>Close</button>
             <button type="button" class="btn btn-primary" (click)="applyResize(resizeSockets.value, resizeCores.value, resizeThreads.value, resizeMemory.value)">Save changes</button>
           </div>
         </div>

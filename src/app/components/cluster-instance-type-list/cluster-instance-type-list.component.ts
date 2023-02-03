@@ -72,20 +72,6 @@ export class ClusterInstanceTypeListComponent implements OnInit {
     }
 
     /*
-     * Hide Edit Window
-     */
-    hideEdit(): void {
-        let modalDiv = document.getElementById("modal-edit");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
      * Perform Edit
      */
     async applyEdit(cpuSize: string, memorySize: string): Promise<void> {
@@ -95,7 +81,7 @@ export class ClusterInstanceTypeListComponent implements OnInit {
             if(typeName != null) {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.editClusterInstanceType(typeName, cpuSize, memorySize));
-                    this.hideEdit();
+                    this.hideComponent("model-edit");
                     this.reloadComponent();
                 } catch (e) {
                     if (e instanceof HttpErrorResponse) {
@@ -136,20 +122,6 @@ export class ClusterInstanceTypeListComponent implements OnInit {
     }
 
     /*
-     * Hide Delete Window
-     */
-    hideDelete(): void {
-        let modalDiv = document.getElementById("modal-delete");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
      * Perform Delete
      */
     async applyDelete(): Promise<void> {
@@ -159,7 +131,7 @@ export class ClusterInstanceTypeListComponent implements OnInit {
             if(typeName != null) {
                 try {
                     const data = await lastValueFrom(await this.kubeVirtService.deleteClusterInstanceType(typeName));
-                    this.hideDelete();
+                    this.hideComponent("model-delete");
                     this.reloadComponent();
                 } catch (e) {
                     if (e instanceof HttpErrorResponse) {
@@ -192,20 +164,6 @@ export class ClusterInstanceTypeListComponent implements OnInit {
     }
 
     /*
-     * Hide New Window
-     */
-    hideNew(): void {
-        let modalDiv = document.getElementById("modal-new");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
      * Create the new type
      */
     async applyNew(typeName: string, typeCPU: string, typeMemory: string): Promise<void> {
@@ -215,7 +173,7 @@ export class ClusterInstanceTypeListComponent implements OnInit {
             this.myClusterInstanceTypeTemplate.spec.memory.guest = typeMemory + "Gi";
             try {
                 const data = await lastValueFrom(this.kubeVirtService.createClusterInstanceType(typeName, this.myClusterInstanceTypeTemplate));
-                this.hideNew();
+                this.hideComponent("model-new");
                 this.reloadComponent();
             } catch (e) {
                 if (e instanceof HttpErrorResponse) {
@@ -225,6 +183,20 @@ export class ClusterInstanceTypeListComponent implements OnInit {
                     alert("Internal Error!");
                 }
             }
+        }
+    }
+
+    /*
+     * Hide Component
+     */
+    hideComponent(divId: string): void {
+        let modalDiv = document.getElementById(divId);
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade");
+            modalDiv.setAttribute("aria-modal", "false");
+            modalDiv.setAttribute("role", "");
+            modalDiv.setAttribute("aria-hidden", "true");
+            modalDiv.setAttribute("style","display: none;");
         }
     }
     

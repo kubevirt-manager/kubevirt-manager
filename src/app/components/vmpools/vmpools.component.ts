@@ -285,20 +285,6 @@ export class VMPoolsComponent implements OnInit {
     }
 
     /*
-     * Hide New Pool Window
-     */
-    hideNewPool(): void {
-        let modalDiv = document.getElementById("modal-newpool");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
      * New VM: Create the New VM
      */
     async applyNewPool(
@@ -625,7 +611,7 @@ export class VMPoolsComponent implements OnInit {
                 try {
                     this.myVmPoolCustom.spec.replicas = Number(newpoolreplicas);
                     data = await lastValueFrom(this.kubeVirtService.createPool(newpoolnamespace, newpoolname, this.myVmPoolCustom));
-                    this.hideNewPool();
+                    this.hideComponent("modal-newpool");
                     this.reloadComponent();
                 } catch (e) {
                     alert(e);
@@ -647,7 +633,7 @@ export class VMPoolsComponent implements OnInit {
                 try {
                     this.myVmPoolTyped.spec.replicas = Number(newpoolreplicas);
                     data = await lastValueFrom(this.kubeVirtService.createPool(newpoolnamespace, newpoolname, this.myVmPoolTyped));
-                    this.hideNewPool();
+                    this.hideComponent("modal-newpool");
                     this.reloadComponent();
                 } catch (e) {
                     alert(e);
@@ -728,20 +714,6 @@ export class VMPoolsComponent implements OnInit {
     }
 
     /*
-     * Hide Replicas Window
-     */
-    hideReplicas(): void {
-        let modalDiv = document.getElementById("modal-replicas");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
      * Perform Resize of VM Pool
      */
     async applyReplicas(replicasSize: string): Promise<void> {
@@ -753,7 +725,7 @@ export class VMPoolsComponent implements OnInit {
             if(replicasSize != null && poolName != null && poolNamespace != null) {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.scalePoolReplicas(poolNamespace, poolName, replicasSize));
-                    this.hideReplicas();
+                    this.hideComponent("modal-resize");
                     this.reloadComponent();
                 } catch (e) {
                     if (e instanceof HttpErrorResponse) {
@@ -807,20 +779,6 @@ export class VMPoolsComponent implements OnInit {
     }
 
     /*
-     * Hide Info Window
-     */
-    hideInfo(): void {
-        let modalDiv = document.getElementById("modal-info");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
      * Show Delete Window
      */
     showDelete(poolNamespace: string, poolName: string): void {
@@ -848,20 +806,6 @@ export class VMPoolsComponent implements OnInit {
         }
     }
 
-  /*
-   * Hide Delete Window
-   */
-    hideDelete(): void {
-        let modalDiv = document.getElementById("modal-delete");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
     /*
      * Delete Virtual Machine Pool
      */
@@ -874,7 +818,7 @@ export class VMPoolsComponent implements OnInit {
             if(poolName != null && poolNamespace != null) {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.deletePool(poolNamespace, poolName));
-                    this.hideDelete();
+                    this.hideComponent("modal-delete");
                     this.reloadComponent();
                 } catch (e) {
                     console.log(e);
@@ -911,20 +855,6 @@ export class VMPoolsComponent implements OnInit {
         }
     }
 
-  /*
-   * Hide Delete VM Window
-   */
-    hideDeleteVM(): void {
-        let modalDiv = document.getElementById("modal-deletevm");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
     /*
      * Delete Virtual Machine
      */
@@ -937,7 +867,7 @@ export class VMPoolsComponent implements OnInit {
             if(vmName != null && vmNamespace != null) {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
-                    this.hideDeleteVM();
+                    this.hideComponent("modal-deletevm");
                     this.reloadComponent();
                 } catch (e) {
                     console.log(e);
@@ -986,20 +916,6 @@ export class VMPoolsComponent implements OnInit {
     }
 
     /*
-     * Hide Resize Windows
-     */
-    hideResize(): void {
-        let modalDiv = document.getElementById("modal-resize");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
-    /*
      * Resize Virtual Machine Pool
      */
     async applyResize(sockets: string, cores: string, threads: string, memory: string): Promise<void> {
@@ -1011,7 +927,7 @@ export class VMPoolsComponent implements OnInit {
             if(resizeName != null && resizeNamespace != null) {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.scalePool(resizeNamespace, resizeName, cores, threads, sockets, memory));
-                    this.hideResize();
+                    this.hideComponent("modal-resize");
                     this.reloadComponent();
                 } catch (e) {
                     console.log(e);
@@ -1057,20 +973,6 @@ export class VMPoolsComponent implements OnInit {
         }
     }
 
-  /*
-   * Hide Pool Type Window
-   */
-    hideType(): void {
-        let modalDiv = document.getElementById("modal-type");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
-        }
-    }
-
     /*
      * Change Pool Type
      */
@@ -1083,7 +985,7 @@ export class VMPoolsComponent implements OnInit {
             if(poolName != null && poolNamespace != null) {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.changePoolType(poolNamespace, poolName, poolType));
-                    this.hideType();
+                    this.hideComponent("modal-type");
                     this.reloadComponent();
                 } catch (e) {
                     console.log(e);
@@ -1369,6 +1271,20 @@ export class VMPoolsComponent implements OnInit {
             if(crds[i].metadata["name"] == "network-attachment-definitions.k8s.cni.cncf.io") {
                 this.networkCheck = true;
             }
+        }
+    }
+
+    /*
+     * Hide Component
+     */
+    hideComponent(divId: string): void {
+        let modalDiv = document.getElementById(divId);
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade");
+            modalDiv.setAttribute("aria-modal", "false");
+            modalDiv.setAttribute("role", "");
+            modalDiv.setAttribute("aria-hidden", "true");
+            modalDiv.setAttribute("style","display: none;");
         }
     }
 

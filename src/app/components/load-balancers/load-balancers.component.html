@@ -67,7 +67,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h4 class="modal-title" id="new-title">TITLE_TEMPLATE</h4>
-              <button type="button" class="close" (click)="hideNew()">
+              <button type="button" class="close" (click)='hideComponent("modal-new")'>
                 <span aria-hidden="true">×</span>
               </button>
             </div>
@@ -112,7 +112,7 @@
               </ul>
             </div>
             <div class="modal-footer justify-content-between">
-                <button type="button" class="btn btn-default" (click)="hideNew()">Close</button>
+                <button type="button" class="btn btn-default" (click)='hideComponent("modal-new")'>Close</button>
                 <button type="button" class="btn btn-primary" (click)="applyNew(newlbname.value, newlbnamespace.value, newlbtargetpool.value, newlbtargettype.value, newlbport.value, newlbtargetport.value, newlbtargetproto.value)">Create</button>
             </div>
           </div>
@@ -130,7 +130,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h4 class="modal-title" id="info-title">TITLE_TEMPLATE</h4>
-              <button type="button" class="close" (click)="hideInfo()">
+              <button type="button" class="close" (click)='hideComponent("modal-info")'>
                 <span aria-hidden="true">×</span>
               </button>
             </div>
@@ -140,7 +140,7 @@
               </ul>
             </div>
             <div class="modal-footer justify-content-center">
-              <button type="button" class="btn btn-default" (click)="hideInfo()">Close</button>
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-info")'>Close</button>
             </div>
           </div>
           <!-- /.modal-content -->
@@ -156,7 +156,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h4 class="modal-title" id="type-title">TITLE_TEMPLATE</h4>
-              <button type="button" class="close" (click)="hideType()">
+              <button type="button" class="close" (click)='hideComponent("modal-type")'>
                 <span aria-hidden="true">×</span>
               </button>
             </div>
@@ -170,7 +170,7 @@
               </select>
             </div>
             <div class="modal-footer justify-content-between">
-              <button type="button" class="btn btn-default" (click)="hideType()">Close</button>
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-type")'>Close</button>
               <button type="button" class="btn btn-primary" (click)="applyType(changelbtype.value)">Save changes</button>
             </div>
           </div>
@@ -187,7 +187,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h4 class="modal-title" id="delete-title">TITLE_TEMPLATE</h4>
-              <button type="button" class="close" (click)="hideDelete()">
+              <button type="button" class="close" (click)='hideComponent("modal-delete")'>
                 <span aria-hidden="true">×</span>
               </button>
             </div>
@@ -197,7 +197,7 @@
               <p>BODY_TEMPLATE</p>
             </div>
             <div class="modal-footer justify-content-between">
-              <button type="button" class="btn btn-default" (click)="hideDelete()">Close</button>
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-delete")'>Close</button>
               <button type="button" class="btn btn-danger" (click)="applyDelete()">Delete</button>
             </div>
           </div>
