@@ -87,7 +87,7 @@ Dashboard:</br>
 <img src="images/screenshot_04.png" width="46%"/>
 <img src="images/screenshot_06.png" width="46%"/>
 </br>VNC Screen</br>
-<img src="images/screenshot_09.png" width="96%"/>
+<img src="images/screenshot_08.png" width="96%"/>
 
 
 ## Building
