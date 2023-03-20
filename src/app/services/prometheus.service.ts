@@ -73,7 +73,7 @@ export class PrometheusService {
      * Get Mem Summary
      */
     getMemSummary(start: Number, end: Number, step: Number): Observable<any> {
-        var metric = "kubevirt_vmi_memory_domain_total_bytes";
+        var metric = "kubevirt_vmi_memory_domain_bytes_total";
         var baseUrl ='./api/v1/query_range?query';
         var promQuery = "sum(" + metric + "/1024000)or%20vector(0)&start=" + start.toString() + "&end=" + end.toString() + "&step=" + step.toString();
         return this.http.get(`${baseUrl}=${promQuery}`);
