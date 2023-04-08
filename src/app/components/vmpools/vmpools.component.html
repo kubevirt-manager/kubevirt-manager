@@ -304,14 +304,26 @@
                           <select #newpooldiskonetype class="custom-select rounded-0" name="newpool-diskonetype" id="newpool-diskonetype" (change)="onChangeDiskOne(newpooldiskonetype.value,newpoolnamespace.value)">
                             <option value="none">None</option>
                             <option value="blank">Blank Disk</option>
-                            <option value="image">Import(URL)</option>
-                            <option value="pvc">Import(PVC)</option>
+                            <option value="http">Import (HTTP)</option>
+                            <option value="s3">Import (S3)</option>
+                            <option value="registry">Import (Registry)</option>
+                            <option value="pvc">Import (PVC)</option>
+                            <option value="dv">Existing Disk</option>
+                            <option value="pvc">Import (PVC)</option>
                           </select>
                         </div>
-                        <div class="col-4">
+                        <div class="col-2">
                           <label for="newpool-diskonesc">Storage Class:</label>
                           <select #newpooldiskonesc class="custom-select rounded-0" name="newpool-diskonesc" id="newpool-diskonesc">
                           </select>
+                        </div>
+                        <div class="col-2">
+                            <label for="newpool-diskoneam">Access Mode:</label>
+                            <select #newpooldiskoneam class="custom-select rounded-0" name="newpool-diskoneam" id="newpool-diskoneam">
+                                <option>ReadWriteOnce</option>
+                                <option>ReadOnlyMany</option>
+                                <option>ReadWriteMany</option>
+                            </select>
                         </div>
                         <div class="col-4">
                           <label for="newpool-diskonevalue">Value:</label>
@@ -322,11 +334,20 @@
                           <label for="newpool-diskonesize">Size in GB:</label>
                           <input #newpooldiskonesize type=number class="form-control" id="newpool-diskonesize" disabled>
                         </div>
-                      </div>
-                      <div class="pane fade" id="import-disk1-url" name="import-disk1-url" style="display: none;" aria-hidden="true">
-                          <br>
-                          <label for="newpool-disk1-url">URL: (raw/qcow2)</label>
-                          <input #newpooldiskoneurl type="text" class="form-control" id="newpool-disk1-url" name="newpool-disk1-url">
+                        <br><br>
+                        <div class="col-9">
+                          <label for="newpool-disk1-url">URL:</label>
+                          <input #newpooldiskoneurl type="text" class="form-control" id="newpool-disk1-url" name="newpool-disk1-url" disabled>
+                        </div>
+                        <div class="col-3">
+                          <label for="newpool-diskonecm">Cache Mode:</label>
+                          <select #newpooldiskonecm class="custom-select rounded-0" name="newpool-diskonecm" id="newpool-diskonecm">
+                            <option value="">Automatic</option>
+                            <option value="none">None</option>
+                            <option value="writethrough">WriteThrough</option>
+                            <option value="writeback">WriteBack</option>
+                          </select>
+                        </div>
                       </div>
                       <br>
                       <label for="disk2div">Disk 2:</label>
@@ -336,13 +357,25 @@
                             <select #newpooldisktwotype class="custom-select rounded-0" name="newpool-disktwotype" id="newpool-disktwotype" (change)="onChangeDiskTwo(newpooldisktwotype.value,newpoolnamespace.value)">
                               <option value="none">None</option>
                               <option value="blank">Blank Disk</option>
-                              <option value="image">Import(URL)</option>
-                              <option value="pvc">Import(PVC)</option>
+                              <option value="http">Import (HTTP)</option>
+                              <option value="s3">Import (S3)</option>
+                              <option value="registry">Import (Registry)</option>
+                              <option value="pvc">Import (PVC)</option>
+                              <option value="dv">Existing Disk</option>
+                              <option value="pvc">Import (PVC)</option>
                             </select>
                           </div>
-                          <div class="col-4">
+                          <div class="col-2">
                             <label for="newpool-disktwosc">Storage Class:</label>
                             <select #newpooldisktwosc class="custom-select rounded-0" name="newpool-disktwosc" id="newpool-disktwosc">
+                            </select>
+                          </div>
+                          <div class="col-2">
+                            <label for="newpool-disktwoam">Access Mode:</label>
+                            <select #newpooldisktwoam class="custom-select rounded-0" name="newpool-disktwoam" id="newpool-disktwoam">
+                                <option>ReadWriteOnce</option>
+                                <option>ReadOnlyMany</option>
+                                <option>ReadWriteMany</option>
                             </select>
                           </div>
                           <div class="col-4">
@@ -354,11 +387,20 @@
                             <label for="newpool-disktwosize">Size in GB:</label>
                             <input #newpooldisktwosize type=number class="form-control" id="newpool-disktwosize" disabled>
                           </div>
-                      </div>
-                      <div class="pane fade" id="import-disk2-url" name="import-disk2-url" style="display: none;" aria-hidden="true">
-                          <br>
-                          <label for="newpool-disk2-url">URL: (raw/qcow2)</label>
-                          <input #newpooldisktwourl type="text" class="form-control" id="newpool-disk2-url" name="newpool-disk2-url">
+                          <br><br>
+                          <div class="col-9">
+                            <label for="newpool-disk2-url">URL:</label>
+                            <input #newpooldisktwourl type="text" class="form-control" id="newpool-disk2-url" name="newpool-disk2-url" disabled>
+                          </div>
+                          <div class="col-3">
+                            <label for="newpool-disktwocm">Cache Mode:</label>
+                            <select #newpooldisktwocm class="custom-select rounded-0" name="newpool-disktwocm" id="newpool-disktwocm">
+                              <option value="">Automatic</option>
+                              <option value="none">None</option>
+                              <option value="writethrough">WriteThrough</option>
+                              <option value="writeback">WriteBack</option>
+                            </select>
+                          </div>
                       </div>
                     </div>
                     <!-- NETWORK TAB -->
@@ -397,7 +439,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-newpool")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)="applyNewPool(newpoolname.value, newpoolnamespace.value, newpoolreplicas.value, newpoollabelkeyone.value, newpoollabelvalueone.value, newpoollabelkeytwo.value, newpoollabelvaluetwo.value, newpoollabelkeythree.value, newpoollabelvaluethree.value, newpoollabelkeyfour.value, newpoollabelvaluefour.value, newpoollabelkeyfive.value, newpoollabelvaluefive.value, newpooltype.value, newpoolcpumemsockets.value, newpoolcpumemcores.value, newpoolcpumemthreads.value, newpoolcpumemmemory.value, newpoolpc.value, newpooldiskonetype.value, newpooldiskonevalue.value, newpooldiskonesize.value, newpooldiskonesc.value, newpooldiskoneurl.value, newpooldisktwotype.value, newpooldisktwovalue.value, newpooldisktwosize.value, newpooldisktwosc.value, newpooldisktwourl.value, newpoolnetwork.value, newpooluserdatausername.value, newpooluserdataauth.value, newpooluserdatapassword.value, newpooluserdatassh.value, newpoolinitscript.value)">Create</button>
+              <button type="button" class="btn btn-primary" (click)="applyNewPool(newpoolname.value, newpoolnamespace.value, newpoolreplicas.value, newpoollabelkeyone.value, newpoollabelvalueone.value, newpoollabelkeytwo.value, newpoollabelvaluetwo.value, newpoollabelkeythree.value, newpoollabelvaluethree.value, newpoollabelkeyfour.value, newpoollabelvaluefour.value, newpoollabelkeyfive.value, newpoollabelvaluefive.value, newpooltype.value, newpoolcpumemsockets.value, newpoolcpumemcores.value, newpoolcpumemthreads.value, newpoolcpumemmemory.value, newpoolpc.value, newpooldiskonetype.value, newpooldiskonevalue.value, newpooldiskonesize.value, newpooldiskonesc.value, newpooldiskoneam.value, newpooldiskoneurl.value, newpooldiskonecm.value, newpooldisktwotype.value, newpooldisktwovalue.value, newpooldisktwosize.value, newpooldisktwosc.value, newpooldisktwoam.value, newpooldisktwourl.value, newpooldisktwocm.value, newpoolnetwork.value, newpooluserdatausername.value, newpooluserdataauth.value, newpooluserdatapassword.value, newpooluserdatassh.value, newpoolinitscript.value)">Create</button>
             </div>
           </form>
           </div>

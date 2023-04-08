@@ -8,8 +8,20 @@ describe('DataVolume', () => {
     let blankDisk = new DataVolume().blankDisk;
     expect(blankDisk).toBeTruthy();
   });
-  it('should have urlDisk', () => {
-    let urlDisk = new DataVolume().urlDisk;
+  it('should have httpDisk', () => {
+    let urlDisk = new DataVolume().httpDisk;
+    expect(urlDisk).toBeTruthy();
+  });
+  it('should have s3Disk', () => {
+    let urlDisk = new DataVolume().s3Disk;
+    expect(urlDisk).toBeTruthy();
+  });
+  it('should have gcsDisk', () => {
+    let urlDisk = new DataVolume().gcsDisk;
+    expect(urlDisk).toBeTruthy();
+  });
+  it('should have registryDisk', () => {
+    let urlDisk = new DataVolume().registryDisk;
     expect(urlDisk).toBeTruthy();
   });
   it('should have pvcDisk', () => {

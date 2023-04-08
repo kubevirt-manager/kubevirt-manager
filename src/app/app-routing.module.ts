@@ -6,6 +6,7 @@ import { DiskListComponent } from './components/disk-list/disk-list.component';
 import { LoadBalancersComponent } from './components/load-balancers/load-balancers.component';
 import { NetworkListComponent } from './components/network-list/network-list.component';
 import { NodelistComponent } from './components/nodelist/nodelist.component';
+import { RefreshComponent } from './components/refresh/refresh.component';
 import { VmlistComponent } from './components/vmlist/vmlist.component';
 import { VMPoolsComponent } from './components/vmpools/vmpools.component';
 import { VNCViewerComponent } from './components/vncviewer/vncviewer.component';
@@ -20,6 +21,7 @@ const routes: Routes = [
   { path: 'netlist', component: NetworkListComponent },
   { path: 'lblist', component: LoadBalancersComponent},
   { path: 'citlist', component: ClusterInstanceTypeListComponent},
+  { path: 'refresh', component: RefreshComponent},
   { path: 'vncviewer/:namespace/:name', component: VNCViewerComponent }
 ];
 

@@ -28,6 +28,7 @@
                 <th style="width: 60px">Status</th>
                 <th style="width: 20px">Progress</th>
                 <th style="width: 100px">Storage Class</th>
+                <th style="width: 100px">Access Mode</th>                
                 <th style="width: 80px">Actions</th>
               </tr>
             </thead>
@@ -40,6 +41,7 @@
                   <td style="line-height: 2.2 !important;">{{thisDisk.status}}</td>
                   <td style="line-height: 2.2 !important;">{{thisDisk.progress}}</td>
                   <td style="line-height: 2.2 !important;">{{thisDisk.storageclass}}</td>
+                  <td style="line-height: 2.2 !important;">{{thisDisk.accessmode}}</td>
                   <td style="line-height: 0 !important;">
                     <a class="btn">
                       <i class="fas fa-info" (click)="showInfo(thisDisk.namespace, thisDisk.name)" title="Info..."></i>
@@ -144,12 +146,18 @@
             <select #newdiskstorageclass class="custom-select rounded-0" name="new-disk-storageclass" id="new-disk-storageclass">
                 <option>Value 1</option>
             </select>
+            <label for="newDiskAccessMode">Access Mode:</label>
+            <select #newdiskaccessmode class="custom-select rounded-0" name="new-disk-accessmode" id="new-disk-accessmode">
+                <option>ReadWriteOnce</option>
+                <option>ReadOnlyMany</option>
+                <option>ReadWriteMany</option>
+            </select>
             <label for="newDisksize">Size in GB</label>
             <input #newdisksize type="number" class="form-control" id="new-disk-size" name="new-disk-size" placeholder="0">
           </div>
           <div class="modal-footer justify-content-between">
             <button type="button" class="btn btn-default" (click)='hideComponent("modal-new")'>Close</button>
-            <button type="button" class="btn btn-primary" (click)="applyNew(newdisknamespace.value, newdiskname.value , newdiskstorageclass.value, newdisksize.value)">Create</button>
+            <button type="button" class="btn btn-primary" (click)="applyNew(newdisknamespace.value, newdiskname.value , newdiskstorageclass.value, newdiskaccessmode.value, newdisksize.value)">Create</button>
           </div>
         </div>
         <!-- /.modal-content -->

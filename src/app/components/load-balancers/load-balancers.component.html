@@ -26,7 +26,7 @@
                     <th style="width: 20px">Protocol</th>
                     <th style="width: 20px">Port</th>
                     <th style="width: 40px">Target Port</th>
-                    <th style="width: 80px">Target VM Pool</th>
+                    <th style="width: 80px">Target Resource</th>
                     <th style="width: 80px">Actions</th>
                   </tr>
                 </thead>
@@ -82,8 +82,53 @@
                 <label for="newlb-namespaces">Target VM Pool:</label>
                 <select #newlbtargetpool class="custom-select rounded-0" name="newlb-targetpool" id="newlb-targetpool">
                 </select>
-
                 <div class="row">&nbsp;</div>
+                <div class="row">
+                    <br>
+                    <label for="newlb-annotations">Annotations:</label>
+                    <br>
+                    <table class="table table-sm" style="vertical-align: middle !important;">
+                        <thead>
+                            <tr>
+                            <th style="width: 250px">Annotation</th>
+                            <th style="width: 250px">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                              <td style="line-height: 2.2 !important;"><input #newlbannotationskeyone type="text" class="form-control" id="newlb-annotationskey-one" name="newlb-annotationskey-one"></td>
+                              <td style="line-height: 2.2 !important;"><input #newlbannotationsvalueone type="text" class="form-control" id="newlb-annotationsvalue-one" name="newlb-annotationsvalue-one"></td>
+                            </tr>
+                            <tr>
+                              <td style="line-height: 2.2 !important;"><input #newlbannotationskeytwo type="text" class="form-control" id="newlb-annotationskey-two" name="newlb-annotationskey-two"></td>
+                              <td style="line-height: 2.2 !important;"><input #newlbannotationsvaluetwo type="text" class="form-control" id="newlb-annotationsvalue-two" name="newlb-annotationsvalue-two"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row">
+                    <br>
+                    <label for="newlb-labels">Labels:</label>
+                    <br>
+                    <table class="table table-sm" style="vertical-align: middle !important;">
+                        <thead>
+                            <tr>
+                            <th style="width: 250px">Key</th>
+                            <th style="width: 250px">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                              <td style="line-height: 2.2 !important;"><input #newlblabelkeyone type="text" class="form-control" id="newlb-labelkey-one" name="newlb-labelkey-one"></td>
+                              <td style="line-height: 2.2 !important;"><input #newlblabelvalueone type="text" class="form-control" id="newlb-labelvalue-one" name="newlb-labelvalue-one"></td>
+                            </tr>
+                            <tr>
+                              <td style="line-height: 2.2 !important;"><input #newlblabelkeytwo type="text" class="form-control" id="newlb-labelkey-two" name="newlb-labelkey-two"></td>
+                              <td style="line-height: 2.2 !important;"><input #newlblabelvaluetwo type="text" class="form-control" id="newlb-labelvalue-two" name="newlb-labelvalue-two"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
                 <div class="row">
                   <div class="col-4" name="newlb-target-type-col">
                     <label for="newlb-targettype">Type:</label>
@@ -113,7 +158,7 @@
             </div>
             <div class="modal-footer justify-content-between">
                 <button type="button" class="btn btn-default" (click)='hideComponent("modal-new")'>Close</button>
-                <button type="button" class="btn btn-primary" (click)="applyNew(newlbname.value, newlbnamespace.value, newlbtargetpool.value, newlbtargettype.value, newlbport.value, newlbtargetport.value, newlbtargetproto.value)">Create</button>
+                <button type="button" class="btn btn-primary" (click)="applyNew(newlbname.value, newlbnamespace.value, newlbtargetpool.value, newlbannotationskeyone.value, newlbannotationsvalueone.value, newlbannotationskeytwo.value, newlbannotationsvaluetwo.value, newlblabelkeyone.value, newlblabelvalueone.value, newlblabelkeytwo.value, newlblabelvaluetwo.value, newlbtargettype.value, newlbport.value, newlbtargetport.value, newlbtargetproto.value)">Create</button>
             </div>
           </div>
           <!-- /.modal-content -->

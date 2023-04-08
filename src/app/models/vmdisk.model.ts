@@ -5,6 +5,7 @@ export class VMDisk {
   status:          string  = "";
   progress:        string  = "";
   storageclass:    string  = "";
+  accessmode:      string  = "";
   creationTime:    string  = "";
   succeeded:       boolean = false;
   bound:           boolean = false;

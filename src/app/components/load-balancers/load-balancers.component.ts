@@ -16,6 +16,7 @@ import { Services } from 'src/app/templates/services.apitemplate';
 export class LoadBalancersComponent implements OnInit {
 
     loadBalancerList: LoadBalancer[] = [];
+    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
         private k8sService: K8sService,
@@ -29,6 +30,10 @@ export class LoadBalancersComponent implements OnInit {
         if(navTitle != null) {
             navTitle.replaceChildren("Load Balancers");
         }
+    }
+
+    ngOnDestroy() {
+        clearInterval(this.myInterval);
     }
 
     /*
@@ -46,6 +51,8 @@ export class LoadBalancersComponent implements OnInit {
             currentLoadBalancer.clusterIP = services[i].spec.clusterIP;
             if(services[i].spec.selector["kubevirt.io/vmpool"] != null) {
                 currentLoadBalancer.targetPool = services[i].spec.selector["kubevirt.io/vmpool"];
+            } else if (services[i].spec.selector["cluster.x-k8s.io/cluster-name"] != null) {
+                currentLoadBalancer.targetPool = services[i].spec.selector["cluster.x-k8s.io/cluster-name"];
             }
             if(currentLoadBalancer.type.toLowerCase() == "loadbalancer" && services[i].status.loadBalancer.ingress[0].ip != null) {
                 currentLoadBalancer.loadBalancer = services[i].status.loadBalancer.ingress[0].ip;
@@ -69,6 +76,7 @@ export class LoadBalancersComponent implements OnInit {
      * Show Info Window
      */
     async showInfo(lbNamespace: string, lbName: string): Promise<void> {
+        clearInterval(this.myInterval);
         let myInnerHTML = "";
         let data = await lastValueFrom(this.k8sService.getService(lbNamespace, lbName));
         myInnerHTML += "<li class=\"nav-item\">Load Balancer: <span class=\"float-right badge bg-primary\">" + data.metadata["name"] + "</span></li>";
@@ -111,6 +119,7 @@ export class LoadBalancersComponent implements OnInit {
      * Show Delete Window
      */
     showDelete(lbNamespace: string, lbName: string): void {
+        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-delete");
         let modalTitle = document.getElementById("delete-title");
         let modalBody = document.getElementById("delete-value");
@@ -165,6 +174,7 @@ export class LoadBalancersComponent implements OnInit {
      * Show Change Type Window
      */
     showType(lbNamespace: string, lbName: string): void {
+        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-type");
         let modalTitle = document.getElementById("type-title");
         let modalBody = document.getElementById("type-value");
@@ -185,20 +195,6 @@ export class LoadBalancersComponent implements OnInit {
             modalDiv.setAttribute("role", "dialog");
             modalDiv.setAttribute("aria-hidden", "false");
             modalDiv.setAttribute("style","display: block;");
-        }
-    }
-
-    /*
-     * Hide Change Type Window
-     */
-    hideType(): void {
-        let modalDiv = document.getElementById("modal-type");
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade");
-            modalDiv.setAttribute("aria-modal", "false");
-            modalDiv.setAttribute("role", "");
-            modalDiv.setAttribute("aria-hidden", "true");
-            modalDiv.setAttribute("style","display: none;");
         }
     }
 
@@ -232,6 +228,7 @@ export class LoadBalancersComponent implements OnInit {
      * Show New Window
      */
     async showNew(): Promise<void> {
+        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-new");
         let modalTitle = document.getElementById("new-title");
         let modalBody = document.getElementById("new-value");
@@ -269,6 +266,14 @@ export class LoadBalancersComponent implements OnInit {
         newlbname: string,
         newlbnamespace: string,
         newlbtargetpool: string,
+        newlbannotationskeyone: string,
+        newlbannotationsvalueone: string,
+        newlbannotationskeytwo: string,
+        newlbannotationsvaluetwo: string,
+        newlblabelkeyone: string,
+        newlblabelvalueone: string,
+        newlblabelkeytwo: string,
+        newlblabelvaluetwo: string,
         newlbtargettype: string,
         newlbport: string,
         newlbtargetport: string,
@@ -280,21 +285,42 @@ export class LoadBalancersComponent implements OnInit {
             alert("Please select all the target properties!")
         } else {
             let myServiceDescriptor = new Services();
+
+            /* Port and Proto settings */
             myServiceDescriptor.servicePortTemplate.port = Number(newlbport);
             myServiceDescriptor.servicePortTemplate.targetPort = Number(newlbtargetport);
             myServiceDescriptor.servicePortTemplate.protocol = newlbtargetproto;
 
             myServiceDescriptor.serviceTemplate.spec.ports.pop();
             myServiceDescriptor.serviceTemplate.spec.ports.push(myServiceDescriptor.servicePortTemplate);
+
+            /* Metadata */
             myServiceDescriptor.serviceTemplate.metadata.name = newlbname;
             myServiceDescriptor.serviceTemplate.metadata.namespace = newlbnamespace;
+
+            /* Service Type */
             myServiceDescriptor.serviceTemplate.spec.type = newlbtargettype;
 
+            /* Load Custom Labels */
             let tmpLabels = {};
+            if(newlblabelkeyone != "") {
+                let thisLabel = {
+                    [newlblabelkeyone]: newlblabelvalueone
+                };
+                Object.assign(tmpLabels, thisLabel);
+            }
+            if(newlblabelkeytwo != "") {
+                let thisLabel = {
+                    [newlblabelkeytwo]: newlblabelvaluetwo
+                };
+                Object.assign(tmpLabels, thisLabel);
+            }
+
             let kubevirtManagerLabel = {
                 ["kubevirt-manager.io/managed"]: "true"
             };
             Object.assign(tmpLabels, kubevirtManagerLabel);
+
             let vmPoolLabel = {
                 ["kubevirt.io/vmpool"]: newlbtargetpool
             };
@@ -302,6 +328,24 @@ export class LoadBalancersComponent implements OnInit {
 
             myServiceDescriptor.serviceTemplate.metadata.labels = tmpLabels;
 
+            /* Load Annotations */
+            let tmpAnnotations = {};
+            if(newlbannotationskeyone != "") {
+                let thisAnnotation = {
+                    [newlbannotationskeyone]: newlbannotationsvalueone
+                };
+                Object.assign(tmpAnnotations, thisAnnotation);
+            }
+            if(newlbannotationskeytwo != "") {
+                let thisAnnotation = {
+                    [newlbannotationskeytwo]: newlbannotationsvaluetwo
+                };
+                Object.assign(tmpAnnotations, thisAnnotation);
+            }
+
+            myServiceDescriptor.serviceTemplate.metadata.annotations = tmpAnnotations;
+
+            /* Service Selector */
             let thisSelector = {
                 ["kubevirt.io/vmpool"]: newlbtargetpool
             };
@@ -352,13 +396,14 @@ export class LoadBalancersComponent implements OnInit {
             modalDiv.setAttribute("aria-hidden", "true");
             modalDiv.setAttribute("style","display: none;");
         }
+        this.myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
     }
 
     /*
      * Reload this component
      */
     reloadComponent(): void {
-        this.router.navigateByUrl('/',{skipLocationChange:true}).then(()=>{
+        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
             this.router.navigate([`/lblist`]);
         })
     }

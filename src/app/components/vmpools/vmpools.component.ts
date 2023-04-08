@@ -30,8 +30,13 @@ export class VMPoolsComponent implements OnInit {
     myVmPoolCustom = new VMPool().myVmPoolCustom;
     myVmPoolTyped = new VMPool().myVmPoolType;
     blankDiskTemplate = new DataVolume().blankDisk;
-    urlDiskTemplate = new DataVolume().urlDisk;
+    httpDiskTemplate = new DataVolume().httpDisk;
+    s3DiskTemplate = new DataVolume().s3Disk;
+    gcsDiskTemplate = new DataVolume().gcsDisk;
+    registryDiskTemplate = new DataVolume().registryDisk;
     pvcDiskTemplate = new DataVolume().pvcDisk;
+
+    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
         private router: Router,
@@ -48,6 +53,10 @@ export class VMPoolsComponent implements OnInit {
         if(navTitle != null) {
             navTitle.replaceChildren("Virtual Machine Pools");
         }
+    }
+
+    ngOnDestroy() {
+        clearInterval(this.myInterval);
     }
 
     /*
@@ -185,6 +194,7 @@ export class VMPoolsComponent implements OnInit {
      * Show New Pool Window
      */
     async showNewPool(): Promise<void> {
+        clearInterval(this.myInterval);
         let i = 0;
         let modalDiv = document.getElementById("modal-newpool");
         let modalTitle = document.getElementById("newpool-title");
@@ -311,12 +321,16 @@ export class VMPoolsComponent implements OnInit {
         newpooldiskonevalue: string,
         newpooldiskonesize: string,
         newpooldiskonesc: string,
+        newpooldiskoneam: string,
         newpooldiskoneurl: string,
+        newpooldiskonecm: string,
         newpooldisktwotype: string,
         newpooldisktwovalue: string,
         newpooldisktwosize: string,
         newpooldisktwosc: string,
+        newpooldisktwoam: string,
         newpooldisktwourl: string,
+        newpooldisktwocm: string,
         newpoolnetwork: string,
         newpooluserdatausername: string,
         newpooluserdataauth: string,
@@ -329,16 +343,16 @@ export class VMPoolsComponent implements OnInit {
             alert("You need to fill in the name and namespace fields!");
         } else if (newpooldiskonetype == "none") {
             alert("Your virtual machine needs at least the first disk!");
-        } else if ((newpooldiskonetype == "blank" || newpooldiskonetype == "image") && newpooldiskonesize == "") {
+        } else if ((newpooldiskonetype == "blank" || newpooldiskonetype == "http" || newpooldiskonetype == "s3" || newpooldiskonetype == "gcs" || newpooldiskonetype == "registry") && newpooldiskonesize == "") {
             alert("You need to set a size for your disk!");
-        } else if (newpooldiskonetype == "image" && newpooldiskoneurl == "") {
-            alert("You need to select a source image for your disk!");
+        } else if ((newpooldiskonetype == "http" || newpooldiskonetype == "s3" || newpooldiskonetype == "gcs" || newpooldiskonetype == "registry") && ((newpooldiskoneurl == "") || (!newpooldiskoneurl.startsWith("http") && !newpooldiskoneurl.startsWith("s3://") && !newpooldiskoneurl.startsWith("gcs://") && !newpooldiskoneurl.startsWith("docker://")))) {
+            alert("You need to enter import URL your Disk 1!\nUse protocol://");
         } else if (newpooldiskonetype == "disk" && newpooldiskonevalue == "") {
             alert("You need to select the disk!");
-        } else if ((newpooldisktwotype == "blank" || newpooldisktwotype == "image") && newpooldisktwosize == "") {
+        } else if ((newpooldisktwotype == "blank" || newpooldisktwotype == "http" || newpooldisktwotype == "s3" || newpooldisktwotype == "gcs" || newpooldisktwotype == "registry") && newpooldisktwosize == "") {
             alert("You need to set a size for your disk!");
-        } else if (newpooldisktwotype == "image" && newpooldisktwourl == "") {
-            alert("You need to select a source image for your disk!");
+        } else if ((newpooldisktwotype == "http" || newpooldisktwotype == "s3" || newpooldisktwotype == "gcs" || newpooldisktwotype == "registry") && ((newpooldisktwourl == "") || (!newpooldisktwourl.startsWith("http") && !newpooldisktwourl.startsWith("s3://") && !newpooldisktwourl.startsWith("gcs://") && !newpooldisktwourl.startsWith("docker://")))) {
+            alert("You need to enter import URL your Disk 2!\nUse protocol://");
         } else if (newpooldisktwotype == "disk" && newpooldisktwovalue == "") {
             alert("You need to select the disk!");
         } else if(this.checkPoolExists(newpoolname, newpoolnamespace)) {
@@ -479,16 +493,72 @@ export class VMPoolsComponent implements OnInit {
                 // cloudconfig += "hostname: " + newpoolname + "\n";
 
             /* Disk1 setup */
-            if(newpooldiskonetype == "image") {
+            if(newpooldiskonetype == "http") {
                 /* Create Disk From Image */
                 let disk1name = newpoolnamespace + "-"+ newpoolname + "-disk1";
-                let tmpdv = this.urlDiskTemplate;
+                let tmpdv = this.httpDiskTemplate;
                 tmpdv.metadata.name = disk1name;
                 tmpdv.metadata.namespace = newpoolnamespace;
                 tmpdv.spec.pvc.storageClassName = newpooldiskonesc;
+                tmpdv.spec.pvc.accessModes[0] = newpooldiskoneam;
                 tmpdv.spec.pvc.resources.requests.storage = newpooldiskonesize + "Gi";
                 tmpdv.spec.source.http.url = newpooldiskoneurl;
-                disk1 = { 'name': "disk1", 'disk': {}};
+                if(newpooldiskonecm != "") {
+                    disk1 = { 'name': "disk1", 'cache': newpooldiskonecm, 'disk': {}};
+                } else {
+                    disk1 = { 'name': "disk1", 'disk': {}};
+                }
+                device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
+                disk1dv = tmpdv;
+            } else if(newpooldiskonetype == "s3") {
+                /* Create Disk From Image */
+                let disk1name = newpoolnamespace + "-"+ newpoolname + "-disk1";
+                let tmpdv = this.s3DiskTemplate;
+                tmpdv.metadata.name = disk1name;
+                tmpdv.metadata.namespace = newpoolnamespace;
+                tmpdv.spec.pvc.storageClassName = newpooldiskonesc;
+                tmpdv.spec.pvc.accessModes[0] = newpooldiskoneam;
+                tmpdv.spec.pvc.resources.requests.storage = newpooldiskonesize + "Gi";
+                tmpdv.spec.source.s3.url = newpooldiskoneurl;
+                if(newpooldiskonecm != "") {
+                    disk1 = { 'name': "disk1", 'cache': newpooldiskonecm, 'disk': {}};
+                } else {
+                    disk1 = { 'name': "disk1", 'disk': {}};
+                }
+                device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
+                disk1dv = tmpdv;
+            } else if(newpooldiskonetype == "gcs") {
+                /* Create Disk From Image */
+                let disk1name = newpoolnamespace + "-"+ newpoolname + "-disk1";
+                let tmpdv = this.gcsDiskTemplate;
+                tmpdv.metadata.name = disk1name;
+                tmpdv.metadata.namespace = newpoolnamespace;
+                tmpdv.spec.pvc.storageClassName = newpooldiskonesc;
+                tmpdv.spec.pvc.accessModes[0] = newpooldiskoneam;
+                tmpdv.spec.pvc.resources.requests.storage = newpooldiskonesize + "Gi";
+                tmpdv.spec.source.gcs.url = newpooldiskoneurl;
+                if(newpooldiskonecm != "") {
+                    disk1 = { 'name': "disk1", 'cache': newpooldiskonecm, 'disk': {}};
+                } else {
+                    disk1 = { 'name': "disk1", 'disk': {}};
+                }
+                device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
+                disk1dv = tmpdv;
+            } else if(newpooldiskonetype == "registry") {
+                /* Create Disk From Image */
+                let disk1name = newpoolnamespace + "-"+ newpoolname + "-disk1";
+                let tmpdv = this.registryDiskTemplate;
+                tmpdv.metadata.name = disk1name;
+                tmpdv.metadata.namespace = newpoolnamespace;
+                tmpdv.spec.pvc.storageClassName = newpooldiskonesc;
+                tmpdv.spec.pvc.accessModes[0] = newpooldiskoneam;
+                tmpdv.spec.pvc.resources.requests.storage = newpooldiskonesize + "Gi";
+                tmpdv.spec.source.registry.url = newpooldiskoneurl;
+                if(newpooldiskonecm != "") {
+                    disk1 = { 'name': "disk1", 'cache': newpooldiskonecm, 'disk': {}};
+                } else {
+                    disk1 = { 'name': "disk1", 'disk': {}};
+                }
                 device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
                 disk1dv = tmpdv;
             } else if (newpooldiskonetype == "blank") {
@@ -498,8 +568,13 @@ export class VMPoolsComponent implements OnInit {
                 tmpdv.metadata.name = disk1name;
                 tmpdv.metadata.namespace = newpoolnamespace;
                 tmpdv.spec.pvc.storageClassName = newpooldiskonesc;
+                tmpdv.spec.pvc.accessModes[0] = newpooldiskoneam;
                 tmpdv.spec.pvc.resources.requests.storage = newpooldiskonesize + "Gi";
-                disk1 = { 'name': "disk1", 'disk': {}};
+                if(newpooldiskonecm != "") {
+                    disk1 = { 'name': "disk1", 'cache': newpooldiskonecm, 'disk': {}};
+                } else {
+                    disk1 = { 'name': "disk1", 'disk': {}};
+                }
                 device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
                 disk1dv = tmpdv;
             } else if (newpooldiskonetype == "pvc") {
@@ -509,25 +584,86 @@ export class VMPoolsComponent implements OnInit {
                 tmpdv.metadata.name = disk1name;
                 tmpdv.metadata.namespace = newpoolnamespace;
                 tmpdv.spec.pvc.storageClassName = newpooldiskonesc;
+                tmpdv.spec.pvc.accessModes[0] = newpooldiskoneam;
                 tmpdv.spec.pvc.resources.requests.storage = newpooldiskonesize + "Gi";
                 tmpdv.spec.source.pvc.name = newpooldiskonevalue;
                 tmpdv.spec.source.pvc.namespace = newpoolnamespace;
-                disk1 = { 'name': "disk1", 'disk': {}};
+                if(newpooldiskonecm != "") {
+                    disk1 = { 'name': "disk1", 'cache': newpooldiskonecm, 'disk': {}};
+                } else {
+                    disk1 = { 'name': "disk1", 'disk': {}};
+                }
                 device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
                 disk1dv = tmpdv;
             }
 
             /* Disk2 setup */
-            if(newpooldisktwotype == "image") {
+            if(newpooldisktwotype == "http") {
                 /* Create Disk From Image */
                 let disk2name = newpoolnamespace + "-"+ newpoolname + "-disk2";
-                let tmpdv = this.urlDiskTemplate;
+                let tmpdv = this.httpDiskTemplate;
                 tmpdv.metadata.name = disk2name;
                 tmpdv.metadata.namespace = newpoolnamespace;
                 tmpdv.spec.pvc.storageClassName = newpooldisktwosc;
+                tmpdv.spec.pvc.accessModes[0] = newpooldisktwoam;
                 tmpdv.spec.pvc.resources.requests.storage = newpooldisktwosize + "Gi";
                 tmpdv.spec.source.http.url = newpooldisktwourl;
-                disk2 = { 'name': "disk2", 'disk': {}};
+                if(newpooldisktwocm != "") {
+                    disk2 = { 'name': "disk2", 'cache': newpooldisktwocm, 'disk': {}};
+                } else {
+                    disk2 = { 'name': "disk2", 'disk': {}};
+                }
+                device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
+                disk2dv = tmpdv;
+            } else if(newpooldisktwotype == "s3") {
+                /* Create Disk From Image */
+                let disk2name = newpoolnamespace + "-"+ newpoolname + "-disk2";
+                let tmpdv = this.s3DiskTemplate;
+                tmpdv.metadata.name = disk2name;
+                tmpdv.metadata.namespace = newpoolnamespace;
+                tmpdv.spec.pvc.storageClassName = newpooldisktwosc;
+                tmpdv.spec.pvc.accessModes[0] = newpooldisktwoam;
+                tmpdv.spec.pvc.resources.requests.storage = newpooldisktwosize + "Gi";
+                tmpdv.spec.source.s3.url = newpooldisktwourl;
+                if(newpooldisktwocm != "") {
+                    disk2 = { 'name': "disk2", 'cache': newpooldisktwocm, 'disk': {}};
+                } else {
+                    disk2 = { 'name': "disk2", 'disk': {}};
+                }
+                device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
+                disk2dv = tmpdv;
+            } else if(newpooldisktwotype == "gcs") {
+                /* Create Disk From Image */
+                let disk2name = newpoolnamespace + "-"+ newpoolname + "-disk2";
+                let tmpdv = this.gcsDiskTemplate;
+                tmpdv.metadata.name = disk2name;
+                tmpdv.metadata.namespace = newpoolnamespace;
+                tmpdv.spec.pvc.storageClassName = newpooldisktwosc;
+                tmpdv.spec.pvc.accessModes[0] = newpooldisktwoam;
+                tmpdv.spec.pvc.resources.requests.storage = newpooldisktwosize + "Gi";
+                tmpdv.spec.source.gcs.url = newpooldisktwourl;
+                if(newpooldisktwocm != "") {
+                    disk2 = { 'name': "disk2", 'cache': newpooldisktwocm, 'disk': {}};
+                } else {
+                    disk2 = { 'name': "disk2", 'disk': {}};
+                }
+                device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
+                disk2dv = tmpdv;
+            } else if(newpooldisktwotype == "registry") {
+                /* Create Disk From Image */
+                let disk2name = newpoolnamespace + "-"+ newpoolname + "-disk2";
+                let tmpdv = this.registryDiskTemplate;
+                tmpdv.metadata.name = disk2name;
+                tmpdv.metadata.namespace = newpoolnamespace;
+                tmpdv.spec.pvc.storageClassName = newpooldisktwosc;
+                tmpdv.spec.pvc.accessModes[0] = newpooldisktwoam;
+                tmpdv.spec.pvc.resources.requests.storage = newpooldisktwosize + "Gi";
+                tmpdv.spec.source.registry.url = newpooldisktwourl;
+                if(newpooldisktwocm != "") {
+                    disk2 = { 'name': "disk2", 'cache': newpooldisktwocm, 'disk': {}};
+                } else {
+                    disk2 = { 'name': "disk2", 'disk': {}};
+                }
                 device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
                 disk2dv = tmpdv;
             } else if (newpooldisktwotype == "blank") {
@@ -537,8 +673,13 @@ export class VMPoolsComponent implements OnInit {
                 tmpdv.metadata.name = disk2name;
                 tmpdv.metadata.namespace = newpoolnamespace;
                 tmpdv.spec.pvc.storageClassName = newpooldisktwosc;
+                tmpdv.spec.pvc.accessModes[0] = newpooldisktwoam;
                 tmpdv.spec.pvc.resources.requests.storage = newpooldisktwosize + "Gi";
-                disk2 = { 'name': "disk2", 'disk': {}};
+                if(newpooldisktwocm != "") {
+                    disk2 = { 'name': "disk2", 'cache': newpooldisktwocm, 'disk': {}};
+                } else {
+                    disk2 = { 'name': "disk2", 'disk': {}};
+                }
                 device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
                 disk2dv = tmpdv;
             } else if (newpooldisktwotype == "pvc") {
@@ -547,10 +688,15 @@ export class VMPoolsComponent implements OnInit {
                 tmpdv.metadata.name = disk2name;
                 tmpdv.metadata.namespace = newpoolnamespace;
                 tmpdv.spec.pvc.storageClassName = newpooldisktwosc;
+                tmpdv.spec.pvc.accessModes[0] = newpooldisktwoam;
                 tmpdv.spec.pvc.resources.requests.storage = newpooldisktwosize + "Gi";
                 tmpdv.spec.source.pvc.name = newpooldisktwovalue;
                 tmpdv.spec.source.pvc.namespace = newpoolnamespace;
-                disk2 = { 'name': "disk2", 'disk': {}};
+                if(newpooldisktwocm != "") {
+                    disk2 = { 'name': "disk2", 'cache': newpooldisktwocm, 'disk': {}};
+                } else {
+                    disk2 = { 'name': "disk2", 'disk': {}};
+                }
                 device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
                 disk2dv = tmpdv;
             }
@@ -647,6 +793,7 @@ export class VMPoolsComponent implements OnInit {
      * VM Basic Operations (start, stop, etc...)
      */
     async vmOperations(vmOperation: string, vmNamespace: string, vmName: string): Promise<void> {
+        clearInterval(this.myInterval);
         if(vmOperation == "start"){
             var data = await lastValueFrom(this.kubeVirtService.startVm(vmNamespace, vmName));
             this.reloadComponent();
@@ -674,6 +821,7 @@ export class VMPoolsComponent implements OnInit {
      * Pool Basic Operations (start, stop, etc...)
      */
     async poolOperations(poolOperation: string, poolNamespace: string, poolName: string): Promise<void> {
+        clearInterval(this.myInterval);
         if(poolOperation == "start"){
             var data = await lastValueFrom(this.kubeVirtService.startPool(poolNamespace, poolName));
             this.reloadComponent();
@@ -690,6 +838,7 @@ export class VMPoolsComponent implements OnInit {
      * Show Replicas Window
      */
     showReplicas(poolNamespace: string, poolName: string): void {
+        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-replicas");
         let modalTitle = document.getElementById("replicas-title");
         let modalBody = document.getElementById("replicas-value");
@@ -743,6 +892,7 @@ export class VMPoolsComponent implements OnInit {
      * Show Info Window
      */
     async showInfo(poolNamespace: string, poolName: string): Promise<void> {
+        clearInterval(this.myInterval);
         let myInnerHTML = "";
         let modalDiv = document.getElementById("modal-info");
         let modalTitle = document.getElementById("info-title");
@@ -782,6 +932,7 @@ export class VMPoolsComponent implements OnInit {
      * Show Delete Window
      */
     showDelete(poolNamespace: string, poolName: string): void {
+        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-delete");
         let modalTitle = document.getElementById("delete-title");
         let modalBody = document.getElementById("delete-value");
@@ -831,6 +982,7 @@ export class VMPoolsComponent implements OnInit {
      * Show Delete VM Window
      */
     showDeleteVM(vmName: string, vmNamespace: string): void {
+        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-deletevm");
         let modalTitle = document.getElementById("deletevm-title");
         let modalBody = document.getElementById("deletevm-value");
@@ -880,6 +1032,7 @@ export class VMPoolsComponent implements OnInit {
      * Show Resize Pool Window
      */
     showResize(poolName: string, poolNamespace: string, poolSockets: number, poolCores: number, poolThreads: number, poolMemory: string): void {
+        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-resize");
         let modalTitle = document.getElementById("resize-title");
         let modalBody = document.getElementById("resize-value");
@@ -940,6 +1093,7 @@ export class VMPoolsComponent implements OnInit {
      * Show Pool Type Window
      */
     async showType(poolName: string, poolNamespace: string): Promise<void> {
+        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-type");
         let modalTitle = document.getElementById("type-title");
         let modalBody = document.getElementById("type-value");
@@ -1000,68 +1154,38 @@ export class VMPoolsComponent implements OnInit {
     async onChangeDiskOne(diskType: string, diskNamespace: string) {
         let diskOneValueField = document.getElementById("newpool-diskonevalue");
         let diskOneSizeField = document.getElementById("newpool-diskonesize");
-        let diskOneURLField = document.getElementById("import-disk1-url");
+        let diskOneURLField = document.getElementById("newpool-disk1-url");
         if(diskType == "none") {
-            if (diskOneValueField != null && diskOneSizeField != null) {
+            if (diskOneValueField != null && diskOneSizeField != null && diskOneURLField != null) {
                 diskOneValueField.setAttribute("disabled", "disabled");
                 diskOneSizeField.setAttribute("disabled", "disabled");
-            }
-            if(diskOneURLField != null) {
-                diskOneURLField.setAttribute("class", "modal fade");
-                diskOneURLField.setAttribute("aria-modal", "false");
-                diskOneURLField.setAttribute("role", "");
-                diskOneURLField.setAttribute("aria-hidden", "true");
-                diskOneURLField.setAttribute("style","display: none;");
+                diskOneURLField.setAttribute("disabled", "disabled");
             }
         } else if (diskType == "blank") {
-            if (diskOneValueField != null && diskOneSizeField != null) {
+            if (diskOneValueField != null && diskOneSizeField != null && diskOneURLField != null) {
                 diskOneValueField.setAttribute("disabled", "disabled");
                 diskOneSizeField.removeAttribute("disabled");
+                diskOneURLField.setAttribute("disabled", "disabled");
             }
-            if(diskOneURLField != null) {
-                diskOneURLField.setAttribute("class", "modal fade");
-                diskOneURLField.setAttribute("aria-modal", "false");
-                diskOneURLField.setAttribute("role", "");
-                diskOneURLField.setAttribute("aria-hidden", "true");
-                diskOneURLField.setAttribute("style","display: none;");
-            }
-        } else if (diskType == "image") {
-            if(diskOneValueField != null && diskOneSizeField != null) {
+        } else if (diskType == "http" || diskType == "s3" || diskType == "registry") {
+            if(diskOneValueField != null && diskOneSizeField != null && diskOneURLField != null) {
                 diskOneSizeField.removeAttribute("disabled");
+                diskOneURLField.removeAttribute("disabled");
                 diskOneValueField.setAttribute("disabled", "disabled");
-            }
-            if(diskOneURLField != null) {
-                diskOneURLField.setAttribute("class", "modal fade show");
-                diskOneURLField.setAttribute("aria-modal", "true");
-                diskOneURLField.setAttribute("role", "dialog");
-                diskOneURLField.setAttribute("aria-hidden", "false");
-                diskOneURLField.setAttribute("style","display: contents;");
             }
         } else if (diskType == "pvc") {
-            if (diskOneValueField != null && diskOneSizeField != null) {
+            if (diskOneValueField != null && diskOneSizeField != null && diskOneURLField != null) {
                 diskOneValueField.innerHTML = await this.loadPVCOptions(diskNamespace);
                 diskOneValueField.removeAttribute("disabled");
                 diskOneSizeField.removeAttribute("disabled");
-            }
-            if(diskOneURLField != null) {
-                diskOneURLField.setAttribute("class", "modal fade");
-                diskOneURLField.setAttribute("aria-modal", "false");
-                diskOneURLField.setAttribute("role", "");
-                diskOneURLField.setAttribute("aria-hidden", "true");
-                diskOneURLField.setAttribute("style","display: none;");
+                diskOneURLField.setAttribute("disabled", "disabled");
             }
         } else if (diskType == "dv") {
-            if (diskOneValueField != null && diskOneSizeField != null) {
+            if (diskOneValueField != null && diskOneSizeField != null && diskOneURLField != null) {
                 diskOneValueField.innerHTML = await this.loadDiskOptions(diskNamespace);
                 diskOneValueField.removeAttribute("disabled");
                 diskOneSizeField.setAttribute("disabled", "disabled");
-            }
-            if(diskOneURLField != null) {
-                diskOneURLField.setAttribute("class", "modal fade");
-                diskOneURLField.setAttribute("aria-modal", "false");
-                diskOneURLField.setAttribute("role", "");
-                diskOneURLField.setAttribute("aria-hidden", "true");
-                diskOneURLField.setAttribute("style","display: none;");
+                diskOneURLField.setAttribute("disabled", "disabled");                
             }
         }
     }
@@ -1072,68 +1196,38 @@ export class VMPoolsComponent implements OnInit {
     async onChangeDiskTwo(diskType: string, diskNamespace: string) {
         let diskTwoValueField = document.getElementById("newpool-disktwovalue");
         let diskTwoSizeField = document.getElementById("newpool-disktwosize");
-        let diskTwoURLField = document.getElementById("import-disk2-url");
+        let diskTwoURLField = document.getElementById("newpool-disk2-url");
         if(diskType == "none") {
-            if (diskTwoValueField != null && diskTwoSizeField != null) {
+            if (diskTwoValueField != null && diskTwoSizeField != null && diskTwoURLField != null) {
                 diskTwoValueField.setAttribute("disabled", "disabled");
                 diskTwoSizeField.setAttribute("disabled", "disabled");
-            }
-            if(diskTwoURLField != null) {
-                diskTwoURLField.setAttribute("class", "modal fade");
-                diskTwoURLField.setAttribute("aria-modal", "false");
-                diskTwoURLField.setAttribute("role", "");
-                diskTwoURLField.setAttribute("aria-hidden", "true");
-                diskTwoURLField.setAttribute("style","display: none;");
+                diskTwoURLField.setAttribute("disabled", "disabled");
             }
         } else if (diskType == "blank") {
-            if (diskTwoValueField != null && diskTwoSizeField != null) {
+            if (diskTwoValueField != null && diskTwoSizeField != null && diskTwoURLField != null) {
                 diskTwoValueField.setAttribute("disabled", "disabled");
+                diskTwoURLField.setAttribute("disabled", "disabled");
                 diskTwoSizeField.removeAttribute("disabled");
             }
-            if(diskTwoURLField != null) {
-                diskTwoURLField.setAttribute("class", "modal fade");
-                diskTwoURLField.setAttribute("aria-modal", "false");
-                diskTwoURLField.setAttribute("role", "");
-                diskTwoURLField.setAttribute("aria-hidden", "true");
-                diskTwoURLField.setAttribute("style","display: none;");
-            }
-        } else if (diskType == "image") {
-            if (diskTwoValueField != null && diskTwoSizeField != null) {
+        } else if (diskType == "http" || diskType == "s3" || diskType == "registry") {
+            if (diskTwoValueField != null && diskTwoSizeField != null && diskTwoURLField != null) {
                 diskTwoValueField.setAttribute("disabled", "disabled");
                 diskTwoSizeField.removeAttribute("disabled");
-            }
-            if(diskTwoURLField != null) {
-                diskTwoURLField.setAttribute("class", "modal fade show");
-                diskTwoURLField.setAttribute("aria-modal", "true");
-                diskTwoURLField.setAttribute("role", "dialog");
-                diskTwoURLField.setAttribute("aria-hidden", "false");
-                diskTwoURLField.setAttribute("style","display: contents;");
+                diskTwoURLField.removeAttribute("disabled");
             }
         } else if (diskType == "pvc") {
-            if (diskTwoValueField != null && diskTwoSizeField != null) {
+            if (diskTwoValueField != null && diskTwoSizeField != null && diskTwoURLField != null) {
                 diskTwoValueField.innerHTML = await this.loadPVCOptions(diskNamespace);
                 diskTwoValueField.removeAttribute("disabled");
                 diskTwoSizeField.removeAttribute("disabled");
-            }
-            if(diskTwoURLField != null) {
-                diskTwoURLField.setAttribute("class", "modal fade");
-                diskTwoURLField.setAttribute("aria-modal", "false");
-                diskTwoURLField.setAttribute("role", "");
-                diskTwoURLField.setAttribute("aria-hidden", "true");
-                diskTwoURLField.setAttribute("style","display: none;");
+                diskTwoURLField.setAttribute("disabled", "disabled");
             }
         } else if (diskType == "dv") {
-            if (diskTwoValueField != null && diskTwoSizeField != null) {
+            if (diskTwoValueField != null && diskTwoSizeField != null && diskTwoURLField != null) {
                 diskTwoValueField.innerHTML = await this.loadDiskOptions(diskNamespace);
                 diskTwoValueField.removeAttribute("disabled");
                 diskTwoSizeField.setAttribute("disabled", "disabled");
-            }
-            if(diskTwoURLField != null) {
-                diskTwoURLField.setAttribute("class", "modal fade");
-                diskTwoURLField.setAttribute("aria-modal", "false");
-                diskTwoURLField.setAttribute("role", "");
-                diskTwoURLField.setAttribute("aria-hidden", "true");
-                diskTwoURLField.setAttribute("style","display: none;");
+                diskTwoURLField.setAttribute("disabled", "disabled");
             }
         }
     }
@@ -1286,13 +1380,14 @@ export class VMPoolsComponent implements OnInit {
             modalDiv.setAttribute("aria-hidden", "true");
             modalDiv.setAttribute("style","display: none;");
         }
+        this.myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
     }
 
     /*
      * Reload this component
      */
     reloadComponent(): void {
-        this.router.navigateByUrl('/',{skipLocationChange:true}).then(()=>{
+        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
             this.router.navigate([`/vmpools`]);
         })
     }
