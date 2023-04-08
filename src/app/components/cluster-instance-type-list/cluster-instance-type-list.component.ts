@@ -17,6 +17,8 @@ export class ClusterInstanceTypeListComponent implements OnInit {
 
     myClusterInstanceTypeTemplate = new VirtualMachineClusterInstanceType().template;
 
+    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
+
     constructor(
         private router: Router,
         private kubeVirtService: KubeVirtService
@@ -28,6 +30,10 @@ export class ClusterInstanceTypeListComponent implements OnInit {
         if(navTitle != null) {
             navTitle.replaceChildren("Cluster Instance Types");
         }
+    }
+
+    ngOnDestroy() {
+        clearInterval(this.myInterval);
     }
 
     /*
@@ -50,6 +56,7 @@ export class ClusterInstanceTypeListComponent implements OnInit {
      * Show Edit Window
      */
     showEdit(typeName: string): void {
+        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-edit");
         let modalTitle = document.getElementById("edit-title");
         let modalBody = document.getElementById("edit-value");
@@ -99,6 +106,7 @@ export class ClusterInstanceTypeListComponent implements OnInit {
      * Show Delete Window
      */
     showDelete(typeName: string): void {
+        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-delete");
         let modalTitle = document.getElementById("delete-title");
         let modalBody = document.getElementById("delete-value");
@@ -149,6 +157,7 @@ export class ClusterInstanceTypeListComponent implements OnInit {
      * Show New Window
      */
     showNew(): void {
+        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-new");
         let modalTitle = document.getElementById("new-title");
         if(modalTitle != null) {
@@ -198,13 +207,14 @@ export class ClusterInstanceTypeListComponent implements OnInit {
             modalDiv.setAttribute("aria-hidden", "true");
             modalDiv.setAttribute("style","display: none;");
         }
+        this.myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
     }
     
     /*
      * Reload this component
      */
     reloadComponent(): void {
-        this.router.navigateByUrl('/',{skipLocationChange:true}).then(()=>{
+        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
             this.router.navigate([`/citlist`]);
         })
     }

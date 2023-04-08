@@ -16,6 +16,7 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { ClusterInstanceTypeListComponent } from './components/cluster-instance-type-list/cluster-instance-type-list.component';
 import { VMPoolsComponent } from './components/vmpools/vmpools.component';
 import { LoadBalancersComponent } from './components/load-balancers/load-balancers.component';
+import { RefreshComponent } from './components/refresh/refresh.component';
 
 @NgModule({
   declarations: [
@@ -31,7 +32,8 @@ import { LoadBalancersComponent } from './components/load-balancers/load-balance
     DashboardComponent,
     ClusterInstanceTypeListComponent,
     VMPoolsComponent,
-    LoadBalancersComponent
+    LoadBalancersComponent,
+    RefreshComponent,
   ],
   imports: [
     BrowserModule,

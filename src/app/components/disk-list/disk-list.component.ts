@@ -19,6 +19,7 @@ export class DiskListComponent implements OnInit {
     diskList: VMDisk[] = [];
     storageClassesList: string[] = [];
     namespacesList: string[] = [];
+    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
         private k8sService: K8sService,
@@ -37,6 +38,10 @@ export class DiskListComponent implements OnInit {
         }
     }
 
+    ngOnDestroy() {
+        clearInterval(this.myInterval);
+    }
+    
     /*
      * Get StorageClasses from Kubernetes
      */
@@ -73,6 +78,7 @@ export class DiskListComponent implements OnInit {
             currentDisk["status"] = disks[i].status["phase"];
             currentDisk["progress"] = disks[i].status["progress"];;
             currentDisk["storageclass"] = disks[i].spec.pvc["storageClassName"];
+            currentDisk["accessmode"] = disks[i].spec.pvc.accessModes[0];
             currentDisk["bound"] = false;
             if(disks[i].status["phase"].toLowerCase() == "succeeded") {
                 let pvcdata = await lastValueFrom(this.k8sService.getPersistentVolumeClaimsInfo(currentDisk["namespace"], currentDisk["name"]));
@@ -93,6 +99,7 @@ export class DiskListComponent implements OnInit {
      * Show Resize Window
      */
     showResize(diskNamespace: string, diskName: string): void {
+        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-resize");
         let modalTitle = document.getElementById("resize-title");
         let modalBody = document.getElementById("resize-value");
@@ -147,12 +154,14 @@ export class DiskListComponent implements OnInit {
      * Show Info Window
      */
     async showInfo(diskNamespace: string, diskName: string): Promise<void> {
+        clearInterval(this.myInterval);
         let myInnerHTML = "";
         let volumedata = await lastValueFrom(this.dataVolumesService.getDataVolumeInfo(diskNamespace, diskName));
         myInnerHTML += "<li class=\"nav-item\">Data Volume: <span class=\"float-right badge bg-primary\">" + volumedata.metadata["name"] + "</span></li>";
         myInnerHTML += "<li class=\"nav-item\">Namespace: <span class=\"float-right badge bg-primary\">" + volumedata.metadata["namespace"] + "</span></li>";
         myInnerHTML += "<li class=\"nav-item\">Creation Time: <span class=\"float-right badge bg-primary\">" + volumedata.metadata["creationTimestamp"] + "</span></li>";
         myInnerHTML += "<li class=\"nav-item\">Storage Class: <span class=\"float-right badge bg-primary\">" + volumedata.spec.pvc["storageClassName"] + "</span></li>";
+        myInnerHTML += "<li class=\"nav-item\">Access Mode: <span class=\"float-right badge bg-primary\">" + volumedata.spec.pvc.accessModes[0] + "</span></li>";
         myInnerHTML += "<li class=\"nav-item\">PVC: <span class=\"float-right badge bg-primary\">" + volumedata.status["claimName"] + "</span></li>";
         myInnerHTML += "<li class=\"nav-item\">Phase: <span class=\"float-right badge bg-primary\">" + volumedata.status["phase"] + "</span></li>";
         if(volumedata.status["phase"].toLowerCase() == "succeeded") {
@@ -160,7 +169,13 @@ export class DiskListComponent implements OnInit {
             let pvdata = await lastValueFrom(this.k8sService.getPersistentVolumeInfo(pvcdata.spec["volumeName"]));
             myInnerHTML += "<li class=\"nav-item\">PV: <span class=\"float-right badge bg-primary\">" + pvcdata.spec["volumeName"] + "</span></li>";
             myInnerHTML += "<li class=\"nav-item\">Volume Mode: <span class=\"float-right badge bg-primary\">" + pvcdata.spec["volumeMode"] + "</span></li>";
-            myInnerHTML += "<li class=\"nav-item\">Driver: <span class=\"float-right badge bg-primary\">" + pvdata.spec.csi["driver"] + "</span></li>";
+            if(pvdata.spec.csi != null) {
+                myInnerHTML += "<li class=\"nav-item\">Driver: <span class=\"float-right badge bg-primary\">" + pvdata.spec.csi["driver"] + "</span></li>";
+            }
+            if(pvdata.spec.nfs != null) {
+                myInnerHTML += "<li class=\"nav-item\">NFS Server: <span class=\"float-right badge bg-primary\">" + pvdata.spec.nfs["server"] + "</span></li>";
+                myInnerHTML += "<li class=\"nav-item\">NFS Path: <span class=\"float-right badge bg-primary\">" + pvdata.spec.nfs["path"] + "</span></li>";
+            }            
             myInnerHTML += "<li class=\"nav-item\">Reclaim Policy: <span class=\"float-right badge bg-primary\">" + pvdata.spec["persistentVolumeReclaimPolicy"] + "</span></li>";
         }
         let modalDiv = document.getElementById("modal-info");
@@ -185,6 +200,7 @@ export class DiskListComponent implements OnInit {
      * Show New Window
      */
     async showNew(): Promise<void> {
+        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-new");
         let modalTitle = document.getElementById("new-title");
         let modalBody = document.getElementById("new-value");
@@ -225,10 +241,10 @@ export class DiskListComponent implements OnInit {
     /*
      * Create the DataVolume
      */
-    async applyNew(diskNamespace: string, diskName: string, diskSc: string, diskSize: string): Promise<void> {
+    async applyNew(diskNamespace: string, diskName: string, diskSc: string, diskAm: string, diskSize: string): Promise<void> {
         if(diskNamespace != null && diskSize != null && diskName != null && diskSc != null) {
             try {
-                const data = await lastValueFrom(this.dataVolumesService.createBlankDataVolume(diskNamespace, diskName, diskSize, diskSc));
+                const data = await lastValueFrom(this.dataVolumesService.createBlankDataVolume(diskNamespace, diskName, diskSize, diskSc, diskAm));
                 this.hideComponent("modal-new");
                 this.reloadComponent();
             } catch (e) {
@@ -246,6 +262,7 @@ export class DiskListComponent implements OnInit {
     * Show Delete Window
     */
     showDelete(diskNamespace: string, diskName: string): void {
+        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-delete");
         let modalTitle = document.getElementById("delete-title");
         let modalBody = document.getElementById("delete-value");
@@ -315,13 +332,14 @@ export class DiskListComponent implements OnInit {
             modalDiv.setAttribute("aria-hidden", "true");
             modalDiv.setAttribute("style","display: none;");
         }
+        this.myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
     }
 
     /*
      * Reload this component
      */
     reloadComponent(): void {
-        this.router.navigateByUrl('/',{skipLocationChange:true}).then(()=>{
+        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
             this.router.navigate([`/dsklist`]);
         })
     }

@@ -6,6 +6,7 @@ export class Services {
         "metadata":{
             "name":"",
             "namespace":"",
+            "annotations": {},
             "labels": {}
         },
         "spec":{

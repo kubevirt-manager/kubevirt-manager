@@ -5,7 +5,7 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.2.0
+    kubevirt-manager.io/version: 1.2.1
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -57,7 +57,7 @@ metadata:
   name: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.2.0
+    kubevirt-manager.io/version: 1.2.1
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

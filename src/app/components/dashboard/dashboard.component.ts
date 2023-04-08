@@ -6,6 +6,7 @@ import { K8sService } from 'src/app/services/k8s.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
 import { PrometheusService } from 'src/app/services/prometheus.service';
 import { Chart } from 'chart.js/auto'
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
@@ -50,9 +51,11 @@ export class DashboardComponent implements OnInit {
     netChart: any;
     stgChart: any;
 
+    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
         private k8sService: K8sService,
+        private router: Router,
         private k8sApisService: K8sApisService,
         private kubeVirtService: KubeVirtService,
         private dataVolumesService: DataVolumesService,
@@ -74,6 +77,10 @@ export class DashboardComponent implements OnInit {
         if(navTitle != null) {
             navTitle.replaceChildren("Dashboard");
         }
+    }
+
+    ngOnDestroy() {
+        clearInterval(this.myInterval);
     }
 
     /*
@@ -514,6 +521,15 @@ export class DashboardComponent implements OnInit {
         inputSize = inputSize.replace('Ki','');
         var fileSize = Number.parseFloat(inputSize)  / (1024*1024);
         return (Math.round(fileSize * 100) / 100);
+    }
+
+    /*
+     * Reload this component
+     */
+    reloadComponent(): void {
+        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
+            this.router.navigate([`/dashboard`]);
+        })
     }
 
 }

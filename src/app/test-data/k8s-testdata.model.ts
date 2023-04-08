@@ -2361,7 +2361,7 @@ export class K8sTestdata {
               "labels": {
                 "app": "kubevirt-manager",
                 "kubernetes.io/metadata.name": "kubevirt-manager",
-                "kubevirt-manager.io/version": "1.2.0"
+                "kubevirt-manager.io/version": "1.2.1"
               },
               "annotations": {},
               "managedFields": [

@@ -474,7 +474,7 @@ export class K8sApisTestdata {
               "labels": {
                 "app": "kubevirt-manager",
                 "kubevirt-manager.io/managed": "true",
-                "kubevirt-manager.io/version": "1.2.0"
+                "kubevirt-manager.io/version": "1.2.1"
               },
               "annotations": {},
               "managedFields": [
@@ -518,7 +518,7 @@ export class K8sApisTestdata {
               "labels": {
                 "app": "kubevirt-manager",
                 "kubevirt-manager.io/managed": "true",
-                "kubevirt-manager.io/version": "1.2.0"
+                "kubevirt-manager.io/version": "1.2.1"
               },
               "annotations": {},
               "managedFields": [
