@@ -5,12 +5,12 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.2.1
+    kubevirt-manager.io/version: 1.2.2
 spec:
   selector:
     matchLabels:
       app: kubevirt-manager
-      kubevirt-manager.io/version: 1.2.1
+      kubevirt-manager.io/version: 1.2.2
   replicas: 1
   strategy:
     type: Recreate
@@ -18,11 +18,11 @@ spec:
     metadata:
       labels:
         app: kubevirt-manager
-        kubevirt-manager.io/version: 1.2.1
+        kubevirt-manager.io/version: 1.2.2
     spec:
       containers:
         - name: kubevirtmgr
-          image: kubevirtmanager/kubevirt-manager:1.2.1
+          image: kubevirtmanager/kubevirt-manager:1.2.2
           imagePullPolicy: IfNotPresent
           ports:
           - name: http
@@ -37,6 +37,10 @@ spec:
             mountPath: /var/cache/nginx
           - name: run-volume
             mountPath: /var/run
+          - name: auth-config
+            mountPath: /etc/nginx/auth.d/
+          - name: auth-secret
+            mountPath: /etc/nginx/secret.d/
           - name: prometheus-config
             mountPath: /etc/nginx/location.d/
       serviceAccountName: kubevirt-manager
@@ -46,6 +50,14 @@ spec:
           emptyDir: {}
         - name: run-volume
           emptyDir: {}
+        - name: auth-config
+          configMap:
+            name: auth-config
+            optional: true
+        - name: auth-secret
+          secret:
+            secretName: auth-secret
+            optional: true
         - name: prometheus-config
           configMap:
             name: prometheus-config

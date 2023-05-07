@@ -3,7 +3,7 @@ on:
   pull_request:
     types: [opened, reopened, ready_for_review, unlocked, synchronize]
 jobs:
-  basic-testing:
+  unit-testing:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout

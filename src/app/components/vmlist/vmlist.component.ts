@@ -321,6 +321,7 @@ export class VmlistComponent implements OnInit {
         newvmdisktwourl: string,
         newvmdisktwocm: string,
         newvmnetwork: string,
+        newvmnetworktype: string,
         newvmuserdatausername: string,
         newvmuserdataauth: string,
         newvmuserdatapassword: string,
@@ -734,11 +735,14 @@ export class VmlistComponent implements OnInit {
 
             /* Networking Setup */
             if(newvmnetwork != "podNetwork") {
-                net1 = {'name': "br0", 'multus': {'networkName': newvmnetwork}};
-                iface1 = { 'name': "br0", 'bridge': {}};
+                net1 = {'name': "net1", 'multus': {'networkName': newvmnetwork}};
             } else {
-                net1 = {'name': "default", 'pod': {}};
-                iface1 = {'name': "default",'masquerade': {}};
+                net1 = {'name': "net1", 'pod': {}};
+            }
+            if(newvmnetworktype == "bridge") {
+                iface1 = {'name': "net1", 'bridge': {}};
+            } else {
+                iface1 = {'name': "net1", 'masquerade': {}};                
             }
 
             /* Create the VM */
@@ -1226,12 +1230,20 @@ export class VmlistComponent implements OnInit {
      */
     async onChangeNetwork(thisNetwork: string) {
         let netData = document.getElementById("newvm-netdata-tab");
+        let selectorNetworkTypeField = document.getElementById("newvm-networktype");
+        let networkTypeSelectorOptions = "<option value=bridge>bridge</option>\n";
         if(netData != null && thisNetwork.toLowerCase() != "podnetwork") {
             netData.setAttribute("style","display: flex;");
+
         } else {
+            networkTypeSelectorOptions += "<option value=masquerade>masquerade</option>\n";
             if(netData != null && thisNetwork.toLowerCase() == "podnetwork") {
                 netData.setAttribute("style","display: none;");
             }
+        }
+
+        if(selectorNetworkTypeField != null) {
+            selectorNetworkTypeField.innerHTML = networkTypeSelectorOptions;
         }
     }
 

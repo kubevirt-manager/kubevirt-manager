@@ -5,7 +5,7 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.2.1
+    kubevirt-manager.io/version: 1.2.2
   annotations:
     nginx.org/location-snippets: |
       proxy_set_header Upgrade $http_upgrade;
