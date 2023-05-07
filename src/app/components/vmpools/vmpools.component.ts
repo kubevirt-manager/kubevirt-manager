@@ -332,6 +332,7 @@ export class VMPoolsComponent implements OnInit {
         newpooldisktwourl: string,
         newpooldisktwocm: string,
         newpoolnetwork: string,
+        newpoolnetworktype: string,
         newpooluserdatausername: string,
         newpooluserdataauth: string,
         newpooluserdatapassword: string,
@@ -732,11 +733,14 @@ export class VMPoolsComponent implements OnInit {
 
             /* Networking Setup */
             if(newpoolnetwork != "podNetwork") {
-                net1 = {'name': "br0", 'multus': {'networkName': newpoolnetwork}};
-                iface1 = { 'name': "br0", 'bridge': {}};
+                net1 = {'name': "net1", 'multus': {'networkName': newpoolnetwork}};
             } else {
-                net1 = {'name': "default", 'pod': {}};
-                iface1 = {'name': "default",'masquerade': {}};
+                net1 = {'name': "net1", 'pod': {}};
+            }
+            if(newpoolnetworktype == "bridge") {
+                iface1 = {'name': "net1", 'bridge': {}};
+            } else {
+                iface1 = {'name': "net1", 'masquerade': {}};
             }
 
             /* Create the VM */
@@ -1340,6 +1344,20 @@ export class VMPoolsComponent implements OnInit {
                 modalSSHDiv.setAttribute("aria-hidden", "true");
                 modalSSHDiv.setAttribute("style","display: none;");
             }
+        }
+    }
+
+    /*
+     * New POOL: Enable bridge/masquerade selector
+     */
+    async onChangeNetwork(thisNetwork: string) {
+        let selectorNetworkTypeField = document.getElementById("newpool-networktype");
+        let networkTypeSelectorOptions = "<option value=bridge>bridge</option>\n";
+        if(thisNetwork.toLowerCase() == "podnetwork") {
+            networkTypeSelectorOptions += "<option value=masquerade>masquerade</option>\n";
+        } 
+        if(selectorNetworkTypeField != null) {
+            selectorNetworkTypeField.innerHTML = networkTypeSelectorOptions;
         }
     }
 

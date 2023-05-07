@@ -1,9 +1,9 @@
-# kubevirt-manager
+# kubevirt-manager.io
 
 
 **Maintainers:** [feitnomore](https://github.com/feitnomore/)
 
-Simple Angular Frontend Web UI Interface to operate [Kubevirt](https://kubevirt.io/). This tools lets you perform basic operations around `Virtual Machines`, `Virtual Machine Instances`, and `Disks`. It was built based on requirements I had for my own environment.
+Simple Angular Frontend Web UI Interface to operate [Kubevirt](https://kubevirt.io/). This tools lets you perform basic operations around `Virtual Machines`, `Virtual Machine Instances`, `Virtual Machine Pools` and `Disks`. It was built based on requirements I had for my own environment.
 
 *WARNING:* Use it at your own risk.
 
@@ -65,7 +65,29 @@ spec:
   monitorNamespace: monitoring
 ```
 
-*Note:* The tool assumes Prometheus is exposing the following metrics: kubevirt_vmi_storage_write_traffic_bytes_total, kubevirt_vmi_storage_read_traffic_bytes_total, kubevirt_vmi_network_transmit_bytes_total, kubevirt_vmi_network_receive_bytes_total, kube_pod_container_resource_requests and kubevirt_vmi_memory_domain_total_bytes. These metrics are exposed by `KubeVirt` and `kube-state-metrics`. 
+You will need to restart (delete) the `Pod` or redeploy the solution for the changes to take effect.
+
+*Note:* The tool assumes Prometheus is exposing the following metrics: kubevirt_vmi_storage_write_traffic_bytes_total, kubevirt_vmi_storage_read_traffic_bytes_total, kubevirt_vmi_network_transmit_bytes_total, kubevirt_vmi_network_receive_bytes_total, kube_pod_container_resource_requests and kubevirt_vmi_memory_domain_total_bytes. These metrics are exposed by `KubeVirt` and `kube-state-metrics`.  
+*Note:* Due to the introduction of NGINX Authentication support, the configmap changed a bit, make sure you review it.
+
+## NGINX AUTHENTICATION
+
+To add `nginx` with `basic-auth`, you need to edit `kubernetes/auth_secret.yaml` and add your htpasswd file contents in base64 to the secret. The provided example has a single entry which username is `admin` and password is `admin`. You are encouraged to create your own file and replace in the secret.  
+An example of how to get the base64 of your file is:
+```sh
+$ cat htpasswd-file | base64 -w0
+```
+After adjusting secret contents, apply the configmap and the secret:
+```sh
+$ kubectl apply -f kubernetes/auth-config.yaml
+$ kubectl apply -f kubernetes/auth-secret.yaml
+```
+
+You will need to restart (delete) the `Pod` or redeploy the solution for the changes to take effect.
+
+*Note:* If you had previous versions of Prometheus integration make sure `proxy_set_header Authorization "";` is present on your Prometheus `ConfigMap`. 
+You may use `kubernetes/prometheus-config.yaml` as a reference to make sure your `ConfigMap` looks ok.  
+*Note:* You may also want to check [htpasswd](https://httpd.apache.org/docs/2.4/programs/htpasswd.html) documentation for extra help on creating and managing the file.
 
 ## HOW TO USE IT
 
@@ -112,7 +134,8 @@ Access the tool at: http://localhost:8001/
 
 *Note:* Make sure your `kubectl` is pointing to the right cluster.   
 *Note:* Make sure the account your `kubectl` is using has correct RBAC.  
-*Note:* This method doesn't support `Prometheus` integration.   
+*Note:* This method doesn't support `Prometheus` integration.  
+*Note:* This method doesn't support `NGINX basic_auth`.  
 
 ## References
 
@@ -127,7 +150,8 @@ Access the tool at: http://localhost:8001/
 09. [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator)
 10. [kube-state-metrics](https://github.com/kubernetes/kube-state-metrics)
 11. [KubeVirt Monitoring](https://kubevirt.io/user-guide/operations/component_monitoring/)
+12. [NGINX basic_auth](http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html)
 
 ## License
 
-**kubevirt-manager** is licensed under the [Apache Licence, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
+**kubevirt-manager.io** is licensed under the [Apache Licence, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).

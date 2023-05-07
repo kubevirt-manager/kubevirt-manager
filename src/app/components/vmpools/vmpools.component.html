@@ -404,9 +404,14 @@
                     <!-- NETWORK TAB -->
                     <div class="tab-pane fade" id="newpool-net" role="tabpanel" aria-labelledby="newpool-net-tab">
                       <label for="newpool-network">Network:</label>
-                      <select #newpoolnetwork class="custom-select rounded-0" name="newpool-network" id="newpool-network">
+                      <select #newpoolnetwork class="custom-select rounded-0" name="newpool-network" id="newpool-network" (change)="onChangeNetwork(newpoolnetwork.value)">
                         <option value=podNetwork>podNetwork</option>
                       </select>
+                      <label for="newpool-networktype">Type:</label>
+                      <select #newpoolnetworktype class="custom-select rounded-0" name="newpool-networktype" id="newpool-networktype">
+                        <option value=bridge>bridge</option>
+                        <option value=masquerade>masquerade</option>
+                    </select>
                     </div>
                     <!-- USERDATA TAB -->
                     <div class="tab-pane fade" id="newpool-userdata" role="tabpanel" aria-labelledby="newpool-userdata-tab">
@@ -437,7 +442,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-newpool")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)="applyNewPool(newpoolname.value, newpoolnamespace.value, newpoolreplicas.value, newpoollabelkeyone.value, newpoollabelvalueone.value, newpoollabelkeytwo.value, newpoollabelvaluetwo.value, newpoollabelkeythree.value, newpoollabelvaluethree.value, newpoollabelkeyfour.value, newpoollabelvaluefour.value, newpoollabelkeyfive.value, newpoollabelvaluefive.value, newpooltype.value, newpoolcpumemsockets.value, newpoolcpumemcores.value, newpoolcpumemthreads.value, newpoolcpumemmemory.value, newpoolpc.value, newpooldiskonetype.value, newpooldiskonevalue.value, newpooldiskonesize.value, newpooldiskonesc.value, newpooldiskoneam.value, newpooldiskoneurl.value, newpooldiskonecm.value, newpooldisktwotype.value, newpooldisktwovalue.value, newpooldisktwosize.value, newpooldisktwosc.value, newpooldisktwoam.value, newpooldisktwourl.value, newpooldisktwocm.value, newpoolnetwork.value, newpooluserdatausername.value, newpooluserdataauth.value, newpooluserdatapassword.value, newpooluserdatassh.value, newpoolinitscript.value)">Create</button>
+              <button type="button" class="btn btn-primary" (click)="applyNewPool(newpoolname.value, newpoolnamespace.value, newpoolreplicas.value, newpoollabelkeyone.value, newpoollabelvalueone.value, newpoollabelkeytwo.value, newpoollabelvaluetwo.value, newpoollabelkeythree.value, newpoollabelvaluethree.value, newpoollabelkeyfour.value, newpoollabelvaluefour.value, newpoollabelkeyfive.value, newpoollabelvaluefive.value, newpooltype.value, newpoolcpumemsockets.value, newpoolcpumemcores.value, newpoolcpumemthreads.value, newpoolcpumemmemory.value, newpoolpc.value, newpooldiskonetype.value, newpooldiskonevalue.value, newpooldiskonesize.value, newpooldiskonesc.value, newpooldiskoneam.value, newpooldiskoneurl.value, newpooldiskonecm.value, newpooldisktwotype.value, newpooldisktwovalue.value, newpooldisktwosize.value, newpooldisktwosc.value, newpooldisktwoam.value, newpooldisktwourl.value, newpooldisktwocm.value, newpoolnetwork.value, newpoolnetworktype.value, newpooluserdatausername.value, newpooluserdataauth.value, newpooluserdatapassword.value, newpooluserdatassh.value, newpoolinitscript.value)">Create</button>
             </div>
           </form>
           </div>

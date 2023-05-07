@@ -5,7 +5,7 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.2.1
+    kubevirt-manager.io/version: 1.2.2
     kubevirt-manager.io/managed: "true"
 data:
   prometheus.conf: |
@@ -13,6 +13,7 @@ data:
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Authorization "";
         proxy_pass_request_body on;
         proxy_pass_request_headers on;
        	client_max_body_size 5g;
