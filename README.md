@@ -1,15 +1,17 @@
 # kubevirt-manager.io
 
-
+**Website:** [kubevirt-manager.io](https://kubevirt-manager.io/)  
 **Maintainers:** [feitnomore](https://github.com/feitnomore/)
 
-Simple Angular Frontend Web UI Interface to operate [Kubevirt](https://kubevirt.io/). This tools lets you perform basic operations around `Virtual Machines`, `Virtual Machine Instances`, `Virtual Machine Pools` and `Disks`. It was built based on requirements I had for my own environment.
+Simple Angular Frontend Web UI Interface to operate [Kubevirt](https://kubevirt.io/). This tools lets you perform basic operations around `Virtual Machines`, `Virtual Machine Instances`, `Virtual Machine Pools` and `Disks`. It was built based on requirements I had for my own environment.  
+For a Quick Start, go to our website [https://kubevirt-manager.io/](https://kubevirt-manager.io/)
 
 *WARNING:* Use it at your own risk.
 
 ## INTRODUCTION
 
-I've created this Frontend for `KubeVirt` while I was trying to learn a little bit of `Angular`. Basically this tool uses `kubectl proxy` to proxy API requests to `kubeapiserver`. To handle the `Disk`/`Volume` part, the tool works through [CDI](https://github.com/kubevirt/containerized-data-importer/).
+I've created this Frontend for `KubeVirt` while I was trying to learn a little bit of `Angular`. Basically this tool uses `kubectl proxy` to proxy API requests to `kubeapiserver`. To handle the `Disk`/`Volume` part, the tool works through [CDI](https://github.com/kubevirt/containerized-data-importer/).  
+For a Quick Start, go to our website [https://kubevirt-manager.io/](https://kubevirt-manager.io/) as we provide a [bundled.yaml](kubernetes/bundled.yaml) file that has the basic setup.
 
 ## REQUIREMENTS
 
@@ -139,18 +141,19 @@ Access the tool at: http://localhost:8001/
 
 ## References
 
-01. [Kubernetes](https://kubernetes.io/)
-02. [Kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/)
-03. [CDI](https://github.com/kubevirt/containerized-data-importer/)
-04. [KubeVirt](https://kubevirt.io)
-05. [NodeJS](https://nodejs.org/en/)
-06. [Angular](https://angular.io/)
-07. [AdminLTE](https://adminlte.io/)
-08. [NoVNC](https://github.com/novnc/noVNC)
-09. [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator)
-10. [kube-state-metrics](https://github.com/kubernetes/kube-state-metrics)
-11. [KubeVirt Monitoring](https://kubevirt.io/user-guide/operations/component_monitoring/)
-12. [NGINX basic_auth](http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html)
+01. [kubevirt-manager.io](https://kubevirt-manager.io/)
+02. [Kubernetes](https://kubernetes.io/)
+03. [Kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/)
+04. [CDI](https://github.com/kubevirt/containerized-data-importer/)
+05. [KubeVirt](https://kubevirt.io)
+06. [NodeJS](https://nodejs.org/en/)
+07. [Angular](https://angular.io/)
+08. [AdminLTE](https://adminlte.io/)
+09. [NoVNC](https://github.com/novnc/noVNC)
+10. [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator)
+11. [kube-state-metrics](https://github.com/kubernetes/kube-state-metrics)
+12. [KubeVirt Monitoring](https://kubevirt.io/user-guide/operations/component_monitoring/)
+13. [NGINX basic_auth](http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html)
 
 ## License
 
