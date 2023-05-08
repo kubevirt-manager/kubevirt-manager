@@ -371,12 +371,25 @@
                   </div>
                   <!-- NETWORK TAB -->
                   <div class="tab-pane fade" id="newvm-net" role="tabpanel" aria-labelledby="newvm-net-tab">
-                    <label for="newvm-network">Network:</label>
-                    <select #newvmnetwork class="custom-select rounded-0" name="newvm-network" id="newvm-network" (change)="onChangeNetwork(newvmnetwork.value)">
+                    <label for="newvm-networkone">NIC 1</label><br>
+                    <label for="newvm-networkone">Network:</label>
+                    <select #newvmnetworkone class="custom-select rounded-0" name="newvm-networkone" id="newvm-networkone" (change)="onChangeNetworkOne(newvmnetworkone.value)">
                         <option value=podNetwork>podNetwork</option>
                     </select>
-                    <label for="newvm-networktype">Type:</label>
-                    <select #newvmnetworktype class="custom-select rounded-0" name="newvm-networktype" id="newvm-networktype">
+                    <label for="newvm-networktypeone">Type:</label>
+                    <select #newvmnetworktypeone class="custom-select rounded-0" name="newvm-networktypeone" id="newvm-networktypeone">
+                        <option value=bridge>bridge</option>
+                        <option value=masquerade>masquerade</option>
+                    </select>
+                    <br><br>
+                    <label for="newvm-networktwo">NIC 2</label><br>
+                    <label for="newvm-networktwo">Network:</label>
+                    <select #newvmnetworktwo class="custom-select rounded-0" name="newvm-networktwo" id="newvm-networktwo"  (change)="onChangeNetworkTwo(newvmnetworktwo.value)">
+                        <option value=none selected>None</option>
+                        <option value=podNetwork>podNetwork</option>
+                    </select>
+                    <label for="newvm-networktypetwo">Type:</label>
+                    <select #newvmnetworktypetwo class="custom-select rounded-0" name="newvm-networktypetwo" id="newvm-networktypetwo">
                         <option value=bridge>bridge</option>
                         <option value=masquerade>masquerade</option>
                     </select>
@@ -401,11 +414,11 @@
                   </div>
                   <!-- NETWORK DATA TAB -->
                   <div class="tab-pane fade" id="newvm-netdata" role="tabpanel" aria-labelledby="newvm-netdata-tab">
-                    <label for="newvm-netdata-ip">IP:</label>
+                    <label for="newvm-netdata-ip">NIC1 IP:</label>
                     <input #newvmnetdataip type="text" class="form-control" id="newvm-netdata-ip" name="newvm-netdata-ip">
-                    <label for="newvm-netdata-netmask">Netmask:</label>
+                    <label for="newvm-netdata-netmask">NIC1 Netmask:</label>
                     <input #newvmnetdatanetmask type="text" class="form-control" id="newvm-netdata-netmask" name="newvm-netdata-netmask">
-                    <label for="newvm-netdata-gw">Gateway:</label>
+                    <label for="newvm-netdata-gw">NIC1 Gateway:</label>
                     <input #newvmnetdatagw type="text" class="form-control" id="newvm-netdata-gw" name="newvm-netdata-gw">
                     <label for="newvm-netdata-dns1">DNS 1:</label>
                     <input #newvmnetdatadns1 type="text" class="form-control" id="newvm-netdata-dns1" name="newvm-netdata-dns1">
@@ -423,7 +436,7 @@
           </div>
           <div class="modal-footer justify-content-between">
             <button type="button" class="btn btn-default" (click)='hideComponent("modal-newvm")'>Close</button>
-            <button type="button" class="btn btn-primary" (click)="applyNewVm(newvmname.value, newvmnamespace.value, newvmnode.value, newvmlabelkeyone.value, newvmlabelvalueone.value, newvmlabelkeytwo.value, newvmlabelvaluetwo.value, newvmlabelkeythree.value, newvmlabelvaluethree.value, newvmlabelkeyfour.value, newvmlabelvaluefour.value, newvmlabelkeyfive.value, newvmlabelvaluefive.value, newvmtype.value, newvmcpumemsockets.value, newvmcpumemcores.value, newvmcpumemthreads.value, newvmcpumemmemory.value, newvmpc.value, newvmdiskonetype.value, newvmdiskonevalue.value, newvmdiskonesize.value, newvmdiskonesc.value, newvmdiskoneam.value, newvmdiskoneurl.value, newvmdiskonecm.value, newvmdisktwotype.value, newvmdisktwovalue.value, newvmdisktwosize.value, newvmdisktwosc.value, newvmdisktwoam.value, newvmdisktwourl.value, newvmdisktwocm.value, newvmnetwork.value, newvmnetworktype.value, newvmuserdatausername.value, newvmuserdataauth.value, newvmuserdatapassword.value, newvmuserdatassh.value, newvmnetdataip.value, newvmnetdatanetmask.value, newvmnetdatagw.value, newvmnetdatadns1.value, newvmnetdatadns2.value, newpoolinitscript.value)">Create</button>
+            <button type="button" class="btn btn-primary" (click)="applyNewVm(newvmname.value, newvmnamespace.value, newvmnode.value, newvmlabelkeyone.value, newvmlabelvalueone.value, newvmlabelkeytwo.value, newvmlabelvaluetwo.value, newvmlabelkeythree.value, newvmlabelvaluethree.value, newvmlabelkeyfour.value, newvmlabelvaluefour.value, newvmlabelkeyfive.value, newvmlabelvaluefive.value, newvmtype.value, newvmcpumemsockets.value, newvmcpumemcores.value, newvmcpumemthreads.value, newvmcpumemmemory.value, newvmpc.value, newvmdiskonetype.value, newvmdiskonevalue.value, newvmdiskonesize.value, newvmdiskonesc.value, newvmdiskoneam.value, newvmdiskoneurl.value, newvmdiskonecm.value, newvmdisktwotype.value, newvmdisktwovalue.value, newvmdisktwosize.value, newvmdisktwosc.value, newvmdisktwoam.value, newvmdisktwourl.value, newvmdisktwocm.value, newvmnetworkone.value, newvmnetworktypeone.value, newvmnetworktwo.value, newvmnetworktypetwo.value, newvmuserdatausername.value, newvmuserdataauth.value, newvmuserdatapassword.value, newvmuserdatassh.value, newvmnetdataip.value, newvmnetdatanetmask.value, newvmnetdatagw.value, newvmnetdatadns1.value, newvmnetdatadns2.value, newpoolinitscript.value)">Create</button>
           </div>
         </form>
         </div>

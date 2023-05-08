@@ -64,17 +64,6 @@ export class VmlistComponent implements OnInit {
         for (let i = 0; i < nodes.length; i++) {
             currentNode = new K8sNode();
             currentNode.name = nodes[i].metadata["name"];
-            // This is not needed here, will keep in case future needs.
-            //currentNode.arch = nodes[i].status.nodeInfo["architecture"];
-            //currentNode.cidr = nodes[i].spec["podCIDR"];
-            //currentNode.mem = nodes[i].status.capacity["memory"];
-            //currentNode.disk = nodes[i].status.capacity["ephemeral-storage"];
-            //currentNode.cpu = nodes[i].status.capacity["cpu"];
-            //currentNode.os = nodes[i].status.nodeInfo["operatingSystem"];
-            //currentNode.osimg = nodes[i].status.nodeInfo["osImage"];
-            //currentNode.kernel = nodes[i].status.nodeInfo["kernelVersion"];
-            //currentNode.criver = nodes[i].status.nodeInfo["containerRuntimeVersion"];
-            //currentNode.kubever = nodes[i].status.nodeInfo["kubeletVersion"];
             for(let j = 0; j < this.vmList.length; j++) {
                 if (this.vmList[j].nodeSel == currentNode.name)
                     currentNode.vmlist.push(this.vmList[j]);
@@ -164,8 +153,14 @@ export class VmlistComponent implements OnInit {
                     /* Only works with guest-agent installed if not on podNetwork */
                     try {
                         currentVm.nodeSel = datavmi.status["nodeName"];
-                        currentVmi.ifAddr = datavmi.status.interfaces[0]["ipAddress"];
-                        currentVmi.ifName = datavmi.status.interfaces[0]["name"];
+                        /* In case of dual NIC, test which one is providing IP */
+                        if(datavmi.status.interfaces[0]["ipAddress"] != null) {                        
+                            currentVmi.ifAddr = datavmi.status.interfaces[0]["ipAddress"];
+                            currentVmi.ifName = datavmi.status.interfaces[0]["name"];
+                        } else {
+                            currentVmi.ifAddr = datavmi.status.interfaces[1]["ipAddress"];
+                            currentVmi.ifName = datavmi.status.interfaces[1]["name"];
+                        }
                     } catch(e) {
                         currentVmi.ifAddr = "";
                         currentVmi.ifName = "";
@@ -329,8 +324,10 @@ export class VmlistComponent implements OnInit {
         newvmdisktwoam: string,
         newvmdisktwourl: string,
         newvmdisktwocm: string,
-        newvmnetwork: string,
-        newvmnetworktype: string,
+        newvmnetworkone: string,
+        newvmnetworktypeone: string,
+        newvmnetworktwo: string,
+        newvmnetworktypetwo: string,
         newvmuserdatausername: string,
         newvmuserdataauth: string,
         newvmuserdatapassword: string,
@@ -480,7 +477,9 @@ export class VmlistComponent implements OnInit {
             let device2 = {};
             let device3 = {};
             let net1 = {};
+            let net2 = {};
             let iface1 = {};
+            let iface2 = {};
 
             let cloudconfig  = "#cloud-config\n";
                 cloudconfig += "manage_etc_hosts: true\n";
@@ -746,16 +745,30 @@ export class VmlistComponent implements OnInit {
             device3 = {'name': "disk3", 'cloudInitNoCloud': {'userData': cloudconfig, 'networkData': netconfig}};
         
 
-            /* Networking Setup */
-            if(newvmnetwork != "podNetwork") {
-                net1 = {'name': "net1", 'multus': {'networkName': newvmnetwork}};
+            /* NIC01 Setup */
+            if(newvmnetworkone != "podNetwork") {
+                net1 = {'name': "net1", 'multus': {'networkName': newvmnetworkone}};
             } else {
                 net1 = {'name': "net1", 'pod': {}};
             }
-            if(newvmnetworktype == "bridge") {
+            if(newvmnetworktypeone == "bridge") {
                 iface1 = {'name': "net1", 'bridge': {}};
             } else {
                 iface1 = {'name': "net1", 'masquerade': {}};                
+            }
+
+            /* NIC02 Setup */
+            if(newvmnetworktwo != "none") {
+                if(newvmnetworktwo != "podNetwork") {
+                    net2 = {'name': "net2", 'multus': {'networkName': newvmnetworktwo}};
+                } else {
+                    net2 = {'name': "net2", 'pod': {}};
+                }
+                if(newvmnetworktypeone == "bridge") {
+                    iface2 = {'name': "net2", 'bridge': {}};
+                } else {
+                    iface2 = {'name': "net2", 'masquerade': {}};                
+                }
             }
 
             /* Create the VM */
@@ -771,6 +784,10 @@ export class VmlistComponent implements OnInit {
                 this.myVmTemplateCustom.spec.template.spec.volumes.push(device3);
                 this.myVmTemplateCustom.spec.template.spec.networks.push(net1);
                 this.myVmTemplateCustom.spec.template.spec.domain.devices.interfaces.push(iface1);
+                if(newvmnetworktwo != "none") {
+                    this.myVmTemplateTyped.spec.template.spec.networks.push(net2);
+                    this.myVmTemplateTyped.spec.template.spec.domain.devices.interfaces.push(iface2);
+                }
                 try {
                     data = await lastValueFrom(this.kubeVirtService.createVm(newvmnamespace,newvmname, this.myVmTemplateCustom));
                     this.hideComponent("modal-newvm");
@@ -790,6 +807,10 @@ export class VmlistComponent implements OnInit {
                 this.myVmTemplateTyped.spec.template.spec.volumes.push(device3);
                 this.myVmTemplateTyped.spec.template.spec.networks.push(net1);
                 this.myVmTemplateTyped.spec.template.spec.domain.devices.interfaces.push(iface1);
+                if(newvmnetworktwo != "none") {
+                    this.myVmTemplateTyped.spec.template.spec.networks.push(net2);
+                    this.myVmTemplateTyped.spec.template.spec.domain.devices.interfaces.push(iface2);
+                }
                 try {
                     data = await lastValueFrom(this.kubeVirtService.createVm(newvmnamespace,newvmname, this.myVmTemplateTyped));
                     this.hideComponent("modal-newvm");
@@ -1154,7 +1175,8 @@ export class VmlistComponent implements OnInit {
      * New VM: Load Network Options
      */
     async onChangeNamespace(namespace: string) {
-        let selectorNetworkField = document.getElementById("newvm-network");
+        let selectorNetworkFieldOne = document.getElementById("newvm-networkone");
+        let selectorNetworkFieldTwo = document.getElementById("newvm-networktwo");
         let netData = document.getElementById("newvm-netdata-tab");
         let networkSelectorOptions = "<option value=podNetwork>podNetwork</option>\n";
         if(this.networkCheck) {
@@ -1171,8 +1193,9 @@ export class VmlistComponent implements OnInit {
                 }
             }
         }
-        if (selectorNetworkField != null && networkSelectorOptions != "") {
-            selectorNetworkField.innerHTML = networkSelectorOptions;
+        if (selectorNetworkFieldOne != null && selectorNetworkFieldTwo != null && networkSelectorOptions != "") {
+            selectorNetworkFieldOne.innerHTML = networkSelectorOptions;
+            selectorNetworkFieldTwo.innerHTML = "<option value=none>None</option>\n" + networkSelectorOptions;
         }
         if (netData != null) {
             netData.setAttribute("style","display: none;");
@@ -1241,9 +1264,9 @@ export class VmlistComponent implements OnInit {
     /*
      * New VM: Change network (hide/show metadata tab)
      */
-    async onChangeNetwork(thisNetwork: string) {
+    async onChangeNetworkOne(thisNetwork: string) {
         let netData = document.getElementById("newvm-netdata-tab");
-        let selectorNetworkTypeField = document.getElementById("newvm-networktype");
+        let selectorNetworkTypeField = document.getElementById("newvm-networktypeone");
         let networkTypeSelectorOptions = "<option value=bridge>bridge</option>\n";
         if(netData != null && thisNetwork.toLowerCase() != "podnetwork") {
             netData.setAttribute("style","display: flex;");
@@ -1253,6 +1276,21 @@ export class VmlistComponent implements OnInit {
             if(netData != null && thisNetwork.toLowerCase() == "podnetwork") {
                 netData.setAttribute("style","display: none;");
             }
+        }
+
+        if(selectorNetworkTypeField != null) {
+            selectorNetworkTypeField.innerHTML = networkTypeSelectorOptions;
+        }
+    }
+
+    /*
+     * New VM: Change network (hide/show metadata tab)
+     */
+    async onChangeNetworkTwo(thisNetwork: string) {
+        let selectorNetworkTypeField = document.getElementById("newvm-networktypetwo");
+        let networkTypeSelectorOptions = "<option value=bridge>bridge</option>\n";
+        if(thisNetwork.toLowerCase() == "podnetwork") {
+            networkTypeSelectorOptions += "<option value=masquerade>masquerade</option>\n";
         }
 
         if(selectorNetworkTypeField != null) {
