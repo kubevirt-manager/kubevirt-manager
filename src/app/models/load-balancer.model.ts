@@ -6,6 +6,6 @@ export class LoadBalancer {
     type:                string = "";
     clusterIP:           string = "";
     loadBalancer:        string = "";
-    targetPool:          string = "";
+    targetResource:      string = "";
     ports:   LoadBalancerPort[] = [];
 }

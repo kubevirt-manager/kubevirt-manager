@@ -64,22 +64,31 @@ export class VmlistComponent implements OnInit {
         for (let i = 0; i < nodes.length; i++) {
             currentNode = new K8sNode();
             currentNode.name = nodes[i].metadata["name"];
-            currentNode.arch = nodes[i].status.nodeInfo["architecture"];
-            currentNode.cidr = nodes[i].spec["podCIDR"];
-            currentNode.mem = nodes[i].status.capacity["memory"];
-            currentNode.disk = nodes[i].status.capacity["ephemeral-storage"];
-            currentNode.cpu = nodes[i].status.capacity["cpu"];
-            currentNode.os = nodes[i].status.nodeInfo["operatingSystem"];
-            currentNode.osimg = nodes[i].status.nodeInfo["osImage"];
-            currentNode.kernel = nodes[i].status.nodeInfo["kernelVersion"];
-            currentNode.criver = nodes[i].status.nodeInfo["containerRuntimeVersion"];
-            currentNode.kubever = nodes[i].status.nodeInfo["kubeletVersion"];
+            // This is not needed here, will keep in case future needs.
+            //currentNode.arch = nodes[i].status.nodeInfo["architecture"];
+            //currentNode.cidr = nodes[i].spec["podCIDR"];
+            //currentNode.mem = nodes[i].status.capacity["memory"];
+            //currentNode.disk = nodes[i].status.capacity["ephemeral-storage"];
+            //currentNode.cpu = nodes[i].status.capacity["cpu"];
+            //currentNode.os = nodes[i].status.nodeInfo["operatingSystem"];
+            //currentNode.osimg = nodes[i].status.nodeInfo["osImage"];
+            //currentNode.kernel = nodes[i].status.nodeInfo["kernelVersion"];
+            //currentNode.criver = nodes[i].status.nodeInfo["containerRuntimeVersion"];
+            //currentNode.kubever = nodes[i].status.nodeInfo["kubeletVersion"];
             for(let j = 0; j < this.vmList.length; j++) {
                 if (this.vmList[j].nodeSel == currentNode.name)
                     currentNode.vmlist.push(this.vmList[j]);
             }
             this.nodeList.push(currentNode);
         }
+        /* auto-selects node when power on vm */
+        currentNode = new K8sNode();
+        currentNode.name = "auto-select";
+        for(let j = 0; j < this.vmList.length; j++) {
+            if (this.vmList[j].nodeSel == currentNode.name)
+                currentNode.vmlist.push(this.vmList[j]);
+        }
+        this.nodeList.push(currentNode);
     }
 
     /*
@@ -98,7 +107,7 @@ export class VmlistComponent implements OnInit {
             try {
                 currentVm.nodeSel = vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"];
             } catch (e) {
-                currentVm.nodeSel = "unassigned";
+                currentVm.nodeSel = "auto-select";
             }
 
             /* Getting VM Type */
@@ -152,7 +161,7 @@ export class VmlistComponent implements OnInit {
                     currentVmi.osPrettyName = datavmi.status.guestOSInfo["prettyName"];
                     currentVmi.osVersion = datavmi.status.guestOSInfo["version"]
 
-                    /* Only works with guest-agent installed */
+                    /* Only works with guest-agent installed if not on podNetwork */
                     try {
                         currentVm.nodeSel = datavmi.status["nodeName"];
                         currentVmi.ifAddr = datavmi.status.interfaces[0]["ipAddress"];
@@ -407,7 +416,9 @@ export class VmlistComponent implements OnInit {
                     this.myVmTemplateCustom.metadata.namespace = newvmnamespace;
                     this.myVmTemplateCustom.metadata.labels = tmpLabels;
                     this.myVmTemplateCustom.spec.template.metadata.labels = tmpLabels;
-                    this.myVmTemplateCustom.spec.template.spec.nodeSelector = {"kubernetes.io/hostname": newvmnode};
+                    if (newvmnode != "auto-select") {
+                        this.myVmTemplateCustom.spec.template.spec.nodeSelector = {"kubernetes.io/hostname": newvmnode};
+                    }
                     this.myVmTemplateCustom.spec.template.spec.priorityClassName = newvmpriorityclass;
                     this.myVmTemplateCustom.spec.template.spec.domain.cpu.cores = Number(newvmcpumemcores);
                     this.myVmTemplateCustom.spec.template.spec.domain.cpu.threads = Number(newvmcpumemthreads);
@@ -453,7 +464,9 @@ export class VmlistComponent implements OnInit {
                 this.myVmTemplateTyped.metadata.namespace = newvmnamespace;
                 this.myVmTemplateTyped.metadata.labels = tmpLabels;
                 this.myVmTemplateTyped.spec.template.metadata.labels = tmpLabels;
-                this.myVmTemplateTyped.spec.template.spec.nodeSelector = {"kubernetes.io/hostname": newvmnode};
+                if(newvmnode != "auto-select") {
+                    this.myVmTemplateTyped.spec.template.spec.nodeSelector = {"kubernetes.io/hostname": newvmnode};
+                }
                 this.myVmTemplateTyped.spec.template.spec.priorityClassName = newvmpriorityclass;
                 this.myVmTemplateTyped.spec.instancetype.name = newvmtype;
             }

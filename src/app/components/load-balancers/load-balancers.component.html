@@ -40,7 +40,7 @@
                     <td style="line-height: 2.2 !important;">{{thisLoadBalancer.ports[0].protocol}}</td>
                     <td style="line-height: 2.2 !important;">{{thisLoadBalancer.ports[0].listenport}}</td>
                     <td style="line-height: 2.2 !important;">{{thisLoadBalancer.ports[0].targetport}}</td>
-                    <td style="line-height: 2.2 !important;">{{thisLoadBalancer.targetPool}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisLoadBalancer.targetResource}}</td>
                     <td style="line-height: 0 !important;">
                         <a class="btn" (click)="showInfo(thisLoadBalancer.namespace, thisLoadBalancer.name)" title="Info...">
                           <i class="fas fa-info" (click)="showInfo(thisLoadBalancer.namespace, thisLoadBalancer.name)"></i>
@@ -76,11 +76,16 @@
                 <label for="newlb-name">Name:</label>
                 <input #newlbname type="text" class="form-control" id="newlb-name" name="newlb-name">
                 <label for="newlb-namespaces">Namespace:</label>
-                <select #newlbnamespace class="custom-select rounded-0" name="newlb-namespace" id="newlb-namespace" (change)="onChangeNamespace(newlbnamespace.value)">
+                <select #newlbnamespace class="custom-select rounded-0" name="newlb-namespace" id="newlb-namespace" (change)="onChangeNamespaceOrResourceType(newlbnamespace.value, newlbtargetresourcetype.value)">
                   <option>Value 1</option>
                 </select>
-                <label for="newlb-namespaces">Target VM Pool:</label>
-                <select #newlbtargetpool class="custom-select rounded-0" name="newlb-targetpool" id="newlb-targetpool">
+                <label for="newlb-targetresourcetype">Target Resource Type:</label>
+                <select #newlbtargetresourcetype class="custom-select rounded-0" name="newlb-targetresourcetype" id="newlb-targetresourcetype" (change)="onChangeNamespaceOrResourceType(newlbnamespace.value, newlbtargetresourcetype.value)">
+                    <option value="vminstance">VM Instance</option>
+                    <option value="vmpool">VM Pool</option>
+                </select>
+                <label for="newlb-targetresource">Target Resource:</label>
+                <select #newlbtargetresource class="custom-select rounded-0" name="newlb-targetresource" id="newlb-targetresource">
                 </select>
                 <div class="row">&nbsp;</div>
                 <div class="row">
@@ -135,6 +140,7 @@
                     <select #newlbtargettype class="custom-select rounded-0" name="newlb-targettype" id="newlb-targettype">
                       <option value="ClusterIP">ClusterIP</option>
                       <option value="LoadBalancer">LoadBalancer</option>
+                      <option value="NodePort">NodePort</option>
                     </select>
                   </div>
                   <div class="col-3">
@@ -158,7 +164,7 @@
             </div>
             <div class="modal-footer justify-content-between">
                 <button type="button" class="btn btn-default" (click)='hideComponent("modal-new")'>Close</button>
-                <button type="button" class="btn btn-primary" (click)="applyNew(newlbname.value, newlbnamespace.value, newlbtargetpool.value, newlbannotationskeyone.value, newlbannotationsvalueone.value, newlbannotationskeytwo.value, newlbannotationsvaluetwo.value, newlblabelkeyone.value, newlblabelvalueone.value, newlblabelkeytwo.value, newlblabelvaluetwo.value, newlbtargettype.value, newlbport.value, newlbtargetport.value, newlbtargetproto.value)">Create</button>
+                <button type="button" class="btn btn-primary" (click)="applyNew(newlbname.value, newlbnamespace.value, newlbtargetresourcetype.value, newlbtargetresource.value, newlbannotationskeyone.value, newlbannotationsvalueone.value, newlbannotationskeytwo.value, newlbannotationsvaluetwo.value, newlblabelkeyone.value, newlblabelvalueone.value, newlblabelkeytwo.value, newlblabelvaluetwo.value, newlbtargettype.value, newlbport.value, newlbtargetport.value, newlbtargetproto.value)">Create</button>
             </div>
           </div>
           <!-- /.modal-content -->

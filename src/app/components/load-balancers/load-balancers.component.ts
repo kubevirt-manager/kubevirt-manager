@@ -50,9 +50,11 @@ export class LoadBalancersComponent implements OnInit {
             currentLoadBalancer.type = services[i].spec.type;
             currentLoadBalancer.clusterIP = services[i].spec.clusterIP;
             if(services[i].spec.selector["kubevirt.io/vmpool"] != null) {
-                currentLoadBalancer.targetPool = services[i].spec.selector["kubevirt.io/vmpool"];
+                currentLoadBalancer.targetResource = services[i].spec.selector["kubevirt.io/vmpool"];
             } else if (services[i].spec.selector["cluster.x-k8s.io/cluster-name"] != null) {
-                currentLoadBalancer.targetPool = services[i].spec.selector["cluster.x-k8s.io/cluster-name"];
+                currentLoadBalancer.targetResource = services[i].spec.selector["cluster.x-k8s.io/cluster-name"];
+            } else if(services[i].spec.selector["kubevirt.io/domain"] != null) {
+                currentLoadBalancer.targetResource = services[i].spec.selector["kubevirt.io/domain"];
             }
             if(currentLoadBalancer.type.toLowerCase() == "loadbalancer" && services[i].status.loadBalancer.ingress[0].ip != null) {
                 currentLoadBalancer.loadBalancer = services[i].status.loadBalancer.ingress[0].ip;
@@ -79,7 +81,7 @@ export class LoadBalancersComponent implements OnInit {
         clearInterval(this.myInterval);
         let myInnerHTML = "";
         let data = await lastValueFrom(this.k8sService.getService(lbNamespace, lbName));
-        myInnerHTML += "<li class=\"nav-item\">Load Balancer: <span class=\"float-right badge bg-primary\">" + data.metadata["name"] + "</span></li>";
+        myInnerHTML += "<li class=\"nav-item\">Service: <span class=\"float-right badge bg-primary\">" + data.metadata["name"] + "</span></li>";
         myInnerHTML += "<li class=\"nav-item\">Namespace: <span class=\"float-right badge bg-primary\">" + data.metadata["namespace"] + "</span></li>";
         myInnerHTML += "<li class=\"nav-item\">Creation Time: <span class=\"float-right badge bg-primary\">" + data.metadata["creationTimestamp"] + "</span></li>";
         myInnerHTML += "<li class=\"nav-item\">Type: <span class=\"float-right badge bg-primary\">" + data.spec["type"] + "</span></li>";
@@ -91,10 +93,16 @@ export class LoadBalancersComponent implements OnInit {
 
         if(data.spec.selector["kubevirt.io/vmpool"] != null) {
             myInnerHTML += "<li class=\"nav-item\">Target VM Pool: <span class=\"float-right badge bg-primary\">" + data.spec.selector["kubevirt.io/vmpool"] + "</span></li>";
+        } else if(data.spec.selector["kubevirt.io/domain"] != null) {
+            myInnerHTML += "<li class=\"nav-item\">Target Instance: <span class=\"float-right badge bg-primary\">" + data.spec.selector["kubevirt.io/domain"] + "</span></li>";
+        } else if(data.spec.selector["cluster.x-k8s.io/cluster-name"] != null) {
+            myInnerHTML += "<li class=\"nav-item\">Target Cluster: <span class=\"float-right badge bg-primary\">" + data.spec.selector["cluster.x-k8s.io/cluster-name"] + "</span></li>";
         }
 
         if(data.spec["type"].toLowerCase() == "loadbalancer" && data.status.loadBalancer.ingress[0].ip != null) {
             myInnerHTML += "<li class=\"nav-item\">External IP: <span class=\"float-right badge bg-primary\">" + data.status.loadBalancer.ingress[0].ip + "</span></li>";
+        } if(data.spec["type"].toLowerCase() == "nodeport" && data.spec.ports[0].nodePort != null) {
+            myInnerHTML += "<li class=\"nav-item\">Node Port: <span class=\"float-right badge bg-primary\">" + data.spec.ports[0].nodePort + "</span></li>";
         }
 
         let modalDiv = document.getElementById("modal-info");
@@ -265,7 +273,8 @@ export class LoadBalancersComponent implements OnInit {
     async applyNew(
         newlbname: string,
         newlbnamespace: string,
-        newlbtargetpool: string,
+        newlbtargetresourcetype: string,
+        newlbtargetresource: string,
         newlbannotationskeyone: string,
         newlbannotationsvalueone: string,
         newlbannotationskeytwo: string,
@@ -281,7 +290,7 @@ export class LoadBalancersComponent implements OnInit {
         ): Promise<void> {
         if(newlbname == "") {
             alert("You must select a name for your Load Balancer!");
-        } else if (newlbtargetpool == "" || newlbtargettype == "" || newlbport == "" || newlbtargetport == "" || newlbtargetproto == "") {
+        } else if (newlbtargetresourcetype == "" || newlbtargetresource == "" || newlbtargettype == "" || newlbport == "" || newlbtargetport == "" || newlbtargetproto == "") {
             alert("Please select all the target properties!")
         } else {
             let myServiceDescriptor = new Services();
@@ -316,15 +325,37 @@ export class LoadBalancersComponent implements OnInit {
                 Object.assign(tmpLabels, thisLabel);
             }
 
+
+            if(newlbtargetresourcetype == "vmpool") {
+                let thisSelector = {};
+                let vmPoolLabel = {
+                    ["kubevirt.io/vmpool"]: newlbtargetresource
+                };
+                Object.assign(tmpLabels, vmPoolLabel);
+                Object.assign(thisSelector, tmpLabels);
+                myServiceDescriptor.serviceTemplate.spec.selector = thisSelector;
+            } else if(newlbtargetresourcetype == "vminstance") {
+                let thisSelector = {};
+                let vmInstanceLabel = {
+                    ["kubevirt.io/domain"]: newlbtargetresource
+                };
+                Object.assign(tmpLabels, vmInstanceLabel);
+                Object.assign(thisSelector, tmpLabels);
+                myServiceDescriptor.serviceTemplate.spec.selector = thisSelector;
+            } else if(newlbtargetresourcetype == "capk") {
+                let thisSelector = {};
+                let vmInstanceLabel = {
+                    ["cluster.x-k8s.io/cluster-name"]: newlbtargetresource
+                };
+                Object.assign(tmpLabels, vmInstanceLabel);
+                Object.assign(thisSelector, tmpLabels);
+                myServiceDescriptor.serviceTemplate.spec.selector = thisSelector;
+            }
+
             let kubevirtManagerLabel = {
                 ["kubevirt-manager.io/managed"]: "true"
             };
             Object.assign(tmpLabels, kubevirtManagerLabel);
-
-            let vmPoolLabel = {
-                ["kubevirt.io/vmpool"]: newlbtargetpool
-            };
-            Object.assign(tmpLabels, vmPoolLabel);
 
             myServiceDescriptor.serviceTemplate.metadata.labels = tmpLabels;
 
@@ -345,11 +376,6 @@ export class LoadBalancersComponent implements OnInit {
 
             myServiceDescriptor.serviceTemplate.metadata.annotations = tmpAnnotations;
 
-            /* Service Selector */
-            let thisSelector = {
-                ["kubevirt.io/vmpool"]: newlbtargetpool
-            };
-            myServiceDescriptor.serviceTemplate.spec.selector = thisSelector;
 
             let myNewService = myServiceDescriptor.serviceTemplate;
 
@@ -369,18 +395,32 @@ export class LoadBalancersComponent implements OnInit {
     }
 
     /*
-     * New LB: Load Available Pools
+     * New LB: Load Available Resources
      */
-    async onChangeNamespace(namespace: string) {
-        let selectorPoolField = document.getElementById("newlb-targetpool");
-        let poolSelectorOptions = "";
-        let data = await lastValueFrom(this.kubeVirtService.getVMPoolsNamespaced(namespace));
-        let thisPoolList = data.items;
-        for (let i = 0; i < thisPoolList.length; i++) {
-            poolSelectorOptions += "<option value=" + thisPoolList[i].metadata["name"] + ">" + thisPoolList[i].metadata["name"] + "</option>\n";
+    async onChangeNamespaceOrResourceType(namespace: string, resourcetype: string) {
+        let selectorPoolField = document.getElementById("newlb-targetresource");
+        let resourceSelectorOptions = "";
+        if (resourcetype == "vmpool") { /* Virtual Machine Pool */
+            let data = await lastValueFrom(this.kubeVirtService.getVMPoolsNamespaced(namespace));
+            let thisPoolList = data.items;
+            for (let i = 0; i < thisPoolList.length; i++) {
+                resourceSelectorOptions += "<option value=" + thisPoolList[i].metadata["name"] + ">" + thisPoolList[i].metadata["name"] + "</option>\n";
+            }
+        } else if (resourcetype == "vminstance") { /* Virtual Machine Instance */
+            let data = await lastValueFrom(this.kubeVirtService.getVMsNamespaced(namespace));
+            let thisVMList = data.items;
+            for (let i = 0; i < thisVMList.length; i++) {
+                resourceSelectorOptions += "<option value=" + thisVMList[i].metadata["name"] + ">" + thisVMList[i].metadata["name"] + "</option>\n";
+            }
+        } else if (resourcetype == "capk") {   /* Future Cluster API */
+            let data = await lastValueFrom(this.kubeVirtService.getVMsNamespaced(namespace));
+            let thisVMList = data.items;
+            for (let i = 0; i < thisVMList.length; i++) {
+                resourceSelectorOptions += "<option value=" + thisVMList[i].metadata["name"] + ">" + thisVMList[i].metadata["name"] + "</option>\n";
+            }
         }
-        if (selectorPoolField != null && poolSelectorOptions != "") {
-            selectorPoolField.innerHTML = poolSelectorOptions;
+        if (selectorPoolField != null && resourceSelectorOptions != "") {
+            selectorPoolField.innerHTML = resourceSelectorOptions;
         }
     }
 

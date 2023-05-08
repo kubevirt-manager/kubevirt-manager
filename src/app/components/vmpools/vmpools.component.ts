@@ -123,7 +123,7 @@ export class VMPoolsComponent implements OnInit {
             try {
                 currentVm.nodeSel = vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"];
             } catch (e) {
-                currentVm.nodeSel = "unassigned";
+                currentVm.nodeSel = "auto-select";
             }
 
             /* Getting VM Type */
