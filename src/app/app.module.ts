@@ -17,6 +17,7 @@ import { ClusterInstanceTypeListComponent } from './components/cluster-instance-
 import { VMPoolsComponent } from './components/vmpools/vmpools.component';
 import { LoadBalancersComponent } from './components/load-balancers/load-balancers.component';
 import { RefreshComponent } from './components/refresh/refresh.component';
+import { AutoscaleComponent } from './components/autoscale/autoscale.component';
 
 @NgModule({
   declarations: [
@@ -34,6 +35,7 @@ import { RefreshComponent } from './components/refresh/refresh.component';
     VMPoolsComponent,
     LoadBalancersComponent,
     RefreshComponent,
+    AutoscaleComponent,
   ],
   imports: [
     BrowserModule,

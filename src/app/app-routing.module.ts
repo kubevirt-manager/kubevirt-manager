@@ -10,12 +10,14 @@ import { RefreshComponent } from './components/refresh/refresh.component';
 import { VmlistComponent } from './components/vmlist/vmlist.component';
 import { VMPoolsComponent } from './components/vmpools/vmpools.component';
 import { VNCViewerComponent } from './components/vncviewer/vncviewer.component';
+import { AutoscaleComponent } from './components/autoscale/autoscale.component';
 
 const routes: Routes = [
   { path: '', component: DashboardComponent },
   { path: 'dashboard', component: DashboardComponent },
   { path: 'vmlist', component: VmlistComponent },
   { path: 'vmpools', component: VMPoolsComponent},
+  { path: 'autoscale', component: AutoscaleComponent},
   { path: 'nodelist', component: NodelistComponent },
   { path: 'dsklist', component: DiskListComponent },
   { path: 'netlist', component: NetworkListComponent },

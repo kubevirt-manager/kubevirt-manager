@@ -27,4 +27,7 @@ export class K8sApisService {
     return this.http.get(`${baseUrl}/scheduling.k8s.io/v1/priorityclasses?labelSelector=kubevirt-manager.io/managed%3Dtrue`);
   }
 
+  getHpas(): Observable<any> {
+    return this.http.get(`${baseUrl}/autoscaling/v2/horizontalpodautoscalers?labelSelector=kubevirt-manager.io/managed%3Dtrue`);
+  }
 }
