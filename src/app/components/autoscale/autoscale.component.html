@@ -9,7 +9,7 @@
             </h3>
             <div class="card-tools">
               <button type="button" class="btn btn-tool">
-                  <i class="fas fa-plus-square" title="Create group..."></i>
+                  <i class="fas fa-plus-square" (click)="showNew()" title="Create group..."></i>
               </button>
             </div>
           </div>
@@ -51,8 +51,8 @@
                         <a class="btn" title="Config...">
                             <i class="fas fa-cog"></i>
                           </a>
-                        <a class="btn" title="Delete...">
-                          <i class="fas fa-trash"></i>
+                        <a class="btn" (click)="showDelete(thisHPA.namespace, thisHPA.name)" title="Delete...">
+                          <i class="fas fa-trash" (click)="showDelete(thisHPA.namespace, thisHPA.name)"></i>
                         </a>
                     </td>
                   </tr>
@@ -61,4 +61,72 @@
         </div>
         <!-- /.card-body -->
       </div>
+    </div>
+
+    <!--            -->
+    <!-- Modal: New -->
+    <!--            -->
+    <div class="modal fade" id="modal-new" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="new-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-new")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <input type="hidden" id="new-node" name="new-node" value="">
+            <div class="modal-body" id="new-value">
+              <label for="newHPAName">Name:</label>
+              <input #newhpaname type="text" class="form-control" id="new-hpa-name" name="new-hpa-name" placeholder="name">
+              <label for="newHPANamespace">Namespace:</label>
+              <select #newhpanamespace class="custom-select rounded-0" name="new-hpa-namespace" id="new-hpa-namespace" (change)="onChangeNamespace(newhpanamespace.value)">
+                  <option></option>
+              </select>
+              <label for="newHPATargetPool">VM Pool:</label>
+              <select #newhpatargetpool class="custom-select rounded-0" name="new-hpa-targetpool" id="new-hpa-targetpool">
+                  <option></option>
+              </select>
+              <label for="newHPAMin">Min Replicas</label>
+              <input #newhpamin type="number" class="form-control" id="new-hpa-min" name="new-hpa-min" placeholder="1">
+              <label for="newHPAMax">Max Replicas</label>
+              <input #newhpamax type="number" class="form-control" id="new-hpa-max" name="new-hpa-max" placeholder="1">
+              <label for="newHPAThreshold">Target CPU Utilization Threshold (%)</label>
+              <input #newhpathreshold type="number" class="form-control" id="new-hpa-threshold" name="new-hpa-threshold" placeholder="75">
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-new")'>Close</button>
+              <button type="button" class="btn btn-primary" (click)='applyNew(newhpaname.value, newhpanamespace.value, newhpatargetpool.value, newhpamin.value, newhpamax.value, newhpathreshold.value)'>Create</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+
+    <!--               -->
+    <!-- Modal: Delete -->
+    <!--               -->
+    <div class="modal fade" id="modal-delete" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="delete-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-delete")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <input type="hidden" id="delete-namespace" name="delete-namespace" value="">
+            <input type="hidden" id="delete-name" name="delete-name" value="">
+            <div class="modal-body" id="delete-value">
+              <p>BODY_TEMPLATE</p>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-delete")'>Close</button>
+              <button type="button" class="btn btn-danger" (click)="applyDelete()">Delete</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
     </div>

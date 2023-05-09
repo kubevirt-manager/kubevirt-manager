@@ -528,7 +528,7 @@ export class DashboardComponent implements OnInit {
      */
     reloadComponent(): void {
         this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
-            this.router.navigate([`/dashboard`]);
+            this.router.navigate([`/`]);
         })
     }
 

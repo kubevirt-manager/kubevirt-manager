@@ -140,7 +140,7 @@ export class LoadBalancersComponent implements OnInit {
             if(lbNameInput != null && lbNamespaceInput != null) {
                 lbNamespaceInput.setAttribute("value", lbNamespace);
                 lbNameInput.setAttribute("value", lbName);
-                modalBody.replaceChildren("Are you sure you want to delete " + lbNamespace + " - " + lbName + "?");
+                modalBody.replaceChildren("Are you sure you want to delete Load Balancer " + lbNamespace + " - " + lbName + "?");
             }
         }
         if(modalDiv != null) {

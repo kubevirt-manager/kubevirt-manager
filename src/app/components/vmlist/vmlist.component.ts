@@ -91,8 +91,13 @@ export class VmlistComponent implements OnInit {
             currentVm = new KubeVirtVM();
             currentVm.name = vms[i].metadata["name"];
             currentVm.namespace = vms[i].metadata["namespace"];
-            currentVm.running = vms[i].spec["running"];
             currentVm.status = vms[i].status["printableStatus"];
+            /* Working around a bug when scaling down and VM stuck in terminating */
+            if(currentVm.status.toLocaleLowerCase() == "terminating") {
+                currentVm.running = false;                
+            } else {
+                currentVm.running = vms[i].spec["running"];
+            }
             try {
                 currentVm.nodeSel = vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"];
             } catch (e) {

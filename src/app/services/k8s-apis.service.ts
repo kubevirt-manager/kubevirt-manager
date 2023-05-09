@@ -30,4 +30,20 @@ export class K8sApisService {
   getHpas(): Observable<any> {
     return this.http.get(`${baseUrl}/autoscaling/v2/horizontalpodautoscalers?labelSelector=kubevirt-manager.io/managed%3Dtrue`);
   }
+
+  getNamespacedHpas(namespace: string): Observable<any> {
+    return this.http.get(`${baseUrl}/autoscaling/v2/namespaces/${namespace}/horizontalpodautoscalers?labelSelector=kubevirt-manager.io/managed%3Dtrue`);
+  }
+
+  createHpa(namespace: string, hpaspec: Object): Observable<any> {
+    const headers = {
+        'content-type': 'application/json',
+        'accept': 'application/json'
+    };
+    return this.http.post(`${baseUrl}/autoscaling/v2/namespaces/${namespace}/horizontalpodautoscalers`, hpaspec, { 'headers': headers } );
+  }
+
+  deleteHPA(namespace: string, name: string): Observable<any> {
+    return this.http.delete(`${baseUrl}/autoscaling/v2/namespaces/${namespace}/horizontalpodautoscalers/${name}`);
+  }
 }
