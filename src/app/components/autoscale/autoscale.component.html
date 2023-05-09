@@ -45,11 +45,8 @@
                     <td style="line-height: 2.2 !important;">{{thisHPA.desiredRpl}}</td>
                     <td style="line-height: 2.2 !important;">{{thisHPA.currAvgUtl}}%</td>
                     <td style="line-height: 0 !important;">
-                        <a class="btn" title="Info...">
-                          <i class="fas fa-info"></i>
-                        </a>
-                        <a class="btn" title="Config...">
-                            <i class="fas fa-cog"></i>
+                        <a class="btn" (click)="showEdit(thisHPA.namespace, thisHPA.name, thisHPA.minReplicas, thisHPA.maxReplicas, thisHPA.metricAvg)" title="Config...">
+                            <i class="fas fa-cog" (click)="showEdit(thisHPA.namespace, thisHPA.name, thisHPA.minReplicas, thisHPA.maxReplicas, thisHPA.metricAvg)"></i>
                           </a>
                         <a class="btn" (click)="showDelete(thisHPA.namespace, thisHPA.name)" title="Delete...">
                           <i class="fas fa-trash" (click)="showDelete(thisHPA.namespace, thisHPA.name)"></i>
@@ -75,7 +72,6 @@
                 <span aria-hidden="true">×</span>
               </button>
             </div>
-            <input type="hidden" id="new-node" name="new-node" value="">
             <div class="modal-body" id="new-value">
               <label for="newHPAName">Name:</label>
               <input #newhpaname type="text" class="form-control" id="new-hpa-name" name="new-hpa-name" placeholder="name">
@@ -97,6 +93,38 @@
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-new")'>Close</button>
               <button type="button" class="btn btn-primary" (click)='applyNew(newhpaname.value, newhpanamespace.value, newhpatargetpool.value, newhpamin.value, newhpamax.value, newhpathreshold.value)'>Create</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+
+    <!--             -->
+    <!-- Modal: Edit -->
+    <!--             -->
+    <div class="modal fade" id="modal-edit" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="edit-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-edit")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="edit-value">
+              <input #edithpaname type="hidden" class="form-control" id="edit-hpa-name" name="edit-hpa-name">
+              <input #edithpanamespace type="hidden" name="edit-hpa-namespace" id="edit-hpa-namespace">
+              <label for="editHPAMin">Min Replicas</label>
+              <input #edithpamin type="number" class="form-control" id="edit-hpa-min" name="edit-hpa-min" value="1">
+              <label for="editHPAMax">Max Replicas</label>
+              <input #edithpamax type="number" class="form-control" id="edit-hpa-max" name="edit-hpa-max" value="1">
+              <label for="editHPAThreshold">Target CPU Utilization Threshold (%)</label>
+              <input #edithpathreshold type="number" class="form-control" id="edit-hpa-threshold" name="edit-hpa-threshold" value="75">
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-edit")'>Close</button>
+              <button type="button" class="btn btn-primary" (click)='applyEdit(edithpanamespace.value, edithpaname.value, edithpamin.value, edithpamax.value, edithpathreshold.value)'>Save</button>
             </div>
           </div>
           <!-- /.modal-content -->

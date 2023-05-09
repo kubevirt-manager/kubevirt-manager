@@ -124,6 +124,71 @@ export class AutoscaleComponent implements OnInit {
     }
 
     /*
+     * Show Edit Window
+     */
+    async showEdit(namespace: string,
+                  name: string,
+                  minReplicas: number,
+                  maxReplicas: number,
+                  metricAvg: number): Promise<void> {
+        clearInterval(this.myInterval);
+        let modalDiv = document.getElementById("modal-edit");
+        let modalTitle = document.getElementById("edit-title");
+        let modalBody = document.getElementById("edit-value");
+
+        if(modalTitle != null) {
+            modalTitle.replaceChildren("Config Scaling Group");
+        }
+
+        let modalHpaNamespace = document.getElementById("edit-hpa-namespace");
+        let modalHpaName = document.getElementById("edit-hpa-name");
+        let modalHpaMinReplicas = document.getElementById("edit-hpa-min");
+        let modalHpaMaxReplicas = document.getElementById("edit-hpa-max");
+        let modalHpaMetricAvg = document.getElementById("edit-hpa-threshold");
+
+        if (modalHpaNamespace != null && modalHpaName != null && modalHpaMinReplicas != null &&
+            modalHpaMaxReplicas != null && modalHpaMetricAvg != null ) {
+
+            modalHpaNamespace.setAttribute("value", namespace);
+            modalHpaName.setAttribute("value", name);
+            modalHpaMinReplicas.setAttribute("value", minReplicas.toString());
+            modalHpaMaxReplicas.setAttribute("value", maxReplicas.toString());
+            modalHpaMetricAvg.setAttribute("value", metricAvg.toString());
+        }
+
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+    }
+
+    /*
+     * Apply Edit
+     */
+    async applyEdit(namespace: string,
+        name: string,
+        minReplicas: string,
+        maxReplicas: string,
+        metricAvg: string): Promise<void> {
+            
+        try {
+            let deleteService = await lastValueFrom(this.k8sApisService.patchHpa(namespace, name, Number(minReplicas), Number(maxReplicas), Number(metricAvg)));
+            this.hideComponent("modal-edit");
+            this.reloadComponent();
+        } catch (e) {
+            if (e instanceof HttpErrorResponse) {
+                alert(e.error["message"])
+            } else {
+                console.log(e);
+                alert("Internal Error!");
+            }
+        }
+    }
+
+    /*
      * New HPA: Load Pool List
      */
     async onChangeNamespace(namespace: string) {
