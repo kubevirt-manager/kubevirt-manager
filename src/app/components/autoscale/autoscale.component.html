@@ -5,7 +5,7 @@
         <div class="card card-outline">
           <div class="card-header">
             <h3 class="card-title">
-              Auto Scaling
+              Scaling Groups
             </h3>
             <div class="card-tools">
               <button type="button" class="btn btn-tool">
@@ -20,25 +20,41 @@
                     <th style="width: 10px">&nbsp;</th>
                     <th style="width: 130px">Namespace</th>
                     <th style="width: 160px">Name</th>
-                    <th style="width: 70px">VM Type</th>
-                    <th style="width: 18px">vCPU</th>
-                    <th style="width: 18px">Memory</th>
-                    <th style="width: 80px">Status</th>
-                    <th style="width: 80px">IP Address</th>
-                    <th style="width: 250px">Actions</th>
+                    <th style="width: 160px">Target Pool</th>
+                    <th style="width: 20px">Min</th>
+                    <th style="width: 20px">Max</th>
+                    <th style="width: 40px">Metric</th>
+                    <th style="width: 60px">Threshold</th>
+                    <th style="width: 20px">Current</th>
+                    <th style="width: 20px">Desired</th>
+                    <th style="width: 60px">Utilization</th>
+                    <th style="width: 120px">&nbsp;</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td>aaaaa</td>
-                    <td>aaaaa</td>
-                    <td>aaaaa</td>
-                    <td>aaaaa</td>
-                    <td>aaaaa</td>
-                    <td>aaaaa</td>
-                    <td>aaaaa</td>
-                    <td>aaaaa</td>
-                    <td>aaaaa</td>
+                  <tr *ngFor="let thisHPA of hpaList">
+                    <td style="line-height: 2.2 !important;">&nbsp;</td>
+                    <td style="line-height: 2.2 !important;">{{thisHPA.namespace}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisHPA.name}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisHPA.scaleTarget}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisHPA.minReplicas}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisHPA.maxReplicas}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisHPA.metricName}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisHPA.metricAvg}}%</td>
+                    <td style="line-height: 2.2 !important;">{{thisHPA.currentRpl}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisHPA.desiredRpl}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisHPA.currAvgUtl}}%</td>
+                    <td style="line-height: 0 !important;">
+                        <a class="btn" title="Info...">
+                          <i class="fas fa-info"></i>
+                        </a>
+                        <a class="btn" title="Config...">
+                            <i class="fas fa-cog"></i>
+                          </a>
+                        <a class="btn" title="Delete...">
+                          <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
                   </tr>
                 </tbody>
             </table>
