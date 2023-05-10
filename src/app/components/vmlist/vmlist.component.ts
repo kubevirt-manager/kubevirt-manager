@@ -769,7 +769,7 @@ export class VmlistComponent implements OnInit {
                 } else {
                     net2 = {'name': "net2", 'pod': {}};
                 }
-                if(newvmnetworktypeone == "bridge") {
+                if(newvmnetworktypetwo == "bridge") {
                     iface2 = {'name': "net2", 'bridge': {}};
                 } else {
                     iface2 = {'name': "net2", 'masquerade': {}};                

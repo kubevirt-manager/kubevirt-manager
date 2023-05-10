@@ -26,6 +26,8 @@ export class VirtualMachine {
                             'interfaces': [{}]
                         },
                     },
+                    'livenessProbe': {},
+                    'readinessProbe': {},
                     'networks':[{}],
                     'volumes':[{}]
                 }
@@ -66,6 +68,8 @@ export class VirtualMachine {
                             }
                         }
                     },
+                    'livenessProbe': {},
+                    'readinessProbe': {},
                     'networks':[{}],
                     'volumes':[{}]
                 }
