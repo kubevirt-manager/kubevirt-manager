@@ -31,7 +31,7 @@ describe('ClusterInstanceTypeListComponent', () => {
   });
   it('should contain New Type item', () => {
     const componentDoc: DebugElement = fixture.debugElement;
-    const componentElem = componentDoc.query(By.css('.fa-plus'))
+    const componentElem = componentDoc.query(By.css('.fa-plus-square'))
     const contentValue = componentElem.nativeElement;
     expect(contentValue).toBeTruthy();
   });

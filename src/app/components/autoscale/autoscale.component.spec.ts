@@ -35,4 +35,22 @@ describe('AutoscaleComponent', () => {
     const contentValue = componentElem.nativeElement;
     expect(contentValue).toBeTruthy();
   });
+  it('should contain Window: New Auto Scaling Group', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#modal-new');
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain Window: Edit Auto Scaling Group', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#modal-edit');
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain Window: Delete Auto Scaling Group', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#modal-delete');
+    expect(contentValue).toBeTruthy();
+  });
 });

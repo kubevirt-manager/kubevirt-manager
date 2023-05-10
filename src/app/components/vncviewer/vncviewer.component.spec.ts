@@ -29,4 +29,10 @@ describe('VNCViewerComponent', () => {
     const contentValue = componentElem.nativeElement;
     expect(contentValue.textContent).toContain('namespace');
   });
+  it('should contain VNC Screen', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#screen');
+    expect(contentValue).toBeTruthy();
+  });
 });
