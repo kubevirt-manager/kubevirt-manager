@@ -1,5 +1,7 @@
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { DebugElement } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { By } from '@angular/platform-browser';
 import { AutoscaleComponent } from './autoscale.component';
 
 describe('AutoscaleComponent', () => {
@@ -8,6 +10,7 @@ describe('AutoscaleComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
       declarations: [ AutoscaleComponent ]
     })
     .compileComponents();
@@ -19,5 +22,17 @@ describe('AutoscaleComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+  it('should contain component title', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('h3');
+    expect(contentValue.textContent).toContain('Scaling Groups');
+  });
+  it('should contain Scaling Group item', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.query(By.css('.fa-plus-square'))
+    const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
   });
 });

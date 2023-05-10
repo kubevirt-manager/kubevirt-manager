@@ -175,7 +175,7 @@ export class AutoscaleComponent implements OnInit {
         metricAvg: string): Promise<void> {
             
         try {
-            let deleteService = await lastValueFrom(this.k8sApisService.patchHpa(namespace, name, Number(minReplicas), Number(maxReplicas), Number(metricAvg)));
+            let patchService = await lastValueFrom(this.k8sApisService.patchHpa(namespace, name, Number(minReplicas), Number(maxReplicas), Number(metricAvg)));
             this.hideComponent("modal-edit");
             this.reloadComponent();
         } catch (e) {
