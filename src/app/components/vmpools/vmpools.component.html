@@ -221,6 +221,9 @@
                       <a class="nav-link" id="newpool-net-tab" data-toggle="pill" href="#newpool-net" role="tab" aria-controls="newpool-net" aria-selected="false">Networking</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" id="newpool-healthcheck-tab" data-toggle="pill" href="#newpool-healthcheck" role="tab" aria-controls="newpool-healthcheck" aria-selected="false">Health Check</a>
+                      </li>
+                    <li class="nav-item">
                       <a class="nav-link" id="newpool-userdata-tab" data-toggle="pill" href="#newpool-userdata" role="tab" aria-controls="newpool-userdata" aria-selected="false">User Data</a>
                     </li>
                     <li class="nav-item">
@@ -413,24 +416,53 @@
                         <option value=masquerade>masquerade</option>
                     </select>
                     </div>
+                    <!-- HEALTH CHECK TAB -->
+                    <div class="tab-pane fade" id="newpool-healthcheck" role="tabpanel" aria-labelledby="newpool-healthcheck-tab">
+                      <label for="newpool-healthcheck-enable">Health Check:</label>
+                      <select #newpoolhealthcheckenable class="custom-select rounded-0" name="newpool-healthcheck-enable" id="newpool-healthcheck-enable" (change)="onChangeHealthCheck(newpoolhealthcheckenable.value)">
+                        <option value="disabled">Disabled</option>
+                        <option value="enabled">Enabled</option>
+                      </select>
+                      <label for="newpool-healthcheck-type">Health Check Type:</label>
+                      <select #newpoolhealthchecktype class="custom-select rounded-0" name="newpool-healthcheck-type" id="newpool-healthcheck-type" (change)="onChangeHealthCheckType(newpoolhealthchecktype.value)" disabled>
+                        <option value="tcp">TCP</option>
+                        <option value="http">HTTP</option>
+                      </select>
+                      <label for="newpool-healthcheck-port">Port:</label>
+                      <input #newpoolhealthcheckport type="number" class="form-control" id="newpool-healthcheck-port" name="newpool-healthcheck-port" disabled>
+                      <div class="pane fade" id="newpool-healthcheck-path-panel" name="newpool-healthcheck-path-panel" style="display: none;" aria-hidden="true">
+                        <label for="newpool-healthcheck-path">HTTP Path:</label>
+                        <input #newpoolhealthcheckpath type="text" class="form-control" id="newpool-healthcheck-path" name="newpool-healthcheck-path">
+                      </div>
+                      <label for="newpool-healthcheck-initialdelay">Initial Delay(s):</label>
+                      <input #newpoolhealthcheckinitialdelay type="number" class="form-control" id="newpool-healthcheck-initialdelay" name="newpool-healthcheck-initialdelay" disabled>
+                      <label for="newpool-healthcheck-interval">Interval(s):</label>
+                      <input #newpoolhealthcheckinterval type="number" class="form-control" id="newpool-healthcheck-interval" name="newpool-healthcheck-interval" disabled>
+                      <label for="newpool-healthcheck-timeout">Timeout(s):</label>
+                      <input #newpoolhealthchecktimeout type="number" class="form-control" id="newpool-healthcheck-timeout" name="newpool-healthcheck-timeout" disabled>
+                      <label for="newpool-healthcheck-failure">Failure Threshold:</label>
+                      <input #newpoolhealthcheckfailure type="number" class="form-control" id="newpool-healthcheck-failure" name="newpool-healthcheck-failure" disabled>
+                      <label for="newpool-healthcheck-success">Success Threshold:</label>
+                      <input #newpoolhealthchecksuccess type="number" class="form-control" id="newpool-healthcheck-success" name="newpool-healthcheck-success" disabled>
+                    </div>
                     <!-- USERDATA TAB -->
                     <div class="tab-pane fade" id="newpool-userdata" role="tabpanel" aria-labelledby="newpool-userdata-tab">
-                      <label for="newpool-userdata-username">Username:</label>
-                      <input #newpooluserdatausername type="text" class="form-control" id="newpool-userdata-username" name="newpool-userdata-username">
-                      <label for="newpool-userdata-auth">Authentication:</label>
-                      <select #newpooluserdataauth class="custom-select rounded-0" name="newpool-userdata-auth" id="newpool-userdata-auth" (change)="onChangeAuthType(newpooluserdataauth.value)">
-                        <option value="password">User/Password</option>
-                        <option value="ssh">SSH Private Key</option>
-                      </select>
-                      <div class="pane fade show" id="newpool-userdata-password-panel" name="newpool-userdata-password-panel" style="display: contents;" aria-hidden="false">
-                        <label for="newpool-userdata-password">Password:</label>
-                        <input #newpooluserdatapassword type="password" class="form-control" id="newpool-userdata-password" name="newpool-userdata-password">
+                        <label for="newpool-userdata-username">Username:</label>
+                        <input #newpooluserdatausername type="text" class="form-control" id="newpool-userdata-username" name="newpool-userdata-username">
+                        <label for="newpool-userdata-auth">Authentication:</label>
+                        <select #newpooluserdataauth class="custom-select rounded-0" name="newpool-userdata-auth" id="newpool-userdata-auth" (change)="onChangeAuthType(newpooluserdataauth.value)">
+                          <option value="password">User/Password</option>
+                          <option value="ssh">SSH Private Key</option>
+                        </select>
+                        <div class="pane fade show" id="newpool-userdata-password-panel" name="newpool-userdata-password-panel" style="display: contents;" aria-hidden="false">
+                          <label for="newpool-userdata-password">Password:</label>
+                          <input #newpooluserdatapassword type="password" class="form-control" id="newpool-userdata-password" name="newpool-userdata-password">
+                        </div>
+                        <div class="pane fade" id="newpool-userdata-ssh-panel" name="newpool-userdata-ssh-panel" style="display: none;" aria-hidden="true">
+                          <label for="newpool-userdata-ssh">SSH Key:</label>
+                          <textarea #newpooluserdatassh class="form-control" rows="3" cols="10" id="newpool-userdata-ssh" name="newpool-userdata-ssh"></textarea>
+                        </div>
                       </div>
-                      <div class="pane fade" id="newpool-userdata-ssh-panel" name="newpool-userdata-ssh-panel" style="display: none;" aria-hidden="true">
-                        <label for="newpool-userdata-ssh">SSH Key:</label>
-                        <textarea #newpooluserdatassh class="form-control" rows="3" cols="10" id="newpool-userdata-ssh" name="newpool-userdata-ssh"></textarea>
-                      </div>
-                    </div>
                     <!-- INIT SCRIPT -->
                     <div class="tab-pane fade" id="newpool-initscript" role="tabpanel" aria-labelledby="newpool-initscript-tab">
                         <textarea #newpoolinitscript class="form-control" rows="14" cols="10" name="newpool-initscript" id="newpool-initscript" placeholder=""></textarea>

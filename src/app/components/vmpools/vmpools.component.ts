@@ -1313,7 +1313,7 @@ export class VMPoolsComponent implements OnInit {
     }
 
     /*
-     * New VM: Change between pass/ssh auth
+     * New POOL: Change between pass/ssh auth
      */
     async onChangeAuthType(authType: string) {
         let modalSSHDiv = document.getElementById("newpool-userdata-ssh-panel");
@@ -1371,6 +1371,62 @@ export class VMPoolsComponent implements OnInit {
             }
         }
         return false;
+    }
+
+    /*
+     * New POOL: Enable/Disable Health Check
+     */
+    async onChangeHealthCheck(status: string) {
+        let hcType = document.getElementById("newpool-healthcheck-type");
+        let hcPort = document.getElementById("newpool-healthcheck-port")
+        let hcDelay = document.getElementById("newpool-healthcheck-initialdelay");
+        let hcInterval = document.getElementById("newpool-healthcheck-interval");
+        let hcTimeout = document.getElementById("newpool-healthcheck-timeout");
+        let hcFailure = document.getElementById("newpool-healthcheck-failure");
+        let hcSuccess = document.getElementById("newpool-healthcheck-success")
+        
+        if ( hcType != null && hcPort != null && hcDelay != null && hcInterval != null && 
+             hcTimeout != null && hcFailure != null && hcSuccess != null ) {
+            if(status.toLowerCase() == "enabled") {
+                hcType.removeAttribute("disabled");
+                hcPort.removeAttribute("disabled");
+                hcDelay.removeAttribute("disabled");
+                hcInterval.removeAttribute("disabled");
+                hcTimeout.removeAttribute("disabled");
+                hcFailure.removeAttribute("disabled");
+                hcSuccess.removeAttribute("disabled");
+            } else {
+                hcType.setAttribute("disabled", "disabled");
+                hcPort.setAttribute("disabled", "disabled");
+                hcDelay.setAttribute("disabled", "disabled");
+                hcInterval.setAttribute("disabled", "disabled");
+                hcTimeout.setAttribute("disabled", "disabled");
+                hcFailure.setAttribute("disabled", "disabled");
+                hcSuccess.setAttribute("disabled", "disabled");
+            }
+        }
+    }
+
+    /*
+     * New POOL: Change Health Check Type
+     */
+    async onChangeHealthCheckType(hcType: string) {
+        let modalPath = document.getElementById("newpool-healthcheck-path-panel");
+        if (modalPath != null) {
+            if (hcType.toLocaleLowerCase() == "http") {
+                modalPath.setAttribute("class", "modal fade show");
+                modalPath.setAttribute("aria-modal", "true");
+                modalPath.setAttribute("role", "dialog");
+                modalPath.setAttribute("aria-hidden", "false");
+                modalPath.setAttribute("style","display: contents;");
+            } else {
+                modalPath.setAttribute("class", "modal fade");
+                modalPath.setAttribute("aria-modal", "false");
+                modalPath.setAttribute("role", "");
+                modalPath.setAttribute("aria-hidden", "true");
+                modalPath.setAttribute("style","display: none;");
+            }
+        }
     }
 
     /*
