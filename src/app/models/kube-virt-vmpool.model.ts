@@ -5,6 +5,7 @@ export class KubeVirtVMPool {
     name:            string   = "";
     namespace:       string   = "";
     replicas:        number   = 0;
+    readyReplicas:   number   = 0;
     running:         boolean  = false;
     status:          string   = "";
     cores:           number   = 0;

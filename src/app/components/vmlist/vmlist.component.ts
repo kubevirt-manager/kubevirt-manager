@@ -141,6 +141,12 @@ export class VmlistComponent implements OnInit {
                 }
             }
 
+            if(vms[i].status["ready"] != null) {
+                currentVm.ready = vms[i].status["ready"];
+                console.log("MY TEST!!!!");
+                console.log(currentVm.ready);
+            }
+
             if(currentVm.running && currentVm.status && vms[i].status["printableStatus"].toLowerCase() == "running") {
                 let currentVmi = new KubeVirtVMI;
                 try {

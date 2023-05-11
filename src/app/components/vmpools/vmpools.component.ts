@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
+import { HealthCheck } from 'src/app/models/health-check.model';
 import { KubeVirtVM } from 'src/app/models/kube-virt-vm.model';
 import { KubeVirtVMI } from 'src/app/models/kube-virt-vmi.model';
 import { KubeVirtVMPool } from 'src/app/models/kube-virt-vmpool.model';
@@ -11,6 +12,7 @@ import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { K8sService } from 'src/app/services/k8s.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
 import { DataVolume } from 'src/app/templates/data-volume.apitemplate';
+import { Probe } from 'src/app/templates/probe.apitemplate';
 import { VMPool } from 'src/app/templates/vmpool.apitemplate';
 
 @Component({
@@ -29,6 +31,7 @@ export class VMPoolsComponent implements OnInit {
 
     myVmPoolCustom = new VMPool().myVmPoolCustom;
     myVmPoolTyped = new VMPool().myVmPoolType;
+    myVmPoolHealthCheck = new Probe().healthCheck;
     blankDiskTemplate = new DataVolume().blankDisk;
     httpDiskTemplate = new DataVolume().httpDisk;
     s3DiskTemplate = new DataVolume().s3Disk;
@@ -77,6 +80,11 @@ export class VMPoolsComponent implements OnInit {
                 currentPool.instType = pools[i].spec.virtualMachineTemplate.spec.instancetype.name;
             } catch(e) {
                 currentPool.instType = "custom";
+            }
+
+            /* Getting Ready Replicas */
+            if(currentPool.readyReplicas != null) {
+                currentPool.readyReplicas = Number(pools[i].status["readyReplicas"]) || 0;
             }
 
             if(currentPool.instType == "custom") {
@@ -153,6 +161,10 @@ export class VMPoolsComponent implements OnInit {
                     currentVm.cores = 0;
                     currentVm.memory = "";
                 }
+            }
+
+            if(vms[i].status["ready"] != null) {
+                currentVm.ready = vms[i].status["ready"];
             }
 
             if(currentVm.running && currentVm.status && vms[i].status["printableStatus"].toLowerCase() == "running") {
@@ -333,6 +345,15 @@ export class VMPoolsComponent implements OnInit {
         newpooldisktwocm: string,
         newpoolnetwork: string,
         newpoolnetworktype: string,
+        newpoolhealthcheckenable: string,
+        newpoolhealthchecktype: string,
+        newpoolhealthcheckpath: string,
+        newpoolhealthcheckport: string,
+        newpoolhealthcheckinitialdelay: string,
+        newpoolhealthcheckinterval: string,
+        newpoolhealthchecktimeout: string,
+        newpoolhealthcheckfailure: string,
+        newpoolhealthchecksuccess: string,
         newpooluserdatausername: string,
         newpooluserdataauth: string,
         newpooluserdatapassword: string,
@@ -360,6 +381,10 @@ export class VMPoolsComponent implements OnInit {
             alert("Pool with name/namespace combination already exists!");
         } else if(newpooltype.toLowerCase() == "none" || newpooltype.toLocaleLowerCase() == "") {
             alert("Please select a valid VM type!");
+        } else if(newpoolhealthcheckenable == "true" && (newpoolhealthcheckport == "" || newpoolhealthcheckinitialdelay == "" ||  newpoolhealthcheckinterval == "" || newpoolhealthchecktimeout == "" || newpoolhealthcheckfailure == "" || newpoolhealthchecksuccess == "")) {
+            alert("You need to enter all the Health Check details!");
+        } else if (newpoolhealthcheckenable == "true" && newpoolhealthchecktype == "http" && newpoolhealthcheckpath == "") {
+            alert("You need to enter HTTP Path details on the Health Check tab!");
         } else {
 
             /* Load Custom Labels */
@@ -492,6 +517,13 @@ export class VMPoolsComponent implements OnInit {
                 cloudconfig += "manage_etc_hosts: true\n";
                 // Removed so machines can have pool generated hostnames
                 // cloudconfig += "hostname: " + newpoolname + "\n";
+
+            let netconfig  ="version: 1\n";
+                netconfig += "config:\n";
+                netconfig += "    - type: physical\n";
+                netconfig += "      name: enp1s0\n";
+                netconfig += "      subnets:\n";
+                netconfig += "      - type: dhcp\n";
 
             /* Disk1 setup */
             if(newpooldiskonetype == "http") {
@@ -728,7 +760,7 @@ export class VMPoolsComponent implements OnInit {
 
             /* Adding UserData/NetworkData device */
             disk3 = {'name': "disk3", 'disk': {'bus': "virtio"}};
-            device3 = {'name': "disk3", 'cloudInitNoCloud': {'userData': cloudconfig}};
+            device3 = {'name': "disk3", 'cloudInitNoCloud': {'userData': cloudconfig, 'networkData': netconfig}};
         
 
             /* Networking Setup */
@@ -741,6 +773,40 @@ export class VMPoolsComponent implements OnInit {
                 iface1 = {'name': "net1", 'bridge': {}};
             } else {
                 iface1 = {'name': "net1", 'masquerade': {}};
+            }
+
+            /* Health Check Setup */
+            if(newpoolhealthcheckenable == "enabled") {
+                /* Adjusting our Probe */
+                if(newpoolhealthchecktype.toLowerCase() == "http") {
+                    let myHttpProbe = new Probe().httpProbe;
+                    myHttpProbe.initialDelaySeconds = Number(newpoolhealthcheckinitialdelay);
+                    myHttpProbe.periodSeconds  = Number(newpoolhealthcheckinterval);
+                    myHttpProbe.timeoutSeconds = Number(newpoolhealthchecktimeout);
+                    myHttpProbe.failureThreshold = Number(newpoolhealthcheckfailure);
+                    myHttpProbe.successThreshold = Number(newpoolhealthchecksuccess);
+                    myHttpProbe.httpGet.path = newpoolhealthcheckpath;
+                    myHttpProbe.httpGet.port = Number(newpoolhealthcheckport)
+                    this.myVmPoolHealthCheck = myHttpProbe;
+                } else {
+                    let myTcpProbe = new Probe().tcpProbe;
+                    myTcpProbe.initialDelaySeconds = Number(newpoolhealthcheckinitialdelay);
+                    myTcpProbe.periodSeconds  = Number(newpoolhealthcheckinterval);
+                    myTcpProbe.timeoutSeconds = Number(newpoolhealthchecktimeout);
+                    myTcpProbe.failureThreshold = Number(newpoolhealthcheckfailure);
+                    myTcpProbe.successThreshold = Number(newpoolhealthchecksuccess);
+                    myTcpProbe.tcpSocket.port = Number(newpoolhealthcheckport)
+                    this.myVmPoolHealthCheck = myTcpProbe;
+                }
+
+                /* Assigning to our object */
+                if(newpooltype.toLowerCase() == "custom") {
+                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.livenessProbe = this.myVmPoolHealthCheck;
+                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.readinessProbe = this.myVmPoolHealthCheck;
+                } else {
+                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.livenessProbe = this.myVmPoolHealthCheck;
+                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.readinessProbe = this.myVmPoolHealthCheck;
+                }
             }
 
             /* Create the VM */

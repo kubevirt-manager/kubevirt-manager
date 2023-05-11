@@ -22,10 +22,12 @@
                         <th style="width: 10px">&nbsp;</th>
                         <th style="width: 130px">Namespace</th>
                         <th style="width: 180px">Pool Name</th>
-                        <th style="width: 70px">VM Type</th>
+                        <th style="width: 60px">VM Type</th>
                         <th style="width: 18px">vCPU</th>
                         <th style="width: 18px">Memory</th>
-                        <th style="width: 80px">Replicas</th>
+                        <th style="width: 18px">Running</th>
+                        <th style="width: 25px">Replicas</th>
+                        <th style="width: 25px">Ready</th>
                         <th style="width: 180px">Actions</th>
                 </thead>
                 <tbody>
@@ -36,7 +38,9 @@
                     <td style="line-height: 2.2 !important;">{{thisPool.instType}}</td>
                     <td style="line-height: 2.2 !important;">{{thisPool.cores * thisPool.sockets * thisPool.threads}}</td>
                     <td style="line-height: 2.2 !important;">{{thisPool.memory}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisPool.running}}</td>
                     <td style="line-height: 2.2 !important;">{{thisPool.replicas}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisPool.readyReplicas || "0"}}</td>
                     <td style="line-height: 2.2 !important;">
                         <!--- INFO BUTTON -->
                         <span>
@@ -91,10 +95,11 @@
                     <thead>
                         <tr>
                         <th style="width: 10px">&nbsp;</th>
-                        <th style="width: 180px">Virtual Machine</th>
-                        <th style="width: 70px">Node</th>
-                        <th style="width: 80px">Status</th>
-                        <th style="width: 80px">IP Address</th>
+                        <th style="width: 140px">Virtual Machine</th>
+                        <th style="width: 60px">Node</th>
+                        <th style="width: 50px">Status</th>
+                        <th style="width: 50px">IP Address</th>
+                        <th style="width: 50px">Ready</th>
                         <th style="width: 180px">Actions</th>
                         </tr>
                     </thead>
@@ -120,6 +125,7 @@
                                 </span>
                             </span>
                             </td>
+                            <td style="line-height: 2.2 !important;">{{thisVM.ready}}</td>
                             <td style="line-height: 0 !important;">
                             <!--- REMOVE BUTTON -->
                             <span>
@@ -428,22 +434,21 @@
                         <option value="tcp">TCP</option>
                         <option value="http">HTTP</option>
                       </select>
-                      <label for="newpool-healthcheck-port">Port:</label>
-                      <input #newpoolhealthcheckport type="number" class="form-control" id="newpool-healthcheck-port" name="newpool-healthcheck-port" disabled>
                       <div class="pane fade" id="newpool-healthcheck-path-panel" name="newpool-healthcheck-path-panel" style="display: none;" aria-hidden="true">
                         <label for="newpool-healthcheck-path">HTTP Path:</label>
                         <input #newpoolhealthcheckpath type="text" class="form-control" id="newpool-healthcheck-path" name="newpool-healthcheck-path">
                       </div>
-                      <label for="newpool-healthcheck-initialdelay">Initial Delay(s):</label>
+                      <label for="newpool-healthcheck-port">Port:</label>
+                      <input #newpoolhealthcheckport type="number" class="form-control" id="newpool-healthcheck-port" name="newpool-healthcheck-port" disabled>
+                      <label for="newpool-healthcheck-initialdelay">Initial Delay (s):</label>
                       <input #newpoolhealthcheckinitialdelay type="number" class="form-control" id="newpool-healthcheck-initialdelay" name="newpool-healthcheck-initialdelay" disabled>
-                      <label for="newpool-healthcheck-interval">Interval(s):</label>
+                      <label for="newpool-healthcheck-interval">Interval (s):</label>
                       <input #newpoolhealthcheckinterval type="number" class="form-control" id="newpool-healthcheck-interval" name="newpool-healthcheck-interval" disabled>
-                      <label for="newpool-healthcheck-timeout">Timeout(s):</label>
+                      <label for="newpool-healthcheck-timeout">Timeout (s):</label>
                       <input #newpoolhealthchecktimeout type="number" class="form-control" id="newpool-healthcheck-timeout" name="newpool-healthcheck-timeout" disabled>
                       <label for="newpool-healthcheck-failure">Failure Threshold:</label>
                       <input #newpoolhealthcheckfailure type="number" class="form-control" id="newpool-healthcheck-failure" name="newpool-healthcheck-failure" disabled>
-                      <label for="newpool-healthcheck-success">Success Threshold:</label>
-                      <input #newpoolhealthchecksuccess type="number" class="form-control" id="newpool-healthcheck-success" name="newpool-healthcheck-success" disabled>
+                      <input #newpoolhealthchecksuccess type="hidden" class="form-control" id="newpool-healthcheck-success" name="newpool-healthcheck-success" value="1">
                     </div>
                     <!-- USERDATA TAB -->
                     <div class="tab-pane fade" id="newpool-userdata" role="tabpanel" aria-labelledby="newpool-userdata-tab">
@@ -474,7 +479,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-newpool")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)="applyNewPool(newpoolname.value, newpoolnamespace.value, newpoolreplicas.value, newpoollabelkeyone.value, newpoollabelvalueone.value, newpoollabelkeytwo.value, newpoollabelvaluetwo.value, newpoollabelkeythree.value, newpoollabelvaluethree.value, newpoollabelkeyfour.value, newpoollabelvaluefour.value, newpoollabelkeyfive.value, newpoollabelvaluefive.value, newpooltype.value, newpoolcpumemsockets.value, newpoolcpumemcores.value, newpoolcpumemthreads.value, newpoolcpumemmemory.value, newpoolpc.value, newpooldiskonetype.value, newpooldiskonevalue.value, newpooldiskonesize.value, newpooldiskonesc.value, newpooldiskoneam.value, newpooldiskoneurl.value, newpooldiskonecm.value, newpooldisktwotype.value, newpooldisktwovalue.value, newpooldisktwosize.value, newpooldisktwosc.value, newpooldisktwoam.value, newpooldisktwourl.value, newpooldisktwocm.value, newpoolnetwork.value, newpoolnetworktype.value, newpooluserdatausername.value, newpooluserdataauth.value, newpooluserdatapassword.value, newpooluserdatassh.value, newpoolinitscript.value)">Create</button>
+              <button type="button" class="btn btn-primary" (click)="applyNewPool(newpoolname.value, newpoolnamespace.value, newpoolreplicas.value, newpoollabelkeyone.value, newpoollabelvalueone.value, newpoollabelkeytwo.value, newpoollabelvaluetwo.value, newpoollabelkeythree.value, newpoollabelvaluethree.value, newpoollabelkeyfour.value, newpoollabelvaluefour.value, newpoollabelkeyfive.value, newpoollabelvaluefive.value, newpooltype.value, newpoolcpumemsockets.value, newpoolcpumemcores.value, newpoolcpumemthreads.value, newpoolcpumemmemory.value, newpoolpc.value, newpooldiskonetype.value, newpooldiskonevalue.value, newpooldiskonesize.value, newpooldiskonesc.value, newpooldiskoneam.value, newpooldiskoneurl.value, newpooldiskonecm.value, newpooldisktwotype.value, newpooldisktwovalue.value, newpooldisktwosize.value, newpooldisktwosc.value, newpooldisktwoam.value, newpooldisktwourl.value, newpooldisktwocm.value, newpoolnetwork.value, newpoolnetworktype.value, newpoolhealthcheckenable.value, newpoolhealthchecktype.value, newpoolhealthcheckpath.value, newpoolhealthcheckport.value, newpoolhealthcheckinitialdelay.value, newpoolhealthcheckinterval.value, newpoolhealthchecktimeout.value, newpoolhealthcheckfailure.value, newpoolhealthchecksuccess.value, newpooluserdatausername.value, newpooluserdataauth.value, newpooluserdatapassword.value, newpooluserdatassh.value, newpoolinitscript.value)">Create</button>
             </div>
           </form>
           </div>

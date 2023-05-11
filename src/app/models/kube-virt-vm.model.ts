@@ -5,6 +5,7 @@ export class KubeVirtVM {
   name:             string   = "";
   namespace:        string   = "";
   running:          boolean  = false;
+  ready:            boolean  = false;
   status:           string   = "";
   cores:            number   = 0;
   sockets:          number   = 0;
@@ -12,6 +13,6 @@ export class KubeVirtVM {
   memory:           string   = "";
   nodeSel:          string   = "";
   instType:         string   = "";
-  vmi:           KubeVirtVMI = new KubeVirtVMI;
-  healthCheck:  HealthCheck = new HealthCheck;
+  vmi:          KubeVirtVMI  = new KubeVirtVMI;
+  healthCheck:  HealthCheck  = new HealthCheck;
 }
