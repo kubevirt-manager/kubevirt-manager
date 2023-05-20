@@ -36,7 +36,7 @@
                     <td style="line-height: 2.2 !important;">&nbsp;</td>
                     <td style="line-height: 2.2 !important;">{{thisHPA.namespace}}</td>
                     <td style="line-height: 2.2 !important;">{{thisHPA.name}}</td>
-                    <td style="line-height: 2.2 !important;">{{thisHPA.scaleTarget}}</td>
+                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisHPA.namespace}}/{{thisHPA.scaleTarget}}" title="Target details...">{{thisHPA.scaleTarget}}</a></td>
                     <td style="line-height: 2.2 !important;">{{thisHPA.minReplicas}}</td>
                     <td style="line-height: 2.2 !important;">{{thisHPA.maxReplicas}}</td>
                     <td style="line-height: 2.2 !important;">{{thisHPA.metricName}}</td>
@@ -157,4 +157,6 @@
           <!-- /.modal-content -->
         </div>
         <!-- /.modal-dialog -->
+      </div>
     </div>
+</div>

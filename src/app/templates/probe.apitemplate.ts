@@ -21,6 +21,7 @@ export class Probe {
         'failureThreshold': 0,
         'successThreshold': 0
     };
-
-    healthCheck = {}
+    
+    readinessProbe = {}
+    livenessProbe = {}
 }

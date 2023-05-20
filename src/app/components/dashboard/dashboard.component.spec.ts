@@ -31,10 +31,34 @@ describe('DashboardComponent', () => {
     const contentValue = componentElem.nativeElement;
     expect(contentValue).toBeTruthy();
   });
+  it('should contain Chart: CPU', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#CpuChart');
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain Chart: Memory', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#MemChart');
+    expect(contentValue).toBeTruthy();
+  });
   it('should contain Prometheus Row Two item', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.query(By.css('#prometheus-row-two'))
     const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain Chart: Network', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#NetChart');
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain Chart: Storage', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#StgChart');
     expect(contentValue).toBeTruthy();
   });
   it('should contain Row One item', () => {
@@ -82,12 +106,13 @@ describe('DashboardComponent', () => {
     expect(contentValue.textContent).toContain('99');
   });
   it('should contain pool-info', () => {
-    component.poolInfo = 99;
+    component.poolInfo.total = 99;
+    component.poolInfo.running = 99;
     fixture.detectChanges();
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
     const contentValue = componentElem.querySelector('#pool-info');
-    expect(contentValue.textContent).toContain('99');
+    expect(contentValue.textContent).toContain('99/99');
   });
   it('should contain cpu-info', () => {
     component.cpuInfo = 128;

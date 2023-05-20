@@ -14,7 +14,7 @@
             </div>
           </div>
           <div class="card-body">
-            <div class="card card-outline" *ngFor="let thisPool of poolList">
+            <div class="card card-outline">
             <tbody>
                 <table class="table table-sm" style="vertical-align: middle !important;">
                 <thead>
@@ -31,20 +31,20 @@
                         <th style="width: 180px">Actions</th>
                 </thead>
                 <tbody>
-                <tr>
+                <tr *ngFor="let thisPool of poolList">
                     <td style="line-height: 2.2 !important;"><i class="fas fa-server"></i></td>
-                    <td style="line-height: 2.2 !important;">{{thisPool.namespace}}</td>
-                    <td style="line-height: 2.2 !important;">{{thisPool.name}}</td>
-                    <td style="line-height: 2.2 !important;">{{thisPool.instType}}</td>
-                    <td style="line-height: 2.2 !important;">{{thisPool.cores * thisPool.sockets * thisPool.threads}}</td>
-                    <td style="line-height: 2.2 !important;">{{thisPool.memory}}</td>
-                    <td style="line-height: 2.2 !important;">{{thisPool.running}}</td>
-                    <td style="line-height: 2.2 !important;">{{thisPool.replicas}}</td>
-                    <td style="line-height: 2.2 !important;">{{thisPool.readyReplicas || "0"}}</td>
+                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.namespace}}</a></td>
+                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.name}}</a></td>
+                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.instType}}</a></td>
+                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.cores * thisPool.sockets * thisPool.threads}}</a></td>
+                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.memory}}</a></td>
+                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.running}}</a></td>
+                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.replicas}}</a></td>
+                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.readyReplicas || "0"}}</a></td>
                     <td style="line-height: 2.2 !important;">
                         <!--- INFO BUTTON -->
                         <span>
-                            <a class="btn" (click)='showInfo(thisPool.namespace, thisPool.name)' title="Show info...">
+                            <a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">
                               <i class="fas fa-info"></i>
                             </a>
                         </span>
@@ -89,100 +89,6 @@
                         </span>
                     </td>
                 </tr>
-                <tr><td></td>
-                    <td colspan="100%">
-                    <table class="table table-sm" style="vertical-align: middle !important;">
-                    <thead>
-                        <tr>
-                        <th style="width: 10px">&nbsp;</th>
-                        <th style="width: 140px">Virtual Machine</th>
-                        <th style="width: 60px">Node</th>
-                        <th style="width: 50px">Status</th>
-                        <th style="width: 50px">IP Address</th>
-                        <th style="width: 50px">Ready</th>
-                        <th style="width: 180px">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let thisVM of thisPool.vmlist">
-                            <td style="line-height: 2.2 !important; align-content: center;">
-                            <span>
-                                <span>
-                                <span class="badge"><i class="fas fa-hdd"></i></span>
-                                </span>
-                            </span>
-                            </td>
-                            <td style="line-height: 2.2 !important;">{{thisVM.name}}</td>
-                            <td style="line-height: 2.2 !important;">{{thisVM.nodeSel}}</td>
-                            <td style="line-height: 2.2 !important;">{{thisVM.status}}</td>
-                            <td style="line-height: 2.2 !important;">
-                            <span [ngSwitch]="thisVM.status">
-                                <span *ngSwitchCase="'Running'">
-                                {{thisVM.vmi.ifAddr}}
-                                </span>
-                                <span *ngSwitchDefault>
-                                &nbsp;
-                                </span>
-                            </span>
-                            </td>
-                            <td style="line-height: 2.2 !important;">{{thisVM.ready}}</td>
-                            <td style="line-height: 0 !important;">
-                            <!--- REMOVE BUTTON -->
-                            <span>
-                                <a class="btn" (click)='removeVmFromPool(thisVM.namespace, thisVM.name, thisVM.nodeSel)' title="Remove from pool...">
-                                <i class="fas fa-minus"></i>
-                                </a>
-                            </span>
-                            <!--- VNC BUTTON -->
-                            <span [ngSwitch]="thisVM.status">
-                                <a class="btn" routerLink="/vncviewer/{{thisVM.namespace}}/{{thisVM.name}}" title="Open console..." *ngSwitchCase="'Running'">
-                                <i class="fas fa-desktop"></i>
-                                </a>
-                                <a class="btn disabled" routerLink="/vncviewer/{{thisVM.namespace}}/{{thisVM.name}}" title="Open console..." *ngSwitchDefault>
-                                <i class="fas fa-desktop disabled"></i>
-                                </a>
-                            </span>
-                            <!--- POWER ON BUTTON -->
-                            <span [ngSwitch]="thisVM.running">
-                                <a class="btn disabled" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchCase="true">
-                                  <i class="fas fa-plug disabled"></i>
-                                </a>
-                                <a class="btn" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchDefault>
-                                  <i class="fas fa-plug"></i>
-                                </a>
-                            </span>
-                            <!--- POWER OFF BUTTON -->
-                            <span [ngSwitch]="thisVM.running">
-                                <a class="btn" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchCase="true">
-                                  <i class="fas fa-power-off"></i>
-                                </a>
-                                <a class="btn disabled" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchDefault>
-                                  <i class="fas fa-power-off disabled"></i>
-                                </a>
-                            </span>
-                            <!--- RESTART BUTTON -->
-                            <span [ngSwitch]="thisVM.running">
-                                <a class="btn" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchCase="true">
-                                  <i class="fas fa-redo"></i>
-                                </a>
-                                <a class="btn disabled" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchDefault>
-                                  <i class="fas fa-redo disabled"></i>
-                                </a>
-                            </span>
-                            <!--- DELETE BUTTON -->
-                            <span [ngSwitch]="thisVM.running">
-                                <a class="btn disabled" (click)="showDeleteVM(thisVM.name, thisVM.namespace)" title="Delete..." *ngSwitchCase="true">
-                                    <i class="fas fa-trash disabled"></i>
-                                </a>
-                                <a class="btn" (click)="showDeleteVM(thisVM.name, thisVM.namespace)" title="Delete..." *ngSwitchDefault>
-                                    <i class="fas fa-trash"></i>
-                                </a>
-                            </span>
-                            </td>
-                        </tr>
-                    </tbody>
-                    </table>
-                </td></tr>
                 </tbody>
                 </table>
             </tbody>
@@ -227,8 +133,11 @@
                       <a class="nav-link" id="newpool-net-tab" data-toggle="pill" href="#newpool-net" role="tab" aria-controls="newpool-net" aria-selected="false">Networking</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="newpool-healthcheck-tab" data-toggle="pill" href="#newpool-healthcheck" role="tab" aria-controls="newpool-healthcheck" aria-selected="false">Health Check</a>
-                      </li>
+                        <a class="nav-link" id="newpool-liveness-tab" data-toggle="pill" href="#newpool-liveness" role="tab" aria-controls="newpool-liveness" aria-selected="false">Liveness Probe</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="newpool-readiness-tab" data-toggle="pill" href="#newpool-readiness" role="tab" aria-controls="newpool-readiness" aria-selected="false">Readiness Probe</a>
+                    </li>
                     <li class="nav-item">
                       <a class="nav-link" id="newpool-userdata-tab" data-toggle="pill" href="#newpool-userdata" role="tab" aria-controls="newpool-userdata" aria-selected="false">User Data</a>
                     </li>
@@ -422,33 +331,61 @@
                         <option value=masquerade>masquerade</option>
                     </select>
                     </div>
-                    <!-- HEALTH CHECK TAB -->
-                    <div class="tab-pane fade" id="newpool-healthcheck" role="tabpanel" aria-labelledby="newpool-healthcheck-tab">
-                      <label for="newpool-healthcheck-enable">Health Check:</label>
-                      <select #newpoolhealthcheckenable class="custom-select rounded-0" name="newpool-healthcheck-enable" id="newpool-healthcheck-enable" (change)="onChangeHealthCheck(newpoolhealthcheckenable.value)">
+                    <!-- LIVENESS CHECK TAB -->
+                    <div class="tab-pane fade" id="newpool-liveness" role="tabpanel" aria-labelledby="newpool-liveness-tab">
+                      <label for="newpool-liveness-enable">Liveness Probe:</label>
+                      <select #newpoollivenessenable class="custom-select rounded-0" name="newpool-liveness-enable" id="newpool-liveness-enable" (change)="onChangeLiveness(newpoollivenessenable.value)">
                         <option value="disabled">Disabled</option>
                         <option value="enabled">Enabled</option>
                       </select>
-                      <label for="newpool-healthcheck-type">Health Check Type:</label>
-                      <select #newpoolhealthchecktype class="custom-select rounded-0" name="newpool-healthcheck-type" id="newpool-healthcheck-type" (change)="onChangeHealthCheckType(newpoolhealthchecktype.value)" disabled>
+                      <label for="newpool-liveness-type">Probe Type:</label>
+                      <select #newpoollivenesstype class="custom-select rounded-0" name="newpool-liveness-type" id="newpool-liveness-type" (change)="onChangeLivenessType(newpoollivenesstype.value)" disabled>
                         <option value="tcp">TCP</option>
                         <option value="http">HTTP</option>
                       </select>
-                      <div class="pane fade" id="newpool-healthcheck-path-panel" name="newpool-healthcheck-path-panel" style="display: none;" aria-hidden="true">
-                        <label for="newpool-healthcheck-path">HTTP Path:</label>
-                        <input #newpoolhealthcheckpath type="text" class="form-control" id="newpool-healthcheck-path" name="newpool-healthcheck-path">
+                      <div class="pane fade" id="newpool-liveness-path-panel" name="newpool-liveness-path-panel" style="display: none;" aria-hidden="true">
+                        <label for="newpool-liveness-path">HTTP Path:</label>
+                        <input #newpoollivenesspath type="text" class="form-control" id="newpool-liveness-path" name="newpool-liveness-path">
                       </div>
-                      <label for="newpool-healthcheck-port">Port:</label>
-                      <input #newpoolhealthcheckport type="number" class="form-control" id="newpool-healthcheck-port" name="newpool-healthcheck-port" disabled>
-                      <label for="newpool-healthcheck-initialdelay">Initial Delay (s):</label>
-                      <input #newpoolhealthcheckinitialdelay type="number" class="form-control" id="newpool-healthcheck-initialdelay" name="newpool-healthcheck-initialdelay" disabled>
-                      <label for="newpool-healthcheck-interval">Interval (s):</label>
-                      <input #newpoolhealthcheckinterval type="number" class="form-control" id="newpool-healthcheck-interval" name="newpool-healthcheck-interval" disabled>
-                      <label for="newpool-healthcheck-timeout">Timeout (s):</label>
-                      <input #newpoolhealthchecktimeout type="number" class="form-control" id="newpool-healthcheck-timeout" name="newpool-healthcheck-timeout" disabled>
-                      <label for="newpool-healthcheck-failure">Failure Threshold:</label>
-                      <input #newpoolhealthcheckfailure type="number" class="form-control" id="newpool-healthcheck-failure" name="newpool-healthcheck-failure" disabled>
-                      <input #newpoolhealthchecksuccess type="hidden" class="form-control" id="newpool-healthcheck-success" name="newpool-healthcheck-success" value="1">
+                      <label for="newpool-liveness-port">Port:</label>
+                      <input #newpoollivenessport type="number" class="form-control" id="newpool-liveness-port" name="newpool-liveness-port" disabled>
+                      <label for="newpool-liveness-initialdelay">Initial Delay (s):</label>
+                      <input #newpoollivenessinitialdelay type="number" class="form-control" id="newpool-liveness-initialdelay" name="newpool-liveness-initialdelay" disabled>
+                      <label for="newpool-liveness-interval">Interval (s):</label>
+                      <input #newpoollivenessinterval type="number" class="form-control" id="newpool-liveness-interval" name="newpool-liveness-interval" disabled>
+                      <label for="newpool-liveness-timeout">Timeout (s):</label>
+                      <input #newpoollivenesstimeout type="number" class="form-control" id="newpool-liveness-timeout" name="newpool-liveness-timeout" disabled>
+                      <label for="newpool-liveness-failure">Failure Threshold:</label>
+                      <input #newpoollivenessfailure type="number" class="form-control" id="newpool-liveness-failure" name="newpool-liveness-failure" disabled>
+                      <input #newpoollivenesssuccess type="hidden" class="form-control" id="newpool-liveness-success" name="newpool-liveness-success" value="1">
+                    </div>
+                    <!-- READINESS CHECK TAB -->
+                    <div class="tab-pane fade" id="newpool-readiness" role="tabpanel" aria-labelledby="newpool-readiness-tab">
+                        <label for="newpool-readiness-enable">Readiness Probe:</label>
+                        <select #newpoolreadinessenable class="custom-select rounded-0" name="newpool-readiness-enable" id="newpool-readiness-enable" (change)="onChangeReadiness(newpoolreadinessenable.value)">
+                          <option value="disabled">Disabled</option>
+                          <option value="enabled">Enabled</option>
+                        </select>
+                        <label for="newpool-readiness-type">Probe Type:</label>
+                        <select #newpoolreadinesstype class="custom-select rounded-0" name="newpool-readiness-type" id="newpool-readiness-type" (change)="onChangeReadinessType(newpoolreadinesstype.value)" disabled>
+                          <option value="tcp">TCP</option>
+                          <option value="http">HTTP</option>
+                        </select>
+                        <div class="pane fade" id="newpool-readiness-path-panel" name="newpool-readiness-path-panel" style="display: none;" aria-hidden="true">
+                          <label for="newpool-readiness-path">HTTP Path:</label>
+                          <input #newpoolreadinesspath type="text" class="form-control" id="newpool-readiness-path" name="newpool-readiness-path">
+                        </div>
+                        <label for="newpool-readiness-port">Port:</label>
+                        <input #newpoolreadinessport type="number" class="form-control" id="newpool-readiness-port" name="newpool-readiness-port" disabled>
+                        <label for="newpool-readiness-initialdelay">Initial Delay (s):</label>
+                        <input #newpoolreadinessinitialdelay type="number" class="form-control" id="newpool-readiness-initialdelay" name="newpool-readiness-initialdelay" disabled>
+                        <label for="newpool-readiness-interval">Interval (s):</label>
+                        <input #newpoolreadinessinterval type="number" class="form-control" id="newpool-readiness-interval" name="newpool-readiness-interval" disabled>
+                        <label for="newpool-readiness-timeout">Timeout (s):</label>
+                        <input #newpoolreadinesstimeout type="number" class="form-control" id="newpool-readiness-timeout" name="newpool-readiness-timeout" disabled>
+                        <label for="newpool-readiness-failure">Failure Threshold:</label>
+                        <input #newpoolreadinessfailure type="number" class="form-control" id="newpool-readiness-failure" name="newpool-readiness-failure" disabled>
+                        <input #newpoolreadinesssuccess type="hidden" class="form-control" id="newpool-readiness-success" name="newpool-readiness-success" value="1">
                     </div>
                     <!-- USERDATA TAB -->
                     <div class="tab-pane fade" id="newpool-userdata" role="tabpanel" aria-labelledby="newpool-userdata-tab">
@@ -479,7 +416,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-newpool")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)="applyNewPool(newpoolname.value, newpoolnamespace.value, newpoolreplicas.value, newpoollabelkeyone.value, newpoollabelvalueone.value, newpoollabelkeytwo.value, newpoollabelvaluetwo.value, newpoollabelkeythree.value, newpoollabelvaluethree.value, newpoollabelkeyfour.value, newpoollabelvaluefour.value, newpoollabelkeyfive.value, newpoollabelvaluefive.value, newpooltype.value, newpoolcpumemsockets.value, newpoolcpumemcores.value, newpoolcpumemthreads.value, newpoolcpumemmemory.value, newpoolpc.value, newpooldiskonetype.value, newpooldiskonevalue.value, newpooldiskonesize.value, newpooldiskonesc.value, newpooldiskoneam.value, newpooldiskoneurl.value, newpooldiskonecm.value, newpooldisktwotype.value, newpooldisktwovalue.value, newpooldisktwosize.value, newpooldisktwosc.value, newpooldisktwoam.value, newpooldisktwourl.value, newpooldisktwocm.value, newpoolnetwork.value, newpoolnetworktype.value, newpoolhealthcheckenable.value, newpoolhealthchecktype.value, newpoolhealthcheckpath.value, newpoolhealthcheckport.value, newpoolhealthcheckinitialdelay.value, newpoolhealthcheckinterval.value, newpoolhealthchecktimeout.value, newpoolhealthcheckfailure.value, newpoolhealthchecksuccess.value, newpooluserdatausername.value, newpooluserdataauth.value, newpooluserdatapassword.value, newpooluserdatassh.value, newpoolinitscript.value)">Create</button>
+              <button type="button" class="btn btn-primary" (click)="applyNewPool(newpoolname.value, newpoolnamespace.value, newpoolreplicas.value, newpoollabelkeyone.value, newpoollabelvalueone.value, newpoollabelkeytwo.value, newpoollabelvaluetwo.value, newpoollabelkeythree.value, newpoollabelvaluethree.value, newpoollabelkeyfour.value, newpoollabelvaluefour.value, newpoollabelkeyfive.value, newpoollabelvaluefive.value, newpooltype.value, newpoolcpumemsockets.value, newpoolcpumemcores.value, newpoolcpumemthreads.value, newpoolcpumemmemory.value, newpoolpc.value, newpooldiskonetype.value, newpooldiskonevalue.value, newpooldiskonesize.value, newpooldiskonesc.value, newpooldiskoneam.value, newpooldiskoneurl.value, newpooldiskonecm.value, newpooldisktwotype.value, newpooldisktwovalue.value, newpooldisktwosize.value, newpooldisktwosc.value, newpooldisktwoam.value, newpooldisktwourl.value, newpooldisktwocm.value, newpoolnetwork.value, newpoolnetworktype.value, newpoollivenessenable.value, newpoollivenesstype.value, newpoollivenesspath.value, newpoollivenessport.value, newpoollivenessinitialdelay.value, newpoollivenessinterval.value, newpoollivenesstimeout.value, newpoollivenessfailure.value, newpoollivenesssuccess.value, newpoolreadinessenable.value, newpoolreadinesstype.value, newpoolreadinesspath.value, newpoolreadinessport.value, newpoolreadinessinitialdelay.value, newpoolreadinessinterval.value, newpoolreadinesstimeout.value, newpoolreadinessfailure.value, newpoolreadinesssuccess.value, newpooluserdatausername.value, newpooluserdataauth.value, newpooluserdatapassword.value, newpooluserdatassh.value, newpoolinitscript.value)">Create</button>
             </div>
           </form>
           </div>
@@ -487,33 +424,6 @@
         </div>
         <!-- /.modal-dialog -->
       </div>
-
-
-    <!--                    -->
-    <!-- Modal: INFO        -->
-    <!--                    -->
-    <div class="modal fade" id="modal-info" style="display: none;" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h4 class="modal-title" id="info-title">TITLE_TEMPLATE</h4>
-              <button type="button" class="close" (click)='hideComponent("modal-info")'>
-                <span aria-hidden="true">×</span>
-              </button>
-            </div>
-            <div class="modal-body" id="info-value">
-                <ul class="nav flex-column" id="info-cards">
-                    TEMPLATE
-                </ul>
-            </div>
-            <div class="modal-footer justify-content-center">
-              <button type="button" class="btn btn-default" (click)='hideComponent("modal-info")'>Close</button>
-            </div>
-          </div>
-          <!-- /.modal-content -->
-      </div>
-      <!-- /.modal-dialog -->
-    </div>
 
     <!--               -->
     <!-- Modal: Delete -->
@@ -597,7 +507,7 @@
           <!-- /.modal-content -->
         </div>
         <!-- /.modal-dialog -->
-      </div>
+    </div>
   
 
     <!--               -->
@@ -615,13 +525,13 @@
             <div class="modal-body" id="resize-value">
               <input #resizeName type="hidden" id="resize-name" name="resize-name" value="">
               <input #resizeNamespace type="hidden" id="resize-namespace" name="resize-namespace" value="">
-              <label for="fileInput">Sockets:</label>
+              <label for="resize-sockets">Sockets:</label>
               <input #resizeSockets type="number" class="form-control" id="resize-sockets" name="resize-sockets">
-              <label for="fileInput">Cores:</label>
+              <label for="resize-cores">Cores:</label>
               <input #resizeCores type="number" class="form-control" id="resize-cores" name="resize-cores">
-              <label for="fileInput">Threads:</label>
+              <label for="resize-threads">Threads:</label>
               <input #resizeThreads type="number" class="form-control" id="resize-threads" name="resize-threas">
-              <label for="fileInput">Memory (in GB):</label>
+              <label for="resize-memory">Memory (in GB):</label>
               <input #resizeMemory type="number" class="form-control" id="resize-memory" name="resize-memory">
             </div>
             <div class="modal-footer justify-content-between">
@@ -663,6 +573,8 @@
           <!-- /.modal-content -->
         </div>
         <!-- /.modal-dialog -->
-      </div>
+      </div> 
     </div>
+
   </div>
+

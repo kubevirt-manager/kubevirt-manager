@@ -41,8 +41,6 @@ export class VMPool {
                                     }
                                 }
                             },
-                            'livenessProbe': {},
-                            'readinessProbe': {},
                             'priorityClassName': "",
                             'networks':[{}],
                             'volumes': [{}]
@@ -88,8 +86,6 @@ export class VMPool {
                                     'interfaces': [{}]
                                 }
                             },
-                            'livenessProbe': {},
-                            'readinessProbe': {},
                             'priorityClassName': "",
                             'networks':[{}],
                             'volumes': [{}]

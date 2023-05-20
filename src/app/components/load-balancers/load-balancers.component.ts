@@ -47,6 +47,7 @@ export class LoadBalancersComponent implements OnInit {
             currentLoadBalancer = new LoadBalancer();
             currentLoadBalancer.name = services[i].metadata.name;
             currentLoadBalancer.namespace = services[i].metadata.namespace;
+            currentLoadBalancer.creationTimestamp = new Date(services[i].metadata.creationTimestamp);
             currentLoadBalancer.type = services[i].spec.type;
             currentLoadBalancer.clusterIP = services[i].spec.clusterIP;
             if(services[i].spec.selector["kubevirt.io/vmpool"] != null) {

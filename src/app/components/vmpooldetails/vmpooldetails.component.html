@@ -1,0 +1,637 @@
+<div class="content">
+    <div class="container-fluid">
+      <div class="content-wrapper">
+        &nbsp;<br>
+        <div class="card card-outline">
+          <div class="card-header">
+            <h3 class="card-title">
+                <b> &nbsp; {{activePool.name}} &nbsp; </b>
+            </h3>
+          </div>
+          <div class="card-body">
+            <div class="card">
+                <div class="card-header p-2">
+                  <ul class="nav nav-pills">
+                    <li class="nav-item"><a class="nav-link active" href="#overview" data-toggle="tab">Overview</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#template" data-toggle="tab">Pool Template</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#liveness" data-toggle="tab">Liveness Probe</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#readiness" data-toggle="tab">Readiness Probe</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#virtualmachines" data-toggle="tab">Instances</a></li>
+                  </ul>
+                </div>
+                <div class="card-body">
+                  <div class="tab-content">
+                    <!-- Overview -->
+                    <div class="active tab-pane" id="overview">
+                       <dt>Metadata</dt>
+                       <br>
+                       <dd>Name: {{activePool.name}} </dd>
+                       <dd>Namespace: {{activePool.namespace}} </dd>
+                       <dd>Labels:</dd>
+                       <ul *ngFor="let thisLabel of activePool.labels | keyvalue">
+                           <li>{{thisLabel.key}} : {{thisLabel.value}}</li>
+                       </ul>
+                       <hr>
+                       <dt>
+                        Spec
+                        <a class="btn float-right" title="Edit...">
+                            <i class="fas fa-pen" (click)="showReplicas()"></i>
+                        </a>
+                      </dt>
+                      <br>
+                       <dd>Desired Replicas: {{activePool.replicas}} </dd>
+                       <dd>Ready Replicas: {{activePool.readyReplicas}} </dd>
+                       <dd>Running: {{activePool.running}} </dd>
+                       <hr>
+                       <dt>Status</dt>
+                       <br>
+                       <dd>Created At: {{activePool.creationTimestamp}} </dd>
+                    </div>
+                    <!-- Template -->
+                    <div class="tab-pane" id="template">
+                        <!-- Custom VM -->
+                        <div *ngIf="customTemplate; else vmTemplated">
+                          <dt>
+                            General Hardware
+                            <a class="btn float-right" title="Edit...">
+                                <i class="fas fa-pen" (click)="showResize(activePool.sockets, activePool.cores, activePool.threads, activePool.memory)"></i>
+                            </a>
+                          </dt>
+                          <br>
+                          <dd>Instance Type: {{activePool.instType}} </dd>
+                          <dd>CPU Sockets: {{activePool.sockets || 0}} </dd>
+                          <dd>CPU Cores: {{activePool.cores || 0}} </dd>
+                          <dd>CPU Threads: {{activePool.threads || 0}} </dd>
+                          <dd>Total VM Memory: {{activePool.memory}} </dd>
+                       </div>
+                       <!-- Templated VM -->
+                       <ng-template #vmTemplated>
+                          <dt>
+                            General Hardware
+                            <a class="btn float-right" title="Edit...">
+                                <i class="fas fa-pen" (click)="showType()"></i>
+                            </a>
+                          </dt>
+                          <br>
+                          <dd>Instance Type: {{activePool.instType}} </dd>
+                          <dd>Total vCPU: {{activePool.cores * activePool.sockets * activePool.threads || 0}}</dd>
+                          <dd>Total VM Memory: {{activePool.memory}} </dd>
+                       </ng-template>
+                       <hr>
+                       <dt>
+                        Execution
+                        <a class="btn float-right" title="Edit...">
+                            <i class="fas fa-pen" (click)="showPc()"></i>
+                        </a>
+                       </dt>
+                       <br>
+                       <dd>Priority Class: {{activePool.priorityClass}}</dd>
+                       <hr>
+                       <dt>
+                        Networking
+                        <!-- <a class="btn float-right" title="Edit...">
+                            <i class="fas fa-pen"></i>
+                        </a> -->
+                       </dt>
+                       <br>
+                       <dd>NIC: {{poolNetwork.name}}</dd>
+                       <dd>NIC Type: {{poolNetwork.type}}</dd>
+                       <dd>Network: {{poolNetwork.network}}</dd>
+                       <hr>
+                       <dt>Disks</dt>
+                       <br>
+                       <div *ngIf="hasDisk1">
+                            <dd>Disk 1:</dd>
+                            <ul>
+                                <li>Name: {{disk1Info.name}} </li>
+                                <li>Namespace: {{disk1Info.namespace}} </li>
+                                <li>Type: {{disk1Info.type}} </li>
+                                <li>Backend: {{disk1Info.backend}} </li>
+                                <li>Data Volume Name: {{disk1Info.dataVolumeName}} </li>
+                                <li>Data Volume Namespace: {{disk1Info.dataVolumeNamespace}} </li>
+                                <li>Source Type: {{disk1Info.dataVolumeSource}} </li>
+                                <li>Source Value: {{disk1Info.dataVolumeSourceValue}} </li>
+                                <li>Access Mode: {{disk1Info.accessMode}}</li>
+                                <li>Cache Mode: {{disk1Info.cacheMode || ""}} </li>
+                                <li>Capacity: {{disk1Info.capacity}} </li>
+                                <li>Storage Class: {{disk1Info.storageClass}}</li>
+                            </ul>
+                       </div>
+                       <div *ngIf="hasDisk2">
+                            <dd>Disk 2:</dd>
+                            <ul>
+                                <li>Name: {{disk2Info.name}} </li>
+                                <li>Namespace: {{disk2Info.namespace}} </li>
+                                <li>Type: {{disk2Info.type}} </li>
+                                <li>Backend: {{disk2Info.backend}} </li>
+                                <li>Data Volume Name: {{disk2Info.dataVolumeName}} </li>
+                                <li>Data Volume Namespace: {{disk2Info.dataVolumeNamespace}} </li>
+                                <li>Source Type: {{disk2Info.dataVolumeSource}} </li>
+                                <li>Source Value: {{disk2Info.dataVolumeSourceValue}} </li>
+                                <li>Access Mode: {{disk2Info.accessMode}}</li>
+                                <li>Cache Mode: {{disk2Info.cacheMode || ""}} </li>
+                                <li>Capacity: {{disk2Info.capacity}} </li>
+                                <li>Storage Class: {{disk2Info.storageClass}}</li>
+                            </ul>
+                       </div>
+                    </div>
+                    <!-- Liveness Probe -->
+                    <div class="tab-pane" id="liveness">
+                       <div *ngIf="activePool.hasLiveness; else createLiveness">
+                          <dt>
+                            General Config
+                            <a class="btn float-right" title="Edit...">
+                                <i class="fas fa-pen" (click)="showLiveness()"></i>
+                            </a>
+                          </dt>
+                          <br>
+                          <dd>initDelaySeconds: {{activePool.livenessProbe.initDelaySeconds}}</dd>
+                          <dd>periodSeconds: {{activePool.livenessProbe.periodSeconds}}</dd>
+                          <dd>timeoutSeconds: {{activePool.livenessProbe.timeoutSeconds}}</dd>
+                          <dd>failureThreshold: {{activePool.livenessProbe.failureThreshold}}</dd>
+                          <dd>successThreshold: {{activePool.livenessProbe.successThreshold}}</dd>
+                          <div *ngIf="activePool.livenessProbe.httpGet.port; else tcpSocket">
+                              <dd>Probe Type: HTTP</dd>
+                              <dd>HTTP Path: {{activePool.livenessProbe.httpGet.path}}</dd>
+                              <dd>HTTP Port: {{activePool.livenessProbe.httpGet.port}}</dd>
+                          </div>
+                          <ng-template #tcpSocket>
+                              <dd>Probe Type: TCP</dd>
+                              <dd>TCP Port: {{activePool.livenessProbe.tcpSocket.port}}</dd>
+                          </ng-template>
+                       </div>
+                       <ng-template #createLiveness>
+                        <dt>
+                            Disabled
+                            <a class="btn float-right" title="Edit...">
+                                <i class="fas fa-pen" (click)="showLiveness()"></i>
+                            </a>
+                        </dt>
+                       </ng-template>
+                    </div>
+                    <!-- Readiness Probe -->
+                    <div class="tab-pane" id="readiness">
+                        <div *ngIf="activePool.hasReadiness; else createReadiness">
+                          <dt>
+                            General Config
+                            <a class="btn float-right" title="Edit...">
+                                <i class="fas fa-pen" (click)="showReadiness()"></i>
+                            </a>
+                          </dt>
+                          <br>
+                          <dd>initDelaySeconds: {{activePool.readinessProbe.initDelaySeconds}}</dd>
+                          <dd>periodSeconds: {{activePool.readinessProbe.periodSeconds}}</dd>
+                          <dd>timeoutSeconds: {{activePool.readinessProbe.timeoutSeconds}}</dd>
+                          <dd>failureThreshold: {{activePool.readinessProbe.failureThreshold}}</dd>
+                          <dd>successThreshold: {{activePool.readinessProbe.successThreshold}}</dd>
+                          <div *ngIf="activePool.readinessProbe.httpGet.port; else tcpSocket">
+                              <dd>Probe Type: HTTP</dd>
+                              <dd>HTTP Path: {{activePool.readinessProbe.httpGet.path}}</dd>
+                              <dd>HTTP Port: {{activePool.readinessProbe.httpGet.port}}</dd>
+                          </div>
+                          <ng-template #tcpSocket>
+                              <dd>Probe Type: TCP</dd>
+                              <dd>TCP Port: {{activePool.readinessProbe.tcpSocket.port}}</dd>
+                          </ng-template>
+                       </div>
+                       <ng-template #createReadiness>
+                        <dt>
+                            Disabled
+                            <a class="btn float-right" title="Edit...">
+                                <i class="fas fa-pen" (click)="showReadiness()"></i>
+                            </a>
+                        </dt>
+                       </ng-template>
+                    </div>
+                    <!-- Virtual Mahcines -->
+                    <div class="tab-pane" id="virtualmachines">  
+                        <table class="table table-sm" style="vertical-align: middle !important;">
+                            <thead>
+                                <tr>
+                                <th style="width: 10px">&nbsp;</th>
+                                <th style="width: 140px">Virtual Machine</th>
+                                <th style="width: 60px">Node</th>
+                                <th style="width: 50px">Status</th>
+                                <th style="width: 50px">IP Address</th>
+                                <th style="width: 50px">Ready</th>
+                                <th style="width: 180px">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let thisVM of activePool.vmlist">
+                                    <td style="line-height: 2.2 !important; align-content: center;">
+                                    <span>
+                                        <span>
+                                        <span class="badge"><i class="fas fa-hdd"></i></span>
+                                        </span>
+                                    </span>
+                                    </td>
+                                    <td style="line-height: 2.2 !important;">{{thisVM.name}}</td>
+                                    <td style="line-height: 2.2 !important;">{{thisVM.nodeSel}}</td>
+                                    <td style="line-height: 2.2 !important;">{{thisVM.status}}</td>
+                                    <td style="line-height: 2.2 !important;">
+                                    <span [ngSwitch]="thisVM.status">
+                                        <span *ngSwitchCase="'Running'">
+                                        {{thisVM.vmi.ifAddr}}
+                                        </span>
+                                        <span *ngSwitchDefault>
+                                        &nbsp;
+                                        </span>
+                                    </span>
+                                    </td>
+                                    <td style="line-height: 2.2 !important;">{{thisVM.ready}}</td>
+                                    <td style="line-height: 0 !important;">
+                                    <!--- REMOVE BUTTON -->
+                                    <span>
+                                        <a class="btn" (click)='removeVmFromPool(thisVM.namespace, thisVM.name, thisVM.nodeSel)' title="Remove from pool...">
+                                        <i class="fas fa-minus"></i>
+                                        </a>
+                                    </span>
+                                    <!--- VNC BUTTON -->
+                                    <span [ngSwitch]="thisVM.status">
+                                        <a class="btn" routerLink="/vncviewer/{{thisVM.namespace}}/{{thisVM.name}}" title="Open console..." *ngSwitchCase="'Running'">
+                                        <i class="fas fa-desktop"></i>
+                                        </a>
+                                        <a class="btn disabled" routerLink="/vncviewer/{{thisVM.namespace}}/{{thisVM.name}}" title="Open console..." *ngSwitchDefault>
+                                        <i class="fas fa-desktop disabled"></i>
+                                        </a>
+                                    </span>
+                                    <!--- POWER ON BUTTON -->
+                                    <span [ngSwitch]="thisVM.running">
+                                        <a class="btn disabled" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchCase="true">
+                                          <i class="fas fa-plug disabled"></i>
+                                        </a>
+                                        <a class="btn" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchDefault>
+                                          <i class="fas fa-plug"></i>
+                                        </a>
+                                    </span>
+                                    <!--- POWER OFF BUTTON -->
+                                    <span [ngSwitch]="thisVM.running">
+                                        <a class="btn" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchCase="true">
+                                          <i class="fas fa-power-off"></i>
+                                        </a>
+                                        <a class="btn disabled" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchDefault>
+                                          <i class="fas fa-power-off disabled"></i>
+                                        </a>
+                                    </span>
+                                    <!--- RESTART BUTTON -->
+                                    <span [ngSwitch]="thisVM.running">
+                                        <a class="btn" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchCase="true">
+                                          <i class="fas fa-redo"></i>
+                                        </a>
+                                        <a class="btn disabled" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchDefault>
+                                          <i class="fas fa-redo disabled"></i>
+                                        </a>
+                                    </span>
+                                    <!--- DELETE BUTTON -->
+                                    <span [ngSwitch]="thisVM.running">
+                                        <a class="btn disabled" (click)="showDeleteVM(thisVM.name, thisVM.namespace)" title="Delete..." *ngSwitchCase="true">
+                                            <i class="fas fa-trash disabled"></i>
+                                        </a>
+                                        <a class="btn" (click)="showDeleteVM(thisVM.name, thisVM.namespace)" title="Delete..." *ngSwitchDefault>
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            
+          </div>
+          <!-- /.card-body -->
+        </div>
+      </div>
+
+
+      <!--                 -->
+      <!-- Modal: DeleteVM -->
+      <!--                 -->
+      <div class="modal fade" id="modal-deletevm" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="deletevm-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-deletevm")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <input type="hidden" id="deletevm-namespace" name="deletevm-namespace" value="">
+            <input type="hidden" id="deletevm-name" name="deletevm-name" value="">
+            <div class="modal-body" id="deletevm-value">
+              <p>BODY_TEMPLATE</p>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-deletevm")'>Close</button>
+              <button type="button" class="btn btn-danger" (click)="applyDeleteVM()">Delete</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+
+      <!--                 -->
+      <!-- Modal: Replicas -->
+      <!--                 -->
+      <div class="modal fade" id="modal-replicas" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="replicas-title">Scale: {{activePool.namespace}} - {{activePool.name}}</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-replicas")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="replicas-value">
+              <div class="form-group">
+                <label for="replicasInput">New number of replicas</label>
+                <input #replicasinput type="number" class="form-control" id="replicas-input" name="replicas-input" placeholder="0">
+              </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-replicas")'>Close</button>
+              <button type="button" class="btn btn-primary" (click)="applyReplicas(activePool.namespace, activePool.name, replicasinput.value)">Resize</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div> 
+
+    <!--                    -->
+    <!-- Modal: Change Type -->
+    <!--                    -->
+    <div class="modal fade" id="modal-type" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="type-title">Type: {{activePool.namespace}} - {{activePool.name}}</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-type")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="type-value">
+              <label for="newType">Virtual Machine Pool Type:</label>
+              <select #changepooltype class="custom-select rounded-0" name="changepool-type" id="changepool-type">
+                  <option>Value 1</option>
+              </select>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-type")'>Close</button>
+              <button type="button" class="btn btn-primary" (click)="applyType(activePool.namespace, activePool.name, changepooltype.value)">Save changes</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!--               -->
+    <!-- Modal: Resize -->
+    <!--               -->
+    <div class="modal fade" id="modal-resize" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="resize-title">Resize: {{activePool.namespace}} - {{activePool.name}}</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-resize")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="resize-value">
+              <label for="resize-sockets">Sockets:</label>
+              <input #resizeSockets type="number" class="form-control" id="resize-sockets" name="resize-sockets">
+              <label for="resize-cores">Cores:</label>
+              <input #resizeCores type="number" class="form-control" id="resize-cores" name="resize-cores">
+              <label for="resize-threads">Threads:</label>
+              <input #resizeThreads type="number" class="form-control" id="resize-threads" name="resize-threas">
+              <label for="resize-memory">Memory (in GB):</label>
+              <input #resizeMemory type="number" class="form-control" id="resize-memory" name="resize-memory">
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-resize")'>Close</button>
+              <button type="button" class="btn btn-primary" (click)="applyResize(activePool.namespace, activePool.name, resizeSockets.value, resizeCores.value, resizeThreads.value, resizeMemory.value)">Save changes</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!--                       -->
+    <!-- Modal: Priority Class -->
+    <!--                       -->
+    <div class="modal fade" id="modal-pc" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="type-title">Priority Class: {{activePool.namespace}} - {{activePool.name}}</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-pc")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="type-value">
+              <label for="newPriority">Priority Class:</label>
+              <select #changepoolpc class="custom-select rounded-0" name="changepool-pc" id="changepool-pc">
+                  <option>Value 1</option>
+              </select>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-pc")'>Close</button>
+              <button type="button" class="btn btn-primary" (click)="applyPc(activePool.namespace, activePool.name, changepoolpc.value)">Save changes</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!--                  -->
+    <!-- Modal: Liveness  -->
+    <!--                  -->
+    <div class="modal fade" id="modal-liveness" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="type-title">Liveness: {{activePool.namespace}} - {{activePool.name}}</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-liveness")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="type-value">
+              <div *ngIf="activePool.hasLiveness; else noLiveness">
+                <label for="pooldetails-liveness-enable">Liveness Probe:</label>
+                <select #pooldetailslivenessenable class="custom-select rounded-0" name="pooldetails-liveness-enable" id="pooldetails-liveness-enable" (change)="onChangeLiveness(pooldetailslivenessenable.value)">
+                    <option value="disabled">Disabled</option>
+                    <option value="enabled" selected>Enabled</option>
+                </select>
+                <label for="pooldetails-liveness-type">Probe Type:</label>
+                <span id="thistypeselector" [ngSwitch]="thisLivenessType">
+                    <select [(ngModel)]="selectedLivenessType" #pooldetailslivenesstype class="custom-select rounded-0" name="pooldetails-liveness-type" id="pooldetails-liveness-type" (change)="onChangeLivenessType(pooldetailslivenesstype.value)" *ngSwitchCase="'http'">
+                        <option value="tcp">TCP</option>
+                        <option value="http" selected>HTTP</option>
+                    </select>
+                    <select [(ngModel)]="selectedLivenessType" #pooldetailslivenesstype class="custom-select rounded-0" name="pooldetails-liveness-type" id="pooldetails-liveness-type" (change)="onChangeLivenessType(pooldetailslivenesstype.value)" *ngSwitchCase="'tcp'">
+                        <option value="tcp" selected>TCP</option>
+                        <option value="http">HTTP</option>
+                    </select>
+                </span>
+                <div class="modal fade show" id="pooldetails-liveness-path-panel" name="pooldetails-liveness-path-panel" style="display: contents;" aria-hidden="false" *ngIf="activePool.livenessProbe.httpGet.path">
+                    <label for="pooldetails-readiness-path">HTTP Path:</label>
+                    <input [(ngModel)]="inputLivenessPath" #pooldetailslivenesspath type="text" class="form-control" id="pooldetails-liveness-path" name="pooldetails-liveness-path" value={{activePool.livenessProbe.httpGet.path}}>
+                </div>
+                <label for="pooldetails-liveness-port">Port:</label>
+                <span id="thistypeport" [ngSwitch]="thisLivenessType">
+                    <input [(ngModel)]="inputLivenessPort" #pooldetailslivenessport type="number" class="form-control" id="pooldetails-liveness-port" name="pooldetails-liveness-port" value={{activePool.livenessProbe.httpGet.port}} *ngSwitchCase="'http'">
+                    <input [(ngModel)]="inputLivenessPort" #pooldetailslivenessport type="number" class="form-control" id="pooldetails-liveness-port" name="pooldetails-liveness-port" value={{activePool.livenessProbe.tcpSocket.port}} *ngSwitchCase="'tcp'">
+                </span>
+                <label for="pooldetails-liveness-initialdelay">Initial Delay (s):</label>
+                <input [(ngModel)]="inputLivenessDelay" #pooldetailslivenessinitialdelay type="number" class="form-control" id="pooldetails-liveness-initialdelay" name="pooldetails-liveness-initialdelay" value={{activePool.livenessProbe.initDelaySeconds}}>
+                <label for="pooldetails-liveness-interval">Interval (s):</label>
+                <input [(ngModel)]="inputLivenessInterval" #pooldetailslivenessinterval type="number" class="form-control" id="pooldetails-liveness-interval" name="pooldetails-liveness-interval" value={{activePool.livenessProbe.periodSeconds}}>
+                <label for="pooldetails-liveness-timeout">Timeout (s):</label>
+                <input [(ngModel)]="inputLivenessTimeout" #pooldetailslivenesstimeout type="number" class="form-control" id="pooldetails-liveness-timeout" name="pooldetails-liveness-timeout" value={{activePool.livenessProbe.timeoutSeconds}}>
+                <label for="pooldetails-liveness-failure">Failure Threshold:</label>
+                <input [(ngModel)]="inputLivenessFailure" #pooldetailslivenessfailure type="number" class="form-control" id="pooldetails-liveness-failure" name="pooldetails-liveness-failure" value={{activePool.livenessProbe.failureThreshold}}>
+                <input [(ngModel)]="inputLivenessSuccess" #pooldetailslivenesssuccess type="hidden" class="form-control" id="pooldetails-liveness-success" name="pooldetails-liveness-success" value="1">
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" (click)='hideComponent("modal-liveness")'>Close</button>
+                    <button type="button" class="btn btn-primary" (click)="applyLiveness(activePool.namespace, activePool.name, pooldetailslivenessenable.value)">Save changes</button>
+                </div>
+              </div>
+              <ng-template #noLiveness>
+                <label for="pooldetails-liveness-enable">Liveness Probe:</label>
+                <select #pooldetailslivenessenable class="custom-select rounded-0" name="pooldetails-liveness-enable" id="pooldetails-liveness-enable" (change)="onChangeLiveness(pooldetailslivenessenable.value)">
+                    <option value="disabled" selected>Disabled</option>
+                    <option value="enabled">Enabled</option>
+                </select>
+                <label for="pooldetails-liveness-type">Probe Type:</label>
+                <select [(ngModel)]="selectedLivenessType" #pooldetailslivenesstype class="custom-select rounded-0" name="pooldetails-liveness-type" id="pooldetails-liveness-type" (change)="onChangeLivenessType(pooldetailslivenesstype.value)" disabled>
+                  <option value="tcp">TCP</option>
+                  <option value="http">HTTP</option>
+                </select>
+                <div class="pane fade" id="pooldetails-liveness-path-panel" name="pooldetails-liveness-path-panel" style="display: none;" aria-hidden="true">
+                  <label for="pooldetails-liveness-path">HTTP Path:</label>
+                  <input [(ngModel)]="inputLivenessPath" #pooldetailslivenesspath type="text" class="form-control" id="pooldetails-liveness-path" name="pooldetails-liveness-path">
+                </div>
+                <label for="pooldetails-liveness-port">Port:</label>
+                <input [(ngModel)]="inputLivenessPort" #pooldetailslivenessport type="number" class="form-control" id="pooldetails-liveness-port" name="pooldetails-liveness-port" disabled>
+                <label for="pooldetails-liveness-initialdelay">Initial Delay (s):</label>
+                <input [(ngModel)]="inputLivenessDelay" #pooldetailslivenessinitialdelay type="number" class="form-control" id="pooldetails-liveness-initialdelay" name="pooldetails-liveness-initialdelay" disabled>
+                <label for="pooldetails-liveness-interval">Interval (s):</label>
+                <input [(ngModel)]="inputLivenessInterval" #pooldetailslivenessinterval type="number" class="form-control" id="pooldetails-liveness-interval" name="pooldetails-liveness-interval" disabled>
+                <label for="pooldetails-liveness-timeout">Timeout (s):</label>
+                <input [(ngModel)]="inputLivenessTimeout" #pooldetailslivenesstimeout type="number" class="form-control" id="pooldetails-liveness-timeout" name="pooldetails-liveness-timeout" disabled>
+                <label for="pooldetails-liveness-failure">Failure Threshold:</label>
+                <input [(ngModel)]="inputLivenessFailure" #pooldetailslivenessfailure type="number" class="form-control" id="pooldetails-liveness-failure" name="pooldetails-liveness-failure" disabled>
+                <input [(ngModel)]="inputLivenessSuccess" #pooldetailslivenesssuccess type="hidden" class="form-control" id="pooldetails-liveness-success" name="pooldetails-liveness-success" value="1">
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" (click)='hideComponent("modal-liveness")'>Close</button>
+                    <button type="button" class="btn btn-primary" (click)="applyLiveness(activePool.namespace, activePool.name, pooldetailslivenessenable.value)">Save changes</button>
+                </div>
+             </ng-template>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!--                  -->
+    <!-- Modal: Readiness -->
+    <!--                  -->
+    <div class="modal fade" id="modal-readiness" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="type-title">Readiness: {{activePool.namespace}} - {{activePool.name}}</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-readiness")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="type-value">
+              <div *ngIf="activePool.hasReadiness; else noReadiness">
+                <label for="pooldetails-readiness-enable">Readiness Probe:</label>
+                <select #pooldetailsreadinessenable class="custom-select rounded-0" name="pooldetails-readiness-enable" id="pooldetails-readiness-enable" (change)="onChangeReadiness(pooldetailsreadinessenable.value)">
+                    <option value="disabled">Disabled</option>
+                    <option value="enabled" selected>Enabled</option>
+                </select>
+                <label for="pooldetails-readiness-type">Probe Type:</label>
+                <span id="thistypeselector" [ngSwitch]="thisReadinessType">
+                    <select [(ngModel)]="selectedReadinessType" #pooldetailsreadinesstype class="custom-select rounded-0" name="pooldetails-readiness-type" id="pooldetails-readiness-type" (change)="onChangeReadinessType(pooldetailsreadinesstype.value)" *ngSwitchCase="'http'">
+                        <option value="tcp">TCP</option>
+                        <option value="http" selected>HTTP</option>
+                    </select>
+                    <select [(ngModel)]="selectedReadinessType" #pooldetailsreadinesstype class="custom-select rounded-0" name="pooldetails-readiness-type" id="pooldetails-readiness-type" (change)="onChangeReadinessType(pooldetailsreadinesstype.value)" *ngSwitchCase="'tcp'">
+                        <option value="tcp" selected>TCP</option>
+                        <option value="http">HTTP</option>
+                    </select>
+                </span>
+                <div class="modal fade show" id="pooldetails-readiness-path-panel" name="pooldetails-readiness-path-panel" style="display: contents;" aria-hidden="false" *ngIf="activePool.readinessProbe.httpGet.path">
+                    <label for="pooldetails-readiness-path">HTTP Path:</label>
+                    <input [(ngModel)]="inputReadinessPath" #pooldetailsreadinesspath type="text" class="form-control" id="pooldetails-readiness-path" name="pooldetails-readiness-path" value={{activePool.readinessProbe.httpGet.path}}>
+                </div>
+                <label for="pooldetails-readiness-port">Port:</label>
+                <span id="thistypeport" [ngSwitch]="thisReadinessType">
+                    <input [(ngModel)]="inputReadinessPort" #pooldetailsreadinessport type="number" class="form-control" id="pooldetails-readiness-port" name="pooldetails-readiness-port" value={{activePool.readinessProbe.httpGet.port}} *ngSwitchCase="'http'">
+                    <input [(ngModel)]="inputReadinessPort" #pooldetailsreadinessport type="number" class="form-control" id="pooldetails-readiness-port" name="pooldetails-readiness-port" value={{activePool.readinessProbe.tcpSocket.port}} *ngSwitchCase="'tcp'">
+                </span>
+                <label for="pooldetails-readiness-initialdelay">Initial Delay (s):</label>
+                <input [(ngModel)]="inputReadinessDelay" #pooldetailsreadinessinitialdelay type="number" class="form-control" id="pooldetails-readiness-initialdelay" name="pooldetails-readiness-initialdelay" value={{activePool.readinessProbe.initDelaySeconds}}>
+                <label for="pooldetails-readiness-interval">Interval (s):</label>
+                <input [(ngModel)]="inputReadinessInterval" #pooldetailsreadinessinterval type="number" class="form-control" id="pooldetails-readiness-interval" name="pooldetails-readiness-interval" value={{activePool.readinessProbe.periodSeconds}}>
+                <label for="pooldetails-readiness-timeout">Timeout (s):</label>
+                <input [(ngModel)]="inputReadinessTimeout" #pooldetailsreadinesstimeout type="number" class="form-control" id="pooldetails-readiness-timeout" name="pooldetails-readiness-timeout" value={{activePool.readinessProbe.timeoutSeconds}}>
+                <label for="pooldetails-readiness-failure">Failure Threshold:</label>
+                <input [(ngModel)]="inputReadinessFailure" #pooldetailsreadinessfailure type="number" class="form-control" id="pooldetails-readiness-failure" name="pooldetails-readiness-failure" value={{activePool.readinessProbe.failureThreshold}}>
+                <input [(ngModel)]="inputReadinessSuccess" #pooldetailsreadinesssuccess type="hidden" class="form-control" id="pooldetails-readiness-success" name="pooldetails-readiness-success" value="1">
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" (click)='hideComponent("modal-readiness")'>Close</button>
+                    <button type="button" class="btn btn-primary" (click)="applyReadiness(activePool.namespace, activePool.name, pooldetailsreadinessenable.value)">Save changes</button>
+                </div>
+              </div>
+              <ng-template #noReadiness>
+                <label for="pooldetails-readiness-enable">Readiness Probe:</label>
+                <select #pooldetailsreadinessenable class="custom-select rounded-0" name="pooldetails-readiness-enable" id="pooldetails-readiness-enable" (change)="onChangeReadiness(pooldetailsreadinessenable.value)">
+                    <option value="disabled">Disabled</option>
+                    <option value="enabled">Enabled</option>
+                </select>
+                <label for="pooldetails-readiness-type">Probe Type:</label>
+                <select [(ngModel)]="selectedReadinessType" #pooldetailsreadinesstype class="custom-select rounded-0" name="pooldetails-readiness-type" id="pooldetails-readiness-type" (change)="onChangeReadinessType(pooldetailsreadinesstype.value)" disabled>
+                  <option value="tcp">TCP</option>
+                  <option value="http">HTTP</option>
+                </select>
+                <div class="pane fade" id="pooldetails-readiness-path-panel" name="pooldetails-readiness-path-panel" style="display: none;" aria-hidden="true">
+                  <label for="pooldetails-readiness-path">HTTP Path:</label>
+                  <input [(ngModel)]="inputReadinessPath" #pooldetailsreadinesspath type="text" class="form-control" id="pooldetails-readiness-path" name="pooldetails-readiness-path">
+                </div>
+                <label for="pooldetails-readiness-port">Port:</label>
+                <input [(ngModel)]="inputReadinessPort" #pooldetailsreadinessport type="number" class="form-control" id="pooldetails-readiness-port" name="pooldetails-readiness-port" disabled>
+                <label for="pooldetails-readiness-initialdelay">Initial Delay (s):</label>
+                <input [(ngModel)]="inputReadinessDelay" #pooldetailsreadinessinitialdelay type="number" class="form-control" id="pooldetails-readiness-initialdelay" name="pooldetails-readiness-initialdelay" disabled>
+                <label for="pooldetails-readiness-interval">Interval (s):</label>
+                <input [(ngModel)]="inputReadinessInterval" #pooldetailsreadinessinterval type="number" class="form-control" id="pooldetails-readiness-interval" name="pooldetails-readiness-interval" disabled>
+                <label for="pooldetails-readiness-timeout">Timeout (s):</label>
+                <input [(ngModel)]="inputReadinessTimeout" #pooldetailsreadinesstimeout type="number" class="form-control" id="pooldetails-readiness-timeout" name="pooldetails-readiness-timeout" disabled>
+                <label for="pooldetails-readiness-failure">Failure Threshold:</label>
+                <input [(ngModel)]="inputReadinessFailure" #pooldetailsreadinessfailure type="number" class="form-control" id="pooldetails-readiness-failure" name="pooldetails-readiness-failure" disabled>
+                <input [(ngModel)]="inputReadinessSuccess" #pooldetailsreadinesssuccess type="hidden" class="form-control" id="pooldetails-readiness-success" name="pooldetails-readiness-success" value="1">
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" (click)='hideComponent("modal-readiness")'>Close</button>
+                    <button type="button" class="btn btn-primary" (click)="applyReadiness(activePool.namespace, activePool.name, pooldetailsreadinessenable.value)">Save changes</button>
+                </div>
+            </ng-template>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+
+    </div>
+</div>

@@ -91,12 +91,18 @@ export class VmlistComponent implements OnInit {
             currentVm = new KubeVirtVM();
             currentVm.name = vms[i].metadata["name"];
             currentVm.namespace = vms[i].metadata["namespace"];
-            currentVm.status = vms[i].status["printableStatus"];
-            /* Working around a bug when scaling down and VM stuck in terminating */
-            if(currentVm.status.toLocaleLowerCase() == "terminating") {
-                currentVm.running = false;                
-            } else {
-                currentVm.running = vms[i].spec["running"];
+            currentVm.creationTimestamp = new Date(vms[i].metadata["creationTimestamp"]);
+            try {
+                currentVm.status = vms[i].status["printableStatus"];
+                /* Working around a bug when scaling down and VM stuck in terminating */
+                if(currentVm.status.toLocaleLowerCase() == "terminating") {
+                    currentVm.running = false;                
+                } else {
+                    currentVm.running = vms[i].spec["running"];
+                }
+            } catch (e) {
+                currentVm.status = "";
+                currentVm.running = false;
             }
             try {
                 currentVm.nodeSel = vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"];
@@ -143,8 +149,6 @@ export class VmlistComponent implements OnInit {
 
             if(vms[i].status["ready"] != null) {
                 currentVm.ready = vms[i].status["ready"];
-                console.log("MY TEST!!!!");
-                console.log(currentVm.ready);
             }
 
             if(currentVm.running && currentVm.status && vms[i].status["printableStatus"].toLowerCase() == "running") {
@@ -154,6 +158,7 @@ export class VmlistComponent implements OnInit {
                     currentVmi = new KubeVirtVMI();
                     currentVmi.name = datavmi.metadata["name"];
                     currentVmi.namespace = datavmi.metadata["namespace"];
+                    currentVmi.creationTimestamp = new Date(datavmi.metadata["creationTimestamp"]);
                     currentVmi.osId = datavmi.status.guestOSInfo["id"]
                     currentVmi.osKernRel = datavmi.status.guestOSInfo["kernelRelease"]
                     currentVmi.osKernVer = datavmi.status.guestOSInfo["kernelVersion"]
@@ -1002,46 +1007,6 @@ export class VmlistComponent implements OnInit {
                     console.log(e);
                 }
             }
-        }
-    }
-
-    /*
-     * Show Info Window
-     */
-    async showInfo(vmNamespace: string, vmName: string): Promise<void> {
-        clearInterval(this.myInterval);
-        let myInnerHTML = "";
-        let modalDiv = document.getElementById("modal-info");
-        let modalTitle = document.getElementById("info-title");
-        let modalBody = document.getElementById("info-cards");
-        if(modalTitle != null) {
-            modalTitle.replaceChildren("Info");
-        }
-        if(modalBody != null) {
-            let data = await lastValueFrom(this.kubeVirtService.getVM(vmNamespace, vmName));
-            myInnerHTML += "<li class=\"nav-item\">VM Name: <span class=\"float-right badge bg-primary\">" + data.metadata.name + "</span></li>";
-            myInnerHTML += "<li class=\"nav-item\">VM Namespace: <span class=\"float-right badge bg-primary\">" + data.metadata.namespace + "</span></li>";
-            myInnerHTML += "<li class=\"nav-item\">Creation Timestamp: <span class=\"float-right badge bg-primary\">" + data.metadata.creationTimestamp + "</span></li>";
-            if(data.spec.template.spec.priorityClassName != null) {
-                myInnerHTML += "<li class=\"nav-item\">Priority Class: <span class=\"float-right badge bg-primary\">" + data.spec.template.spec.priorityClassName + "</span></li>";
-            }
-            if(data.metadata.labels != null) {
-                let labels = Object.entries(data.metadata.labels);
-                for(let i = 0; i < labels.length; i++){
-                    let thisLabel = labels[i];
-                    myInnerHTML += "<li class=\"nav-item\">Labels: <span class=\"float-right badge bg-primary\">" + thisLabel[0] + ": " + thisLabel[1] + "</span></li>";
-                }
-            }
-            myInnerHTML += "<li class=\"nav-item\">Status: <span class=\"float-right badge bg-primary\">" + data.status.printableStatus + "</span></li>";
-            myInnerHTML += "<li class=\"nav-item\">Ready: <span class=\"float-right badge bg-primary\">" + data.status.ready + "</span></li>";
-            modalBody.innerHTML = myInnerHTML;
-        }
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade show");
-            modalDiv.setAttribute("aria-modal", "true");
-            modalDiv.setAttribute("role", "dialog");
-            modalDiv.setAttribute("aria-hidden", "false");
-            modalDiv.setAttribute("style","display: block;");
         }
     }
 

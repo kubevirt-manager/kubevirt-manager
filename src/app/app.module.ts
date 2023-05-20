@@ -18,6 +18,8 @@ import { VMPoolsComponent } from './components/vmpools/vmpools.component';
 import { LoadBalancersComponent } from './components/load-balancers/load-balancers.component';
 import { RefreshComponent } from './components/refresh/refresh.component';
 import { AutoscaleComponent } from './components/autoscale/autoscale.component';
+import { VmpooldetailsComponent } from './components/vmpooldetails/vmpooldetails.component';
+import { VmdetailsComponent } from './components/vmdetails/vmdetails.component';
 
 @NgModule({
   declarations: [
@@ -36,6 +38,8 @@ import { AutoscaleComponent } from './components/autoscale/autoscale.component';
     LoadBalancersComponent,
     RefreshComponent,
     AutoscaleComponent,
+    VmpooldetailsComponent,
+    VmdetailsComponent,
   ],
   imports: [
     BrowserModule,

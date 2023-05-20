@@ -35,12 +35,6 @@ describe('VmlistComponent', () => {
     const contentValue = componentElem.querySelector('#modal-delete');
     expect(contentValue).toBeTruthy();
   });
-  it('should contain Window: Virtual Machine Info', () => {
-    const componentDoc: DebugElement = fixture.debugElement;
-    const componentElem = componentDoc.nativeElement;
-    const contentValue = componentElem.querySelector('#modal-info');
-    expect(contentValue).toBeTruthy();
-  });
   it('should contain Window: Resize Virtual Machine', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;

@@ -1,7 +1,7 @@
 import { HttpProbe } from "./http-probe.model";
 import { TcpProbe } from "./tcp-probe.model";
 
-export class HealthCheck {
+export class ReadinessProbe {
     initDelaySeconds:    number = 0;
     periodSeconds:       number = 0;
     timeoutSeconds:      number = 0;

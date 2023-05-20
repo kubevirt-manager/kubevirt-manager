@@ -47,6 +47,7 @@ export class AutoscaleComponent implements OnInit {
             let thisHpa = new K8sHPA();
             thisHpa.name = hpas[i].metadata["name"];
             thisHpa.namespace = hpas[i].metadata["namespace"];
+            thisHpa.creationTimestamp = new Date(hpas[i].metadata["creationTimestamp"]);
             thisHpa.scaleTarget = hpas[i].spec.scaleTargetRef["name"]
             thisHpa.minReplicas = hpas[i].spec["minReplicas"]
             thisHpa.maxReplicas = hpas[i].spec["maxReplicas"]
@@ -55,7 +56,11 @@ export class AutoscaleComponent implements OnInit {
             thisHpa.metricAvg = hpas[i].spec.metrics[0].resource.target["averageUtilization"]
             thisHpa.currentRpl = hpas[i].status["currentReplicas"]
             thisHpa.desiredRpl = hpas[i].status["desiredReplicas"]
-            thisHpa.currAvgUtl = hpas[i].status.currentMetrics[0].resource.current["averageUtilization"]
+            try {
+                thisHpa.currAvgUtl = hpas[i].status.currentMetrics[0].resource.current["averageUtilization"]
+            } catch (e) {
+                thisHpa.currAvgUtl = 0;
+            }
             this.hpaList.push(thisHpa);
         }
     }

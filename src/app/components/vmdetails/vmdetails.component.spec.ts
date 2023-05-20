@@ -1,21 +1,23 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { VMPoolsComponent } from './vmpools.component';
 import { DebugElement } from '@angular/core';
-import { By } from '@angular/platform-browser';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormsModule } from '@angular/forms';
+import { RouterTestingModule } from '@angular/router/testing';
 
-describe('VMPoolsComponent', () => {
-  let component: VMPoolsComponent;
-  let fixture: ComponentFixture<VMPoolsComponent>;
+import { VmdetailsComponent } from './vmdetails.component';
+
+describe('VmdetailsComponent', () => {
+  let component: VmdetailsComponent;
+  let fixture: ComponentFixture<VmdetailsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      declarations: [ VMPoolsComponent ]
+      imports: [ RouterTestingModule, HttpClientTestingModule, FormsModule],
+      declarations: [ VmdetailsComponent ]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(VMPoolsComponent);
+    fixture = TestBed.createComponent(VmdetailsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
@@ -23,52 +25,52 @@ describe('VMPoolsComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-  it('should contain component title', () => {
+  it('should contain Tab: Overview', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
-    const contentValue = componentElem.querySelector('h3');
-    expect(contentValue.textContent).toContain('VM Pools');
-  });
-  it('should contain New Virtual Machine Pool item', () => {
-    const componentDoc: DebugElement = fixture.debugElement;
-    const componentElem = componentDoc.query(By.css('.fa-plus-square'))
-    const contentValue = componentElem.nativeElement;
+    const contentValue = componentElem.querySelector('#overview');
     expect(contentValue).toBeTruthy();
   });
-  it('should contain Window: New VM Pool', () => {
+  it('should contain Tab: Details', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
-    const contentValue = componentElem.querySelector('#modal-newpool');
+    const contentValue = componentElem.querySelector('#details');
     expect(contentValue).toBeTruthy();
   });
-  it('should contain Window: Delete VM Pool', () => {
+  it('should contain Tab: VM Console', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
-    const contentValue = componentElem.querySelector('#modal-delete');
+    const contentValue = componentElem.querySelector('#vmconsole');
     expect(contentValue).toBeTruthy();
   });
-  it('should contain Window: Delete VM from Pool', () => {
-    const componentDoc: DebugElement = fixture.debugElement;
-    const componentElem = componentDoc.nativeElement;
-    const contentValue = componentElem.querySelector('#modal-deletevm');
-    expect(contentValue).toBeTruthy();
-  });
-  it('should contain Window: Change VM Pool Type', () => {
+  it('should contain Window: Change Type', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
     const contentValue = componentElem.querySelector('#modal-type');
     expect(contentValue).toBeTruthy();
   });
-  it('should contain Window: Resize VM Pool', () => {
+  it('should contain Window: Resize', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
     const contentValue = componentElem.querySelector('#modal-resize');
     expect(contentValue).toBeTruthy();
   });
-  it('should contain Window: Change VM Pool Replicas', () => {
+  it('should contain Window: Priority Class', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
-    const contentValue = componentElem.querySelector('#modal-replicas');
+    const contentValue = componentElem.querySelector('#modal-pc');
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain VNC Screen', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#screen');
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain VNC Status', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#status');
     expect(contentValue).toBeTruthy();
   });
 });

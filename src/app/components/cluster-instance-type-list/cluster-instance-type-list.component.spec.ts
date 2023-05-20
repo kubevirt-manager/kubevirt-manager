@@ -35,4 +35,22 @@ describe('ClusterInstanceTypeListComponent', () => {
     const contentValue = componentElem.nativeElement;
     expect(contentValue).toBeTruthy();
   });
+  it('should contain Window: New Cluster Instance Type', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#modal-new');
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain Window: Delete Cluster Instance Type', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#modal-delete');
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain Window: Edit Cluster Instance Type', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#modal-edit');
+    expect(contentValue).toBeTruthy();
+  });
 });

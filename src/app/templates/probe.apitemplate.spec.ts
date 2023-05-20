@@ -12,4 +12,12 @@ describe('Probe', () => {
     let tcpProbe = new Probe().tcpProbe;
     expect(tcpProbe).toBeTruthy();
   });
+  it('should have Readiness Probe', () => {
+    let tcpProbe = new Probe().readinessProbe;
+    expect(tcpProbe).toBeTruthy();
+  });
+  it('should have Liveness Probe', () => {
+    let tcpProbe = new Probe().livenessProbe;
+    expect(tcpProbe).toBeTruthy();
+  });
 });
