@@ -10,19 +10,25 @@ import { RefreshComponent } from './components/refresh/refresh.component';
 import { VmlistComponent } from './components/vmlist/vmlist.component';
 import { VMPoolsComponent } from './components/vmpools/vmpools.component';
 import { VNCViewerComponent } from './components/vncviewer/vncviewer.component';
+import { AutoscaleComponent } from './components/autoscale/autoscale.component';
+import { VmdetailsComponent } from './components/vmdetails/vmdetails.component';
+import { VmpooldetailsComponent } from './components/vmpooldetails/vmpooldetails.component';
 
 const routes: Routes = [
   { path: '', component: DashboardComponent },
   { path: 'dashboard', component: DashboardComponent },
   { path: 'vmlist', component: VmlistComponent },
   { path: 'vmpools', component: VMPoolsComponent},
+  { path: 'vmdetail/:namespace/:name', component: VmdetailsComponent},
+  { path: 'vmpooldetail/:namespace/:name', component: VmpooldetailsComponent},
+  { path: 'autoscale', component: AutoscaleComponent},
   { path: 'nodelist', component: NodelistComponent },
   { path: 'dsklist', component: DiskListComponent },
   { path: 'netlist', component: NetworkListComponent },
   { path: 'lblist', component: LoadBalancersComponent},
   { path: 'citlist', component: ClusterInstanceTypeListComponent},
   { path: 'refresh', component: RefreshComponent},
-  { path: 'vncviewer/:namespace/:name', component: VNCViewerComponent }
+  { path: 'vncviewer/:namespace/:name', component: VNCViewerComponent}
 ];
 
 @NgModule({

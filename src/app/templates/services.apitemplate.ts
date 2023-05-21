@@ -19,6 +19,7 @@ export class Services {
     servicePortTemplate = {
         "port": 0,
         "targetPort": 0,
+        "nodePort": 0,
         "protocol": ""
     };
 }

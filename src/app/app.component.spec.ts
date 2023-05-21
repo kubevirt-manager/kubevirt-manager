@@ -22,9 +22,9 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'KubeVirt Manager'`, () => {
+  it(`should have as title 'kubevirt-manager'`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('KubeVirt Manager');
+    expect(app.title).toEqual('kubevirt-manager');
   });
 });

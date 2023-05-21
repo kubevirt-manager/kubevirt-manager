@@ -11,6 +11,7 @@ import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { K8sService } from 'src/app/services/k8s.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
 import { DataVolume } from 'src/app/templates/data-volume.apitemplate';
+import { Probe } from 'src/app/templates/probe.apitemplate';
 import { VMPool } from 'src/app/templates/vmpool.apitemplate';
 
 @Component({
@@ -29,6 +30,8 @@ export class VMPoolsComponent implements OnInit {
 
     myVmPoolCustom = new VMPool().myVmPoolCustom;
     myVmPoolTyped = new VMPool().myVmPoolType;
+    myVmPoolReadinessProbe = new Probe().readinessProbe;
+    myVmPoolLivenessProbe = new Probe().livenessProbe;
     blankDiskTemplate = new DataVolume().blankDisk;
     httpDiskTemplate = new DataVolume().httpDisk;
     s3DiskTemplate = new DataVolume().s3Disk;
@@ -70,6 +73,7 @@ export class VMPoolsComponent implements OnInit {
             currentPool = new KubeVirtVMPool();
             currentPool.name = pools[i].metadata["name"];
             currentPool.namespace = pools[i].metadata["namespace"];
+            currentPool.creationTimestamp = new Date(pools[i].metadata["creationTimestamp"]);
             currentPool.replicas = pools[i].spec["replicas"];
             currentPool.running = pools[i].spec.virtualMachineTemplate.spec["running"];
             /* Getting VM Type */
@@ -77,6 +81,15 @@ export class VMPoolsComponent implements OnInit {
                 currentPool.instType = pools[i].spec.virtualMachineTemplate.spec.instancetype.name;
             } catch(e) {
                 currentPool.instType = "custom";
+            }
+
+            /* Getting Ready Replicas */
+            if(currentPool.readyReplicas != null) {
+                try {
+                    currentPool.readyReplicas = Number(pools[i].status["readyReplicas"]);
+                } catch (e) {
+                    currentPool.readyReplicas = 0;
+                }
             }
 
             if(currentPool.instType == "custom") {
@@ -118,12 +131,17 @@ export class VMPoolsComponent implements OnInit {
             currentVm = new KubeVirtVM();
             currentVm.name = vms[i].metadata["name"];
             currentVm.namespace = vms[i].metadata["namespace"];
+            currentVm.creationTimestamp = new Date(vms[i].metadata["creationTimestamp"]);
             currentVm.running = vms[i].spec["running"];
-            currentVm.status = vms[i].status["printableStatus"];
+            try {
+                currentVm.status = vms[i].status["printableStatus"];
+            } catch (e) {
+                currentVm.status = "";
+            }
             try {
                 currentVm.nodeSel = vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"];
             } catch (e) {
-                currentVm.nodeSel = "unassigned";
+                currentVm.nodeSel = "auto-select";
             }
 
             /* Getting VM Type */
@@ -155,6 +173,14 @@ export class VMPoolsComponent implements OnInit {
                 }
             }
 
+            try {
+                if(vms[i].status["ready"] != null) {
+                    currentVm.ready = vms[i].status["ready"];
+                }
+            } catch (e) {
+                currentVm.ready = false;
+            }
+
             if(currentVm.running && currentVm.status && vms[i].status["printableStatus"].toLowerCase() == "running") {
                 let currentVmi = new KubeVirtVMI;
                 try {
@@ -162,6 +188,7 @@ export class VMPoolsComponent implements OnInit {
                     currentVmi = new KubeVirtVMI();
                     currentVmi.name = datavmi.metadata["name"];
                     currentVmi.namespace = datavmi.metadata["namespace"];
+                    currentVmi.creationTimestamp = new Date(datavmi.metadata["creationTimestamp"]);
                     currentVmi.osId = datavmi.status.guestOSInfo["id"]
                     currentVmi.osKernRel = datavmi.status.guestOSInfo["kernelRelease"]
                     currentVmi.osKernVer = datavmi.status.guestOSInfo["kernelVersion"]
@@ -228,7 +255,7 @@ export class VMPoolsComponent implements OnInit {
             selectorTypeField.innerHTML = typeSelectorOptions;
         }
 
-        /* Load Priority Class List and Set Selector */
+        /* Load Storage Class List and Set Selector */
         data = await lastValueFrom(this.k8sApisService.getStorageClasses());
         let storageSelectorOptions = "";
         for (i = 0; i < data.items.length; i++) {
@@ -239,7 +266,7 @@ export class VMPoolsComponent implements OnInit {
             selectorSCTwoField.innerHTML = storageSelectorOptions;
         }
 
-        /* Load Storage Class List and Set Selector */
+        /* Load Priority Class List and Set Selector */
         data = await lastValueFrom(this.k8sApisService.getPriorityClasses());
         let prioritySelectorOptions = "";
         for (i = 0; i < data.items.length; i++) {
@@ -333,6 +360,24 @@ export class VMPoolsComponent implements OnInit {
         newpooldisktwocm: string,
         newpoolnetwork: string,
         newpoolnetworktype: string,
+        newpoollivenessenable: string,
+        newpoollivenesstype: string,
+        newpoollivenesspath: string,
+        newpoollivenessport: string,
+        newpoollivenessinitialdelay: string,
+        newpoollivenessinterval: string,
+        newpoollivenesstimeout: string,
+        newpoollivenessfailure: string,
+        newpoollivenesssuccess: string,
+        newpoolreadinessenable: string,
+        newpoolreadinesstype: string,
+        newpoolreadinesspath: string,
+        newpoolreadinessport: string,
+        newpoolreadinessinitialdelay: string,
+        newpoolreadinessinterval: string,
+        newpoolreadinesstimeout: string,
+        newpoolreadinessfailure: string,
+        newpoolreadinesssuccess: string,
         newpooluserdatausername: string,
         newpooluserdataauth: string,
         newpooluserdatapassword: string,
@@ -360,6 +405,14 @@ export class VMPoolsComponent implements OnInit {
             alert("Pool with name/namespace combination already exists!");
         } else if(newpooltype.toLowerCase() == "none" || newpooltype.toLocaleLowerCase() == "") {
             alert("Please select a valid VM type!");
+        } else if(newpoollivenessenable == "true" && (newpoollivenessport == "" || newpoollivenessinitialdelay == "" ||  newpoollivenessinterval == "" || newpoollivenesstimeout == "" || newpoollivenessfailure == "" || newpoollivenesssuccess == "")) {
+            alert("You need to enter all the Liveness Probe details!");
+        } else if (newpoollivenessenable == "true" && newpoollivenesstype == "http" && newpoollivenesspath == "") {
+            alert("You need to enter HTTP Path details on the Liveness Probe tab!");
+        } else if(newpoolreadinessenable == "true" && (newpoolreadinessport == "" || newpoolreadinessinitialdelay == "" ||  newpoolreadinessinterval == "" || newpoolreadinesstimeout == "" || newpoolreadinessfailure == "" || newpoolreadinesssuccess == "")) {
+            alert("You need to enter all the Readiness Probe details!");
+        } else if (newpoolreadinessenable == "true" && newpoolreadinesstype == "http" && newpoolreadinesspath == "") {
+            alert("You need to enter HTTP Path details on the Readiness Probe tab!");
         } else {
 
             /* Load Custom Labels */
@@ -434,7 +487,7 @@ export class VMPoolsComponent implements OnInit {
                     while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.volumes.length > 0){
                         this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.volumes.pop();
                     }
-                
+                    
                     /* Clean up networks */
                     while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.networks.length > 0){
                         this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.networks.pop();
@@ -456,7 +509,7 @@ export class VMPoolsComponent implements OnInit {
                 while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.volumes.length > 0){
                     this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.volumes.pop();
                 }
-            
+                
                 /* Clean up networks */
                 while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.networks.length > 0){
                     this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.networks.pop();
@@ -492,6 +545,13 @@ export class VMPoolsComponent implements OnInit {
                 cloudconfig += "manage_etc_hosts: true\n";
                 // Removed so machines can have pool generated hostnames
                 // cloudconfig += "hostname: " + newpoolname + "\n";
+
+            let netconfig  ="version: 1\n";
+                netconfig += "config:\n";
+                netconfig += "    - type: physical\n";
+                netconfig += "      name: enp1s0\n";
+                netconfig += "      subnets:\n";
+                netconfig += "      - type: dhcp\n";
 
             /* Disk1 setup */
             if(newpooldiskonetype == "http") {
@@ -728,7 +788,7 @@ export class VMPoolsComponent implements OnInit {
 
             /* Adding UserData/NetworkData device */
             disk3 = {'name': "disk3", 'disk': {'bus': "virtio"}};
-            device3 = {'name': "disk3", 'cloudInitNoCloud': {'userData': cloudconfig}};
+            device3 = {'name': "disk3", 'cloudInitNoCloud': {'userData': cloudconfig, 'networkData': netconfig}};
         
 
             /* Networking Setup */
@@ -741,6 +801,72 @@ export class VMPoolsComponent implements OnInit {
                 iface1 = {'name': "net1", 'bridge': {}};
             } else {
                 iface1 = {'name': "net1", 'masquerade': {}};
+            }
+
+            /* Liveness Probe Setup */
+            if(newpoollivenessenable == "enabled") {
+                /* Adjusting our Probe */
+                if(newpoollivenesstype.toLowerCase() == "http") {
+                    let myHttpProbe = new Probe().httpProbe;
+                    myHttpProbe.initialDelaySeconds = Number(newpoollivenessinitialdelay);
+                    myHttpProbe.periodSeconds  = Number(newpoollivenessinterval);
+                    myHttpProbe.timeoutSeconds = Number(newpoollivenesstimeout);
+                    myHttpProbe.failureThreshold = Number(newpoollivenessfailure);
+                    myHttpProbe.successThreshold = Number(newpoollivenesssuccess);
+                    myHttpProbe.httpGet.path = newpoollivenesspath;
+                    myHttpProbe.httpGet.port = Number(newpoollivenessport)
+                    this.myVmPoolLivenessProbe = myHttpProbe;
+                } else {
+                    let myTcpProbe = new Probe().tcpProbe;
+                    myTcpProbe.initialDelaySeconds = Number(newpoollivenessinitialdelay);
+                    myTcpProbe.periodSeconds  = Number(newpoollivenessinterval);
+                    myTcpProbe.timeoutSeconds = Number(newpoollivenesstimeout);
+                    myTcpProbe.failureThreshold = Number(newpoollivenessfailure);
+                    myTcpProbe.successThreshold = Number(newpoollivenesssuccess);
+                    myTcpProbe.tcpSocket.port = Number(newpoollivenessport)
+                    this.myVmPoolLivenessProbe= myTcpProbe;
+                }
+
+                /* Assigning to our object */
+                let liveness = { 'livenessProbe': this.myVmPoolLivenessProbe };
+                if(newpooltype.toLowerCase() == "custom") {
+                    Object.assign(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec, liveness);
+                } else {
+                    Object.assign(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec, liveness);
+                }
+            }
+
+            /* Readiness Probe Setup */
+            if(newpoolreadinessenable == "enabled") {
+                /* Adjusting our Probe */
+                if(newpoolreadinesstype.toLowerCase() == "http") {
+                    let myHttpProbe = new Probe().httpProbe;
+                    myHttpProbe.initialDelaySeconds = Number(newpoolreadinessinitialdelay);
+                    myHttpProbe.periodSeconds  = Number(newpoolreadinessinterval);
+                    myHttpProbe.timeoutSeconds = Number(newpoolreadinesstimeout);
+                    myHttpProbe.failureThreshold = Number(newpoolreadinessfailure);
+                    myHttpProbe.successThreshold = Number(newpoolreadinesssuccess);
+                    myHttpProbe.httpGet.path = newpoolreadinesspath;
+                    myHttpProbe.httpGet.port = Number(newpoolreadinessport)
+                    this.myVmPoolReadinessProbe = myHttpProbe;
+                } else {
+                    let myTcpProbe = new Probe().tcpProbe;
+                    myTcpProbe.initialDelaySeconds = Number(newpoolreadinessinitialdelay);
+                    myTcpProbe.periodSeconds  = Number(newpoolreadinessinterval);
+                    myTcpProbe.timeoutSeconds = Number(newpoolreadinesstimeout);
+                    myTcpProbe.failureThreshold = Number(newpoolreadinessfailure);
+                    myTcpProbe.successThreshold = Number(newpoolreadinesssuccess);
+                    myTcpProbe.tcpSocket.port = Number(newpoolreadinessport)
+                    this.myVmPoolReadinessProbe= myTcpProbe;
+                }
+
+                /* Assigning to our object */
+                let readiness = { 'readinessProbe': this.myVmPoolReadinessProbe };
+                if(newpooltype.toLowerCase() == "custom") {
+                    Object.assign(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec, readiness);
+                } else {
+                    Object.assign(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec, readiness);
+                }
             }
 
             /* Create the VM */
@@ -889,46 +1015,6 @@ export class VMPoolsComponent implements OnInit {
                     }
                 }
             }
-        }
-    }
-
-    /*
-     * Show Info Window
-     */
-    async showInfo(poolNamespace: string, poolName: string): Promise<void> {
-        clearInterval(this.myInterval);
-        let myInnerHTML = "";
-        let modalDiv = document.getElementById("modal-info");
-        let modalTitle = document.getElementById("info-title");
-        let modalBody = document.getElementById("info-cards");
-        if(modalTitle != null) {
-            modalTitle.replaceChildren("Info");
-        }
-        if(modalBody != null) {
-            let data = await lastValueFrom(this.kubeVirtService.getVMPool(poolNamespace, poolName));
-            myInnerHTML += "<li class=\"nav-item\">Pool Name: <span class=\"float-right badge bg-primary\">" + data.metadata.name + "</span></li>";
-            myInnerHTML += "<li class=\"nav-item\">Pool Namespace: <span class=\"float-right badge bg-primary\">" + data.metadata.namespace + "</span></li>";
-            myInnerHTML += "<li class=\"nav-item\">Creation Timestamp: <span class=\"float-right badge bg-primary\">" + data.metadata.creationTimestamp + "</span></li>";
-            if(data.spec.virtualMachineTemplate.spec.template.spec.priorityClassName != null) {
-                myInnerHTML += "<li class=\"nav-item\">Priority Class: <span class=\"float-right badge bg-primary\">" + data.spec.virtualMachineTemplate.spec.template.spec.priorityClassName + "</span></li>";
-            }
-            if(data.spec.virtualMachineTemplate.metadata.labels != null) {
-                let labels = Object.entries(data.spec.virtualMachineTemplate.metadata.labels);
-                for(let i = 0; i < labels.length; i++){
-                    let thisLabel = labels[i];
-                    myInnerHTML += "<li class=\"nav-item\">Labels: <span class=\"float-right badge bg-primary\">" + thisLabel[0] + ": " + thisLabel[1] + "</span></li>";
-                }
-            }
-            myInnerHTML += "<li class=\"nav-item\">Label Selector: <span class=\"float-right badge bg-primary\">" + data.status.labelSelector + "</span></li>";
-            myInnerHTML += "<li class=\"nav-item\">Replicas: <span class=\"float-right badge bg-primary\">" + data.status.replicas + "</span></li>";
-            modalBody.innerHTML = myInnerHTML;
-        }
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade show");
-            modalDiv.setAttribute("aria-modal", "true");
-            modalDiv.setAttribute("role", "dialog");
-            modalDiv.setAttribute("aria-hidden", "false");
-            modalDiv.setAttribute("style","display: block;");
         }
     }
 
@@ -1313,7 +1399,7 @@ export class VMPoolsComponent implements OnInit {
     }
 
     /*
-     * New VM: Change between pass/ssh auth
+     * New POOL: Change between pass/ssh auth
      */
     async onChangeAuthType(authType: string) {
         let modalSSHDiv = document.getElementById("newpool-userdata-ssh-panel");
@@ -1371,6 +1457,118 @@ export class VMPoolsComponent implements OnInit {
             }
         }
         return false;
+    }
+
+    /*
+     * New POOL: Enable/Disable Liveness Probe
+     */
+    async onChangeLiveness(status: string) {
+        let hcType = document.getElementById("newpool-liveness-type");
+        let hcPort = document.getElementById("newpool-liveness-port")
+        let hcDelay = document.getElementById("newpool-liveness-initialdelay");
+        let hcInterval = document.getElementById("newpool-liveness-interval");
+        let hcTimeout = document.getElementById("newpool-liveness-timeout");
+        let hcFailure = document.getElementById("newpool-liveness-failure");
+        let hcSuccess = document.getElementById("newpool-liveness-success")
+        
+        if ( hcType != null && hcPort != null && hcDelay != null && hcInterval != null && 
+             hcTimeout != null && hcFailure != null && hcSuccess != null ) {
+            if(status.toLowerCase() == "enabled") {
+                hcType.removeAttribute("disabled");
+                hcPort.removeAttribute("disabled");
+                hcDelay.removeAttribute("disabled");
+                hcInterval.removeAttribute("disabled");
+                hcTimeout.removeAttribute("disabled");
+                hcFailure.removeAttribute("disabled");
+                hcSuccess.removeAttribute("disabled");
+            } else {
+                hcType.setAttribute("disabled", "disabled");
+                hcPort.setAttribute("disabled", "disabled");
+                hcDelay.setAttribute("disabled", "disabled");
+                hcInterval.setAttribute("disabled", "disabled");
+                hcTimeout.setAttribute("disabled", "disabled");
+                hcFailure.setAttribute("disabled", "disabled");
+                hcSuccess.setAttribute("disabled", "disabled");
+            }
+        }
+    }
+
+    /*
+     * New POOL: Change Liveness Type
+     */
+    async onChangeLivenessType(hcType: string) {
+        let modalPath = document.getElementById("newpool-liveness-path-panel");
+        if (modalPath != null) {
+            if (hcType.toLocaleLowerCase() == "http") {
+                modalPath.setAttribute("class", "modal fade show");
+                modalPath.setAttribute("aria-modal", "true");
+                modalPath.setAttribute("role", "dialog");
+                modalPath.setAttribute("aria-hidden", "false");
+                modalPath.setAttribute("style","display: contents;");
+            } else {
+                modalPath.setAttribute("class", "modal fade");
+                modalPath.setAttribute("aria-modal", "false");
+                modalPath.setAttribute("role", "");
+                modalPath.setAttribute("aria-hidden", "true");
+                modalPath.setAttribute("style","display: none;");
+            }
+        }
+    }
+
+    /*
+     * New POOL: Enable/Disable Readiness Probe
+     */
+    async onChangeReadiness(status: string) {
+        let hcType = document.getElementById("newpool-readiness-type");
+        let hcPort = document.getElementById("newpool-readiness-port")
+        let hcDelay = document.getElementById("newpool-readiness-initialdelay");
+        let hcInterval = document.getElementById("newpool-readiness-interval");
+        let hcTimeout = document.getElementById("newpool-readiness-timeout");
+        let hcFailure = document.getElementById("newpool-readiness-failure");
+        let hcSuccess = document.getElementById("newpool-readiness-success")
+        
+        if ( hcType != null && hcPort != null && hcDelay != null && hcInterval != null && 
+             hcTimeout != null && hcFailure != null && hcSuccess != null ) {
+            if(status.toLowerCase() == "enabled") {
+                hcType.removeAttribute("disabled");
+                hcPort.removeAttribute("disabled");
+                hcDelay.removeAttribute("disabled");
+                hcInterval.removeAttribute("disabled");
+                hcTimeout.removeAttribute("disabled");
+                hcFailure.removeAttribute("disabled");
+                hcSuccess.removeAttribute("disabled");
+            } else {
+                hcType.setAttribute("disabled", "disabled");
+                hcPort.setAttribute("disabled", "disabled");
+                hcDelay.setAttribute("disabled", "disabled");
+                hcInterval.setAttribute("disabled", "disabled");
+                hcTimeout.setAttribute("disabled", "disabled");
+                hcFailure.setAttribute("disabled", "disabled");
+                hcSuccess.setAttribute("disabled", "disabled");
+            }
+        }
+    }
+
+    /*
+     * New POOL: Change Readiness Probe Type
+     */
+    async onChangeReadinessType(hcType: string) {
+        let modalPath = document.getElementById("newpool-readiness-path-panel");
+        if (modalPath != null) {
+            if (hcType.toLocaleLowerCase() == "http") {
+                modalPath.setAttribute("class", "modal fade show");
+                modalPath.setAttribute("aria-modal", "true");
+                modalPath.setAttribute("role", "dialog");
+                modalPath.setAttribute("aria-hidden", "false");
+                modalPath.setAttribute("style","display: contents;");
+            } else {
+                modalPath.setAttribute("class", "modal fade");
+                modalPath.setAttribute("aria-modal", "false");
+                modalPath.setAttribute("role", "");
+                modalPath.setAttribute("aria-hidden", "true");
+                modalPath.setAttribute("style","display: none;");
+            }
+        }
     }
 
     /*

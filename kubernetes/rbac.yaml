@@ -5,7 +5,7 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.2.2
+    kubevirt-manager.io/version: 1.2.3
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -49,6 +49,9 @@ rules:
   - apiGroups: ["scheduling.k8s.io"]
     resources: ["priorityclasses"]
     verbs: ["get", "list"]
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["*"]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -57,7 +60,7 @@ metadata:
   name: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.2.2
+    kubevirt-manager.io/version: 1.2.3
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

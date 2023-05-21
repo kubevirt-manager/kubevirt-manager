@@ -27,9 +27,14 @@ export class DashboardComponent implements OnInit {
         'percent': 0
     };
 
+    poolInfo = {
+        'total': 0,
+        'running': 0,
+        'percent': 0
+    }
+
     /* Dashboard data */
     discInfo = 0;
-    poolInfo = 0;
     cpuInfo = 0;
     memInfo = 0;
     storageInfo = 0;
@@ -479,7 +484,14 @@ export class DashboardComponent implements OnInit {
      */
     async getPools(): Promise<void> {
         const data = await lastValueFrom(this.kubeVirtService.getVMPools());
-        this.poolInfo = data.items.length;
+        let pools = data.items;
+        this.poolInfo.total = data.items.length;
+        for (let i = 0; i < pools.length; i++) {
+            if(pools[i].spec.virtualMachineTemplate.spec["running"]) {
+                this.poolInfo.running += 1;
+            }
+        }
+        this.poolInfo.percent = Math.round((this.poolInfo.running * 100) / this.poolInfo.total);
     }
 
     /*
@@ -528,7 +540,7 @@ export class DashboardComponent implements OnInit {
      */
     reloadComponent(): void {
         this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
-            this.router.navigate([`/dashboard`]);
+            this.router.navigate([`/`]);
         })
     }
 

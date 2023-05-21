@@ -1,0 +1,258 @@
+<div class="content">
+    <div class="container-fluid">
+      <div class="content-wrapper">
+        &nbsp;<br>
+        <div class="card card-outline">
+          <div class="card-header">
+            <h3 class="card-title">
+                <b> &nbsp; {{activeVm.name}} &nbsp; </b>
+            </h3>
+          </div>
+          <div class="card-body">
+            <div class="card">
+                <div class="card-header p-2">
+                  <ul class="nav nav-pills">
+                    <li class="nav-item"><a class="nav-link active" href="#overview" data-toggle="tab">Overview</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#details" data-toggle="tab">Details</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#vmconsole" data-toggle="tab">Console</a></li>
+                  </ul>
+                </div>
+                <div class="card-body">
+                  <div class="tab-content">
+                    <!-- Overview -->
+                    <div class="active tab-pane" id="overview">
+                       <dt>Metadata</dt>
+                       <br>
+                       <dd>Name: {{activeVm.name}} </dd>
+                       <dd>Namespace: {{activeVm.namespace}} </dd>
+                       <dd>Labels:</dd>
+                       <ul *ngFor="let thisLabel of activeVm.labels | keyvalue">
+                           <li>{{thisLabel.key}} : {{thisLabel.value}}</li>
+                       </ul>
+                       <hr>
+                       <dt>Status</dt>
+                       <br>
+                       <dd>Running: {{activeVm.running}} </dd>
+                       <dd>Status: {{activeVm.printableStatus}}</dd>
+                       <dd>Created At: {{activeVm.creationTimestamp}} </dd>
+                    </div>
+                    <!-- Details -->
+                    <div class="tab-pane" id="details">
+                        <!-- Custom VM -->
+                        <div *ngIf="customTemplate; else vmTemplated">
+                          <dt>
+                            General Hardware
+                            <a class="btn float-right" title="Edit...">
+                                <i class="fas fa-pen" (click)="showResize(activeVm.sockets, activeVm.cores, activeVm.threads, activeVm.memory)"></i>
+                            </a>
+                          </dt>
+                          <br>
+                          <dd>Instance Type: {{activeVm.instType}} </dd>
+                          <dd>CPU Sockets: {{activeVm.sockets || 0}} </dd>
+                          <dd>CPU Cores: {{activeVm.cores || 0}} </dd>
+                          <dd>CPU Threads: {{activeVm.threads || 0}} </dd>
+                          <dd>Total VM Memory: {{activeVm.memory}} </dd>
+                       </div>
+                       <!-- Templated VM -->
+                       <ng-template #vmTemplated>
+                          <dt>
+                            General Hardware
+                            <a class="btn float-right" title="Edit...">
+                                <i class="fas fa-pen" (click)="showType()"></i>
+                            </a>
+                          </dt>
+                          <br>
+                          <dd>Instance Type: {{activeVm.instType}} </dd>
+                          <dd>Total vCPU: {{activeVm.cores * activeVm.sockets * activeVm.threads || 0}}</dd>
+                          <dd>Total VM Memory: {{activeVm.memory}} </dd>
+                       </ng-template>
+                       <hr>
+                       <div *ngIf="activeVm.vmi.running">
+                            <dt>
+                                Instance Information
+                            </dt>
+                            <br>
+                            <dd>Operating System Id: {{activeVm.vmi.osId}} </dd>
+                            <dd>Operating System Name: {{activeVm.vmi.osName}} - {{activeVm.vmi.osPrettyName}}</dd>
+                            <dd>Operating System Version: {{activeVm.vmi.osVersion}} </dd>
+                            <dd>Operating System Kernel: {{activeVm.vmi.osKernRel}} - {{activeVm.vmi.osKernVer}} </dd>
+                            <hr>
+                       </div>
+                       <dt>
+                        Execution
+                        <!--<a class="btn float-right" title="Edit...">
+                            <i class="fas fa-pen" (click)="showPc()"></i>
+                        </a>-->
+                       </dt>
+                       <br>
+                       <dd>Priority Class: {{activeVm.priorityClass}}</dd>
+                       <hr>
+                       <dt>
+                        Networking
+                        <!-- <a class="btn float-right" title="Edit...">
+                            <i class="fas fa-pen"></i>
+                        </a> -->
+                       </dt>
+                       <br>
+                       <div *ngIf="hasNet1">
+                            <dd>NIC 1:</dd>
+                            <ul>
+                                <li>Name: {{vmNetwork1.name}}</li>
+                                <li>Type: {{vmNetwork1.type}}</li>
+                                <li>Network: {{vmNetwork1.network}}</li>
+                                <li>IP Address: {{vmNetwork1.ip}}</li>
+                            </ul>
+                       </div>
+                       <div *ngIf="hasNet2">
+                            <dd>NIC 2:</dd>
+                            <ul>
+                                <li>Name: {{vmNetwork2.name}}</li>
+                                <li>Type: {{vmNetwork2.type}}</li>
+                                <li>Network: {{vmNetwork2.network}}</li>
+                                <li>IP Address: {{vmNetwork2.ip}}</li>
+                            </ul>
+                       </div>
+                       <hr>
+                       <dt>Disks</dt>
+                       <br>
+                       <div *ngIf="hasDisk1">
+                            <dd>Disk 1:</dd>
+                            <ul>
+                                <li>Name: {{disk1Info.name}} </li>
+                                <li>Namespace: {{disk1Info.namespace}} </li>
+                                <li>Type: {{disk1Info.type}} </li>
+                                <li>Backend: {{disk1Info.backend}} </li>
+                                <li>Data Volume Name: {{disk1Info.dataVolumeName}} </li>
+                                <li>Data Volume Namespace: {{disk1Info.dataVolumeNamespace}} </li>
+                                <li>Source Type: {{disk1Info.dataVolumeSource}} </li>
+                                <li>Source Value: {{disk1Info.dataVolumeSourceValue}} </li>
+                                <li>Access Mode: {{disk1Info.accessMode}}</li>
+                                <li>Cache Mode: {{disk1Info.cacheMode || ""}} </li>
+                                <li>Capacity: {{disk1Info.capacity}} </li>
+                                <li>Storage Class: {{disk1Info.storageClass}}</li>
+                            </ul>
+                       </div>
+                       <div *ngIf="hasDisk2">
+                            <dd>Disk 2:</dd>
+                            <ul>
+                                <li>Name: {{disk2Info.name}} </li>
+                                <li>Namespace: {{disk2Info.namespace}} </li>
+                                <li>Type: {{disk2Info.type}} </li>
+                                <li>Backend: {{disk2Info.backend}} </li>
+                                <li>Data Volume Name: {{disk2Info.dataVolumeName}} </li>
+                                <li>Data Volume Namespace: {{disk2Info.dataVolumeNamespace}} </li>
+                                <li>Source Type: {{disk2Info.dataVolumeSource}} </li>
+                                <li>Source Value: {{disk2Info.dataVolumeSourceValue}} </li>
+                                <li>Access Mode: {{disk2Info.accessMode}}</li>
+                                <li>Cache Mode: {{disk2Info.cacheMode || ""}} </li>
+                                <li>Capacity: {{disk2Info.capacity}} </li>
+                                <li>Storage Class: {{disk2Info.storageClass}}</li>
+                            </ul>
+                       </div>
+                    </div>
+                    <!-- VM Console -->
+                    <div class="tab-pane" id="vmconsole">  
+                        <div id="top_bar">
+                            <div id="status">&nbsp;</div>
+                        </div>
+                        <div id="screen">
+                        </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            
+          </div>
+          <!-- /.card-body -->
+        </div>
+      </div>
+
+    <!--                    -->
+    <!-- Modal: Change Type -->
+    <!--                    -->
+    <div class="modal fade" id="modal-type" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="type-title">Type: {{activeVm.namespace}} - {{activeVm.name}}</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-type")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="type-value">
+              <label for="newType">Virtual Machine VM Type:</label>
+              <select #changevmtype class="custom-select rounded-0" name="changevm-type" id="changevm-type">
+                  <option>Value 1</option>
+              </select>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-type")'>Close</button>
+              <button type="button" class="btn btn-primary" (click)="applyType(activeVm.namespace, activeVm.name, changevmtype.value)">Save changes</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!--               -->
+    <!-- Modal: Resize -->
+    <!--               -->
+    <div class="modal fade" id="modal-resize" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="resize-title">Resize: {{activeVm.namespace}} - {{activeVm.name}}</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-resize")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="resize-value">
+              <label for="resize-sockets">Sockets:</label>
+              <input #resizeSockets type="number" class="form-control" id="resize-sockets" name="resize-sockets">
+              <label for="resize-cores">Cores:</label>
+              <input #resizeCores type="number" class="form-control" id="resize-cores" name="resize-cores">
+              <label for="resize-threads">Threads:</label>
+              <input #resizeThreads type="number" class="form-control" id="resize-threads" name="resize-threas">
+              <label for="resize-memory">Memory (in GB):</label>
+              <input #resizeMemory type="number" class="form-control" id="resize-memory" name="resize-memory">
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-resize")'>Close</button>
+              <button type="button" class="btn btn-primary" (click)="applyResize(activeVm.namespace, activeVm.name, resizeSockets.value, resizeCores.value, resizeThreads.value, resizeMemory.value)">Save changes</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!--                       -->
+    <!-- Modal: Priority Class -->
+    <!--                       -->
+    <div class="modal fade" id="modal-pc" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="type-title">Priority Class: {{activeVm.namespace}} - {{activeVm.name}}</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-pc")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="type-value">
+              <label for="newPriority">Priority Class:</label>
+              <select #changevmpc class="custom-select rounded-0" name="changevm-pc" id="changevm-pc">
+                  <option>Value 1</option>
+              </select>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-pc")'>Close</button>
+              <button type="button" class="btn btn-primary" (click)="applyPc(activeVm.namespace, activeVm.name, changevmpc.value)">Save changes</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+    </div>
+</div>
