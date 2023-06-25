@@ -33,7 +33,8 @@ export class VMPool {
                                 },
                                 'devices': {
                                     'disks': [{}],
-                                    'interfaces': [{}]
+                                    'interfaces': [{}],
+                                    'networkInterfaceMultiqueue': true
                                 },
                                 'resources': {
                                     'requests': {
@@ -83,7 +84,8 @@ export class VMPool {
                             'domain': {
                                 'devices': {
                                     'disks': [{}],
-                                    'interfaces': [{}]
+                                    'interfaces': [{}],
+                                    'networkInterfaceMultiqueue': true
                                 }
                             },
                             'priorityClassName': "",

@@ -17,6 +17,7 @@ export class LoadBalancersComponent implements OnInit {
 
     loadBalancerList: LoadBalancer[] = [];
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
+    charDot = '.';
 
     constructor(
         private k8sService: K8sService,
@@ -41,37 +42,43 @@ export class LoadBalancersComponent implements OnInit {
      */
     async getLoadBalancers(): Promise<void> {
         let currentLoadBalancer = new LoadBalancer;
-        const data = await lastValueFrom(this.k8sService.getServices());
-        let services = data.items;
-        for(let i = 0; i < services.length; i++) {
-            currentLoadBalancer = new LoadBalancer();
-            currentLoadBalancer.name = services[i].metadata.name;
-            currentLoadBalancer.namespace = services[i].metadata.namespace;
-            currentLoadBalancer.creationTimestamp = new Date(services[i].metadata.creationTimestamp);
-            currentLoadBalancer.type = services[i].spec.type;
-            currentLoadBalancer.clusterIP = services[i].spec.clusterIP;
-            if(services[i].spec.selector["kubevirt.io/vmpool"] != null) {
-                currentLoadBalancer.targetResource = services[i].spec.selector["kubevirt.io/vmpool"];
-            } else if (services[i].spec.selector["cluster.x-k8s.io/cluster-name"] != null) {
-                currentLoadBalancer.targetResource = services[i].spec.selector["cluster.x-k8s.io/cluster-name"];
-            } else if(services[i].spec.selector["kubevirt.io/domain"] != null) {
-                currentLoadBalancer.targetResource = services[i].spec.selector["kubevirt.io/domain"];
-            }
-            if(currentLoadBalancer.type.toLowerCase() == "loadbalancer" && services[i].status.loadBalancer.ingress[0].ip != null) {
-                currentLoadBalancer.loadBalancer = services[i].status.loadBalancer.ingress[0].ip;
-            }
-            let servicePorts = services[i].spec.ports;
-            for(let j = 0; j < servicePorts.length; j++) {
-                let thisPort = new LoadBalancerPort();
-                if(servicePorts[j].name != null) {
-                    thisPort.name = servicePorts[j].name;
+        try {
+            const data = await lastValueFrom(this.k8sService.getServices());
+            let services = data.items;
+            for(let i = 0; i < services.length; i++) {
+                currentLoadBalancer = new LoadBalancer();
+                currentLoadBalancer.name = services[i].metadata.name;
+                currentLoadBalancer.namespace = services[i].metadata.namespace;
+                currentLoadBalancer.creationTimestamp = new Date(services[i].metadata.creationTimestamp);
+                currentLoadBalancer.type = services[i].spec.type;
+                currentLoadBalancer.clusterIP = services[i].spec.clusterIP;
+                if(services[i].spec.selector["kubevirt.io/vmpool"] != null) {
+                    currentLoadBalancer.targetResource = services[i].spec.selector["kubevirt.io/vmpool"];
+                } else if (services[i].spec.selector["cluster.x-k8s.io/cluster-name"] != null) {
+                    currentLoadBalancer.targetResource = services[i].spec.selector["cluster.x-k8s.io/cluster-name"];
+                } else if(services[i].spec.selector["kubevirt.io/domain"] != null) {
+                    currentLoadBalancer.targetResource = services[i].spec.selector["kubevirt.io/domain"];
                 }
-                thisPort.protocol = servicePorts[j].protocol;
-                thisPort.listenport = servicePorts[j].port;
-                thisPort.targetport = servicePorts[j].targetPort;
-                currentLoadBalancer.ports.push(thisPort);
+                if(currentLoadBalancer.type.toLowerCase() == "loadbalancer" && services[i].status.loadBalancer.ingress[0].ip != null) {
+                    currentLoadBalancer.loadBalancer = services[i].status.loadBalancer.ingress[0].ip;
+                } else {
+                    currentLoadBalancer.loadBalancer = "N/A";
+                }
+                let servicePorts = services[i].spec.ports;
+                for(let j = 0; j < servicePorts.length; j++) {
+                    let thisPort = new LoadBalancerPort();
+                    if(servicePorts[j].name != null) {
+                        thisPort.name = servicePorts[j].name;
+                    }
+                    thisPort.protocol = servicePorts[j].protocol;
+                    thisPort.listenport = servicePorts[j].port;
+                    thisPort.targetport = servicePorts[j].targetPort;
+                    currentLoadBalancer.ports.push(thisPort);
+                }
+                this.loadBalancerList.push(currentLoadBalancer);
             }
-            this.loadBalancerList.push(currentLoadBalancer);
+        } catch (e: any) {
+            console.log(e);
         }
     }
 
@@ -81,29 +88,33 @@ export class LoadBalancersComponent implements OnInit {
     async showInfo(lbNamespace: string, lbName: string): Promise<void> {
         clearInterval(this.myInterval);
         let myInnerHTML = "";
-        let data = await lastValueFrom(this.k8sService.getService(lbNamespace, lbName));
-        myInnerHTML += "<li class=\"nav-item\">Service: <span class=\"float-right badge bg-primary\">" + data.metadata["name"] + "</span></li>";
-        myInnerHTML += "<li class=\"nav-item\">Namespace: <span class=\"float-right badge bg-primary\">" + data.metadata["namespace"] + "</span></li>";
-        myInnerHTML += "<li class=\"nav-item\">Creation Time: <span class=\"float-right badge bg-primary\">" + data.metadata["creationTimestamp"] + "</span></li>";
-        myInnerHTML += "<li class=\"nav-item\">Type: <span class=\"float-right badge bg-primary\">" + data.spec["type"] + "</span></li>";
-        myInnerHTML += "<li class=\"nav-item\">ClusterIP: <span class=\"float-right badge bg-primary\">" + data.spec["clusterIP"] + "</span></li>";
+        try {
+            let data = await lastValueFrom(this.k8sService.getService(lbNamespace, lbName));
+            myInnerHTML += "<li class=\"nav-item\">Service: <span class=\"float-right badge bg-primary\">" + data.metadata["name"] + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">Namespace: <span class=\"float-right badge bg-primary\">" + data.metadata["namespace"] + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">Creation Time: <span class=\"float-right badge bg-primary\">" + data.metadata["creationTimestamp"] + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">Type: <span class=\"float-right badge bg-primary\">" + data.spec["type"] + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">ClusterIP: <span class=\"float-right badge bg-primary\">" + data.spec["clusterIP"] + "</span></li>";
 
-        myInnerHTML += "<li class=\"nav-item\">Protocol: <span class=\"float-right badge bg-primary\">" + data.spec.ports[0].protocol + "</span></li>";
-        myInnerHTML += "<li class=\"nav-item\">Port: <span class=\"float-right badge bg-primary\">" + data.spec.ports[0].port + "</span></li>";
-        myInnerHTML += "<li class=\"nav-item\">Target Port: <span class=\"float-right badge bg-primary\">" + data.spec.ports[0].targetPort + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">Protocol: <span class=\"float-right badge bg-primary\">" + data.spec.ports[0].protocol + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">Port: <span class=\"float-right badge bg-primary\">" + data.spec.ports[0].port + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">Target Port: <span class=\"float-right badge bg-primary\">" + data.spec.ports[0].targetPort + "</span></li>";
 
-        if(data.spec.selector["kubevirt.io/vmpool"] != null) {
-            myInnerHTML += "<li class=\"nav-item\">Target VM Pool: <span class=\"float-right badge bg-primary\">" + data.spec.selector["kubevirt.io/vmpool"] + "</span></li>";
-        } else if(data.spec.selector["kubevirt.io/domain"] != null) {
-            myInnerHTML += "<li class=\"nav-item\">Target Instance: <span class=\"float-right badge bg-primary\">" + data.spec.selector["kubevirt.io/domain"] + "</span></li>";
-        } else if(data.spec.selector["cluster.x-k8s.io/cluster-name"] != null) {
-            myInnerHTML += "<li class=\"nav-item\">Target Cluster: <span class=\"float-right badge bg-primary\">" + data.spec.selector["cluster.x-k8s.io/cluster-name"] + "</span></li>";
-        }
+            if(data.spec.selector["kubevirt.io/vmpool"] != null) {
+                myInnerHTML += "<li class=\"nav-item\">Target VM Pool: <span class=\"float-right badge bg-primary\">" + data.spec.selector["kubevirt.io/vmpool"] + "</span></li>";
+            } else if(data.spec.selector["kubevirt.io/domain"] != null) {
+                myInnerHTML += "<li class=\"nav-item\">Target Instance: <span class=\"float-right badge bg-primary\">" + data.spec.selector["kubevirt.io/domain"] + "</span></li>";
+            } else if(data.spec.selector["cluster.x-k8s.io/cluster-name"] != null) {
+                myInnerHTML += "<li class=\"nav-item\">Target Cluster: <span class=\"float-right badge bg-primary\">" + data.spec.selector["cluster.x-k8s.io/cluster-name"] + "</span></li>";
+            }
 
-        if(data.spec["type"].toLowerCase() == "loadbalancer" && data.status.loadBalancer.ingress[0].ip != null) {
-            myInnerHTML += "<li class=\"nav-item\">External IP: <span class=\"float-right badge bg-primary\">" + data.status.loadBalancer.ingress[0].ip + "</span></li>";
-        } if(data.spec["type"].toLowerCase() == "nodeport" && data.spec.ports[0].nodePort != null) {
-            myInnerHTML += "<li class=\"nav-item\">Node Port: <span class=\"float-right badge bg-primary\">" + data.spec.ports[0].nodePort + "</span></li>";
+            if(data.spec["type"].toLowerCase() == "loadbalancer" && data.status.loadBalancer.ingress[0].ip != null) {
+                myInnerHTML += "<li class=\"nav-item\">External IP: <span class=\"float-right badge bg-primary\">" + data.status.loadBalancer.ingress[0].ip + "</span></li>";
+            } if(data.spec["type"].toLowerCase() == "nodeport" && data.spec.ports[0].nodePort != null) {
+                myInnerHTML += "<li class=\"nav-item\">Node Port: <span class=\"float-right badge bg-primary\">" + data.spec.ports[0].nodePort + "</span></li>";
+            }
+        } catch (e: any) {
+            console.log(e);
         }
 
         let modalDiv = document.getElementById("modal-info");
@@ -167,13 +178,9 @@ export class LoadBalancersComponent implements OnInit {
                     let deleteService = await lastValueFrom(this.k8sService.deleteService(lbNamespace, lbName));
                     this.hideComponent("modal-delete");
                     this.reloadComponent();
-                } catch (e) {
-                    if (e instanceof HttpErrorResponse) {
-                        alert(e.error["message"])
-                    } else {
-                        console.log(e);
-                        alert("Internal Error!");
-                    }
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                 }
             }
         }
@@ -221,13 +228,9 @@ export class LoadBalancersComponent implements OnInit {
                     let newTypeData = await lastValueFrom(this.k8sService.changeServiceType(lbNamespace, lbName, newType));
                     this.hideComponent("modal-type");
                     this.reloadComponent();
-                } catch (e) {
-                    if (e instanceof HttpErrorResponse) {
-                        alert(e.error["message"])
-                    } else {
-                        console.log(e);
-                        alert("Internal Error!");
-                    }
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                 }
             }
         }
@@ -241,15 +244,20 @@ export class LoadBalancersComponent implements OnInit {
         let modalDiv = document.getElementById("modal-new");
         let modalTitle = document.getElementById("new-title");
         let modalBody = document.getElementById("new-value");
+        let nsSelectorOptions = "";
 
         let selectorNamespacesField = document.getElementById("newlb-namespace");
 
         /* Load Namespace List and Set Selector */
-        let data = await lastValueFrom(this.k8sService.getNamespaces());
-        let nsSelectorOptions = "";
-        for (let i = 0; i < data.items.length; i++) {
-            nsSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
+        try{
+            let data = await lastValueFrom(this.k8sService.getNamespaces());
+            for (let i = 0; i < data.items.length; i++) {
+                nsSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
+            }
+        } catch (e: any) {
+            console.log(e);
         }
+
         if (selectorNamespacesField != null) {
             selectorNamespacesField.innerHTML = nsSelectorOptions;
         }
@@ -291,8 +299,10 @@ export class LoadBalancersComponent implements OnInit {
         ): Promise<void> {
         if(newlbname == "") {
             alert("You must select a name for your Load Balancer!");
+        } else if(newlbname.includes(this.charDot)) {
+            alert("Your Load Balancer name should not have .(dot)!");
         } else if (newlbtargetresourcetype == "" || newlbtargetresource == "" || newlbtargettype == "" || newlbport == "" || newlbtargetport == "" || newlbtargetproto == "") {
-            alert("Please select all the target properties!")
+            alert("Please select all the target properties!");
         } else {
             let myServiceDescriptor = new Services();
 
@@ -384,13 +394,9 @@ export class LoadBalancersComponent implements OnInit {
                 let newLbData = await lastValueFrom(this.k8sService.createService(newlbnamespace, myNewService));
                 this.hideComponent("modal-new");
                 this.reloadComponent();
-            } catch (e) {
-                if (e instanceof HttpErrorResponse) {
-                    alert(e.error["message"])
-                } else {
-                    console.log(e);
-                    alert("Internal Error!");
-                }
+            } catch (e: any) {
+                alert(e.error.message);
+                console.log(e);
             }
         }
     }
@@ -420,7 +426,7 @@ export class LoadBalancersComponent implements OnInit {
                 resourceSelectorOptions += "<option value=" + thisVMList[i].metadata["name"] + ">" + thisVMList[i].metadata["name"] + "</option>\n";
             }
         }
-        if (selectorPoolField != null && resourceSelectorOptions != "") {
+        if (selectorPoolField != null) {
             selectorPoolField.innerHTML = resourceSelectorOptions;
         }
     }

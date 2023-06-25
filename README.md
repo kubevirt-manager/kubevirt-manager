@@ -3,7 +3,7 @@
 **Website:** [kubevirt-manager.io](https://kubevirt-manager.io/)  
 **Maintainers:** [feitnomore](https://github.com/feitnomore/)
 
-Simple Angular Frontend Web UI Interface to operate [Kubevirt](https://kubevirt.io/). This tools lets you perform basic operations around `Virtual Machines`, `Virtual Machine Instances`, `Virtual Machine Pools` and `Disks`. It was built based on requirements I had for my own environment.  
+Simple Angular Frontend Web UI Interface to operate [Kubevirt](https://kubevirt.io/). This tools lets you perform basic operations around `Virtual Machines`, `Virtual Machine Instances`, `Virtual Machine Pools` and `Disks`. As the tool grew, other features got added like `Load Balancing`, `Auto Scaling`, `Monitoring` and `Cluster API` support. This tool was built initially based on requirements I had for my own environment at home and started growing as needed.  
 For a Quick Start, go to our website [https://kubevirt-manager.io/](https://kubevirt-manager.io/)
 
 *WARNING:* Use it at your own risk.
@@ -15,16 +15,16 @@ For a Quick Start, go to our website [https://kubevirt-manager.io/](https://kube
 
 ## REQUIREMENTS
 
-Kubevirt featureGate `ExpandDisks` is required.
+Kubevirt featureGate `ExpandDisks` is **required**.
 
-CDI is required with featureGate `HonorWaitForFirstConsumer` active: 
+`CDI` is **required** with featureGate `HonorWaitForFirstConsumer` active: 
 ```
   config:
     featureGates:
     - HonorWaitForFirstConsumer
 ```
 
-StorageClass features `WaitForFirstConsumer` and `allowVolumeExpansion` are required:
+StorageClass features `WaitForFirstConsumer` and `allowVolumeExpansion` are **required**:
 ```
 volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true
@@ -71,6 +71,17 @@ You will need to restart (delete) the `Pod` or redeploy the solution for the cha
 
 *Note:* The tool assumes Prometheus is exposing the following metrics: kubevirt_vmi_storage_write_traffic_bytes_total, kubevirt_vmi_storage_read_traffic_bytes_total, kubevirt_vmi_network_transmit_bytes_total, kubevirt_vmi_network_receive_bytes_total, kube_pod_container_resource_requests and kubevirt_vmi_memory_domain_total_bytes. These metrics are exposed by `KubeVirt` and `kube-state-metrics`.  
 *Note:* Due to the introduction of NGINX Authentication support, the configmap changed a bit, make sure you review it.
+
+## CLUSTER-API INTEGRATION  
+
+To use `kubevirt-manager` with `cluster-api-provider` for `KubeVirt` you must install Cluster API.   
+Check [Cluster API Introduction](https://cluster-api.sigs.k8s.io/introduction.html) for more information.   
+Feature `ClusterResourceSet` is **required** by the tool to automate CNI and Add-ons fuctionality. Either enable it before installing `Cluster API` by following the documentation on [ClusterResourceSet](https://cluster-api.sigs.k8s.io/tasks/experimental-features/cluster-resource-set.html), or enable it by adding `ClusterResourceSet=true` to the `feature-gates` argument line of your already running `capi-controller-manager` Deployment. Don't forget to wait for `capi-controller-manager` pods to restart or restart it manually if needed. The following can be done with a command like the below: 
+```sh
+$ kubectl edit -n capi-system deployment.apps/capi-controller-manager
+```  
+
+*Note:* This feature needs Internet access, both from the `cluster` to import images and from the `client web browser` to import features.   
 
 ## NGINX AUTHENTICATION
 
@@ -136,6 +147,7 @@ Access the tool at: http://localhost:8001/
 
 *Note:* Make sure your `kubectl` is pointing to the right cluster.   
 *Note:* Make sure the account your `kubectl` is using has correct RBAC.  
+*Note:* This method doesn't like `websocket` VNC.
 *Note:* This method doesn't support `Prometheus` integration.  
 *Note:* This method doesn't support `NGINX basic_auth`.  
 
@@ -154,6 +166,9 @@ Access the tool at: http://localhost:8001/
 11. [kube-state-metrics](https://github.com/kubernetes/kube-state-metrics)
 12. [KubeVirt Monitoring](https://kubevirt.io/user-guide/operations/component_monitoring/)
 13. [NGINX basic_auth](http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html)
+14. [Kubernetes Cluster API Provider for Kubevirt](https://github.com/kubernetes-sigs/cluster-api-provider-kubevirt)
+15. [Cluster API Quick Start](https://cluster-api.sigs.k8s.io/user/quick-start.html)
+16. [ClusterResourceSet](https://cluster-api.sigs.k8s.io/tasks/experimental-features/cluster-resource-set.html)
 
 ## License
 

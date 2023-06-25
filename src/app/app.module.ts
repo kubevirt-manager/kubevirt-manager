@@ -20,6 +20,8 @@ import { RefreshComponent } from './components/refresh/refresh.component';
 import { AutoscaleComponent } from './components/autoscale/autoscale.component';
 import { VmpooldetailsComponent } from './components/vmpooldetails/vmpooldetails.component';
 import { VmdetailsComponent } from './components/vmdetails/vmdetails.component';
+import { KClusterComponent } from './components/kcluster/kcluster.component';
+import { KClusterDetailsComponent } from './components/kcluster-details/kcluster-details.component';
 
 @NgModule({
   declarations: [
@@ -40,6 +42,8 @@ import { VmdetailsComponent } from './components/vmdetails/vmdetails.component';
     AutoscaleComponent,
     VmpooldetailsComponent,
     VmdetailsComponent,
+    KClusterComponent,
+    KClusterDetailsComponent,
   ],
   imports: [
     BrowserModule,

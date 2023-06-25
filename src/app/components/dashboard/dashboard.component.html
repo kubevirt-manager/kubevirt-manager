@@ -209,33 +209,33 @@
 
       <!-- THIRD ROW -->
       <div class="row" id="row-three">
-        <!-- STORAGE CLASS -->
+        <!-- CLUSTERS -->
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3 id="sc-info">{{this.storageClassesInfo}}</h3>
+              <h3 id="cluster-info">{{this.kclusterInfo}}</h3>
 
-              <p>Storage Classes</p>
+              <p>Clusters</p>
             </div>
             <div class="icon">
-              <i class="ion ion-wand"></i>
+              <i class="fas fa-cubes"></i>
             </div>
-            <a routerLink="/dsklist" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            <a routerLink="/kcluster" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
           </div>
         </div>
 
-        <!-- NAMESPACES -->
+        <!-- AUTOSCALE -->
         <div class="col-lg-3 col-6">
           <div class="small-box bg-info">
             <div class="inner">
-              <h3 id="ns-info">{{this.namespacesInfo}}</h3>
+              <h3 id="as-info">{{this.autoscaleInfo}}</h3>
 
-              <p>Namespaces</p>
+              <p>Scaling Groups</p>
             </div>
             <div class="icon">
-              <i class="ion ion-pricetag"></i>
+              <i class="fas fa-expand-alt"></i>
             </div>
-            <a routerLink="/vmlist" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            <a routerLink="/autoscale" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
           </div>
         </div>
 

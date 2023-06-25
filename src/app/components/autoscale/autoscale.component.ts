@@ -48,18 +48,19 @@ export class AutoscaleComponent implements OnInit {
             thisHpa.name = hpas[i].metadata["name"];
             thisHpa.namespace = hpas[i].metadata["namespace"];
             thisHpa.creationTimestamp = new Date(hpas[i].metadata["creationTimestamp"]);
-            thisHpa.scaleTarget = hpas[i].spec.scaleTargetRef["name"]
-            thisHpa.minReplicas = hpas[i].spec["minReplicas"]
-            thisHpa.maxReplicas = hpas[i].spec["maxReplicas"]
-            thisHpa.metricName = hpas[i].spec.metrics[0].resource["name"]
-            thisHpa.metricType = hpas[i].spec.metrics[0].resource.target["type"]
-            thisHpa.metricAvg = hpas[i].spec.metrics[0].resource.target["averageUtilization"]
-            thisHpa.currentRpl = hpas[i].status["currentReplicas"]
-            thisHpa.desiredRpl = hpas[i].status["desiredReplicas"]
+            thisHpa.scaleTarget = hpas[i].spec.scaleTargetRef["name"];
+            thisHpa.minReplicas = hpas[i].spec["minReplicas"];
+            thisHpa.maxReplicas = hpas[i].spec["maxReplicas"];
+            thisHpa.metricName = hpas[i].spec.metrics[0].resource["name"];
+            thisHpa.metricType = hpas[i].spec.metrics[0].resource.target["type"];
+            thisHpa.metricAvg = hpas[i].spec.metrics[0].resource.target["averageUtilization"];
+            thisHpa.currentRpl = hpas[i].status["currentReplicas"];
+            thisHpa.desiredRpl = hpas[i].status["desiredReplicas"];
             try {
-                thisHpa.currAvgUtl = hpas[i].status.currentMetrics[0].resource.current["averageUtilization"]
-            } catch (e) {
+                thisHpa.currAvgUtl = hpas[i].status.currentMetrics[0].resource.current["averageUtilization"];
+            } catch (e: any) {
                 thisHpa.currAvgUtl = 0;
+                console.log(e);
             }
             this.hpaList.push(thisHpa);
         }
@@ -183,13 +184,9 @@ export class AutoscaleComponent implements OnInit {
             let patchService = await lastValueFrom(this.k8sApisService.patchHpa(namespace, name, Number(minReplicas), Number(maxReplicas), Number(metricAvg)));
             this.hideComponent("modal-edit");
             this.reloadComponent();
-        } catch (e) {
-            if (e instanceof HttpErrorResponse) {
-                alert(e.error["message"])
-            } else {
-                console.log(e);
-                alert("Internal Error!");
-            }
+        } catch (e: any) {
+            alert(e.error.message);
+            console.log(e);
         }
     }
 
@@ -225,13 +222,9 @@ export class AutoscaleComponent implements OnInit {
                     let deleteService = await lastValueFrom(this.k8sApisService.deleteHPA(hpaNamespace, hpaName));
                     this.hideComponent("modal-delete");
                     this.reloadComponent();
-                } catch (e) {
-                    if (e instanceof HttpErrorResponse) {
-                        alert(e.error["message"])
-                    } else {
-                        console.log(e);
-                        alert("Internal Error!");
-                    }
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                 }
             }
         }
@@ -266,7 +259,7 @@ export class AutoscaleComponent implements OnInit {
         if(newhpaname == "") {
             alert("You must select a name for your Sacling Group!");
         } else if (newhpatargetpool == "" || newhpamin == "" || newhpamax == "" || newhpathreshold == "") {
-            alert("Please complete all the target properties!")
+            alert("Please complete all the target properties!");
         } else {
             let myHpaDescriptor = new Hpa();
 
@@ -296,13 +289,9 @@ export class AutoscaleComponent implements OnInit {
                 let newHpaData = await lastValueFrom(this.k8sApisService.createHpa(newhpanamespace, myHpaDescriptor.cpuPercentageHPAv2));
                 this.hideComponent("modal-new");
                 this.reloadComponent();
-            } catch (e) {
-                if (e instanceof HttpErrorResponse) {
-                    alert(e.error["message"])
-                } else {
-                    console.log(e);
-                    alert("Internal Error!");
-                }
+            } catch (e: any) {
+                alert(e.error.message);
+                console.log(e);
             }
         }
     }

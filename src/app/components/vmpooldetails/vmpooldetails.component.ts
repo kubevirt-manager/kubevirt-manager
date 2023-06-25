@@ -102,7 +102,7 @@ export class VmpooldetailsComponent implements OnInit {
         await this.loadPool();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
-            navTitle.replaceChildren("Virtual Machine Pools");
+            navTitle.replaceChildren("Virtual Machine Pool Details");
         }
     }
 
@@ -125,9 +125,10 @@ export class VmpooldetailsComponent implements OnInit {
         try {
             this.activePool.instType = data.spec.virtualMachineTemplate.spec.instancetype.name;
             this.customTemplate = false;
-        } catch(e) {
+        } catch(e: any) {
             this.activePool.instType = "custom";
             this.customTemplate = true;
+            console.log(e);
         }
 
         /* Getting Ready Replicas */
@@ -154,7 +155,7 @@ export class VmpooldetailsComponent implements OnInit {
                 thisLivenessProbe.httpGet.path = data.spec.virtualMachineTemplate.spec.template.spec.livenessProbe.httpGet["path"];
                 thisLivenessProbe.httpGet.port = data.spec.virtualMachineTemplate.spec.template.spec.livenessProbe.httpGet["port"];
                 this.inputLivenessPath = thisLivenessProbe.httpGet.path;
-                this.inputLivenessPort = thisLivenessProbe.httpGet.port
+                this.inputLivenessPort = thisLivenessProbe.httpGet.port;
             } else {
                 this.thisLivenessType = "tcp";
                 this.selectedLivenessType = "tcp";
@@ -184,7 +185,7 @@ export class VmpooldetailsComponent implements OnInit {
                 thisReadinessProbe.httpGet.path = data.spec.virtualMachineTemplate.spec.template.spec.readinessProbe.httpGet["path"];
                 thisReadinessProbe.httpGet.port = data.spec.virtualMachineTemplate.spec.template.spec.readinessProbe.httpGet["port"];
                 this.inputReadinessPath = thisReadinessProbe.httpGet.path;
-                this.inputReadinessPort = thisReadinessProbe.httpGet.port
+                this.inputReadinessPort = thisReadinessProbe.httpGet.port;
             } else {
                 this.thisReadinessType = "tcp";
                 this.selectedReadinessType = "tcp";
@@ -209,24 +210,27 @@ export class VmpooldetailsComponent implements OnInit {
                 this.activePool.memory = data.spec.memory["guest"];
                 this.activePool.sockets = 1;
                 this.activePool.threads = 1;
-            } catch (e) {
+            } catch (e: any) {
                 this.activePool.sockets = 0;
                 this.activePool.threads = 0;
                 this.activePool.cores = 0;
                 this.activePool.memory = "";
+                console.log(e);
             }
         }
         try {
             this.activePool.priorityClass = data.spec.virtualMachineTemplate.spec.template.spec.priorityClassName;
-        } catch (e) {
+        } catch (e: any) {
             this.activePool.priorityClass = "";
+            console.log(e);
         }
 
         this.poolNetwork.name = data.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces[0].name;
         try {
             this.poolNetwork.network = data.spec.virtualMachineTemplate.spec.template.spec.networks[0].multus.networkName;
-        } catch (e) {
+        } catch (e: any) {
             this.poolNetwork.network = "podNetwork";
+            console.log(e);
         }
 
         try {
@@ -235,8 +239,9 @@ export class VmpooldetailsComponent implements OnInit {
             } else {
                 this.poolNetwork.type = "bridge";
             }
-        } catch (e) {
+        } catch (e: any) {
             this.poolNetwork.type = "bridge";
+            console.log(e);
         }
 
         /* Load Disks */
@@ -260,22 +265,24 @@ export class VmpooldetailsComponent implements OnInit {
             currentVm.name = vms[i].metadata["name"];
             currentVm.namespace = vms[i].metadata["namespace"];
             if(vms[i].metadata["labels"] != null) {
-                currentVm.labels = Object.entries(vms[i].metadata.labels)
+                currentVm.labels = Object.entries(vms[i].metadata.labels);
             }
             currentVm.creationTimestamp = new Date(vms[i].metadata["creationTimestamp"]);
             currentVm.running = vms[i].spec["running"];
             currentVm.status = vms[i].status["printableStatus"];
             try {
                 currentVm.nodeSel = vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"];
-            } catch (e) {
+            } catch (e: any) {
                 currentVm.nodeSel = "auto-select";
+                console.log(e);
             }
 
             /* Getting VM Type */
             try {
                 currentVm.instType = vms[i].spec.instancetype.name;
-            } catch(e) {
+            } catch(e: any) {
                 currentVm.instType = "custom";
+                console.log(e);
             }
 
             if(currentVm.instType == "custom") {
@@ -292,11 +299,12 @@ export class VmpooldetailsComponent implements OnInit {
                     currentVm.memory = data.spec.memory["guest"];
                     currentVm.sockets = 1;
                     currentVm.threads = 1;
-                } catch (e) {
+                } catch (e: any) {
                     currentVm.sockets = 0;
                     currentVm.threads = 0;
                     currentVm.cores = 0;
                     currentVm.memory = "";
+                    console.log(e);
                 }
             }
 
@@ -312,29 +320,30 @@ export class VmpooldetailsComponent implements OnInit {
                     currentVmi.name = datavmi.metadata["name"];
                     currentVmi.namespace = datavmi.metadata["namespace"];
                     if(datavmi.metadata["labels"] != null) {
-                        currentVmi.labels = Object.entries(datavmi.metadata["labels"])
+                        currentVmi.labels = Object.entries(datavmi.metadata["labels"]);
                     }
                     currentVmi.creationTimestamp = new Date(datavmi.metadata["creationTimestamp"]);
-                    currentVmi.osId = datavmi.status.guestOSInfo["id"]
-                    currentVmi.osKernRel = datavmi.status.guestOSInfo["kernelRelease"]
-                    currentVmi.osKernVer = datavmi.status.guestOSInfo["kernelVersion"]
-                    currentVmi.osName = datavmi.status.guestOSInfo["name"]
+                    currentVmi.osId = datavmi.status.guestOSInfo["id"];
+                    currentVmi.osKernRel = datavmi.status.guestOSInfo["kernelRelease"];
+                    currentVmi.osKernVer = datavmi.status.guestOSInfo["kernelVersion"];
+                    currentVmi.osName = datavmi.status.guestOSInfo["name"];
                     currentVmi.osPrettyName = datavmi.status.guestOSInfo["prettyName"];
-                    currentVmi.osVersion = datavmi.status.guestOSInfo["version"]
+                    currentVmi.osVersion = datavmi.status.guestOSInfo["version"];
 
                     /* Only works with guest-agent installed */
                     try {
                         currentVm.nodeSel = datavmi.status["nodeName"];
                         currentVmi.ifAddr = datavmi.status.interfaces[0]["ipAddress"];
                         currentVmi.ifName = datavmi.status.interfaces[0]["name"];
-                    } catch(e) {
+                    } catch(e: any) {
                         currentVmi.ifAddr = "";
                         currentVmi.ifName = "";
+                        console.log(e);
                     }
 
                     currentVmi.nodeName = datavmi.status["nodeName"];
                     currentVm.vmi = currentVmi;
-                } catch (e) {
+                } catch (e: any) {
                     console.log(e);
                     console.log("ERROR Retrieving VMI: " + currentVm.name + "-" + currentVm.namespace + ":" + currentVm.status);
                 }
@@ -476,8 +485,13 @@ export class VmpooldetailsComponent implements OnInit {
      * Remove VM From Pool
      */
     async removeVmFromPool(vmNamespace: string, vmName: string, vmNode: string) {
-        const data = await lastValueFrom(this.kubeVirtService.removeVmFromPool(vmNamespace, vmName, vmNode));
-        this.reloadComponent();
+        try {
+            const data = await lastValueFrom(this.kubeVirtService.removeVmFromPool(vmNamespace, vmName, vmNode));
+            this.reloadComponent();
+        } catch (e: any) {
+            alert(e.error.message);
+            console.log(e);
+        }
     }
 
 
@@ -539,13 +553,9 @@ export class VmpooldetailsComponent implements OnInit {
                 const data = await lastValueFrom(this.kubeVirtService.scalePoolReplicas(poolNamespace, poolName, replicasSize));
                 this.hideComponent("modal-resize");
                 this.reloadComponent();
-            } catch (e) {
-                if (e instanceof HttpErrorResponse) {
-                    alert(e.error["message"])
-                } else {
-                    console.log(e);
-                    alert("Internal Error!");
-                }
+            } catch (e: any) {
+               alert(e.error.message);
+               console.log(e);
             }
         }
     }
@@ -581,7 +591,8 @@ export class VmpooldetailsComponent implements OnInit {
             const data = await lastValueFrom(this.kubeVirtService.changePoolType(poolNamespace, poolName, poolType));
             this.hideComponent("modal-type");
             this.reloadComponent();
-        } catch (e) {
+        } catch (e: any) {
+            alert(e.error.message);
             console.log(e);
         }
     }
@@ -623,7 +634,8 @@ export class VmpooldetailsComponent implements OnInit {
                 const data = await lastValueFrom(this.kubeVirtService.scalePool(resizeNamespace, resizeName, cores, threads, sockets, memory));
                 this.hideComponent("modal-resize");
                 this.reloadComponent();
-            } catch (e) {
+            } catch (e: any) {
+                alert(e.error.message);
                  console.log(e);
             }
         }
@@ -660,7 +672,8 @@ export class VmpooldetailsComponent implements OnInit {
             const data = await lastValueFrom(this.kubeVirtService.changePoolPc(poolNamespace, poolName, poolPc));
             this.hideComponent("modal-pc");
             this.reloadComponent();
-        } catch (e) {
+        } catch (e: any) {
+            alert(e.error.message);
             console.log(e);
         }
     }
@@ -748,8 +761,9 @@ export class VmpooldetailsComponent implements OnInit {
                 const data = await lastValueFrom(this.kubeVirtService.removePoolLiveness(namespace, name));
                 this.hideComponent("modal-liveness");
                 this.reloadComponent();
-            } catch (e) {
-                 console.log(e);
+            } catch (e: any) {
+                alert(e.error.message);
+                console.log(e);
             }
         } else {
             if(this.selectedLivenessType.toLowerCase() == "http") {
@@ -779,8 +793,9 @@ export class VmpooldetailsComponent implements OnInit {
                 const data = await lastValueFrom(this.kubeVirtService.updatePoolLiveness(namespace, name, JSON.stringify(this.myVmPoolLivenessProbe)));
                 this.hideComponent("modal-liveness");
                 this.reloadComponent();
-            } catch (e) {
-                 console.log(e);
+            } catch (e: any) {
+                alert(e.error.message);
+                console.log(e);
             }
         }
     }
@@ -868,8 +883,9 @@ export class VmpooldetailsComponent implements OnInit {
                 const data = await lastValueFrom(this.kubeVirtService.removePoolReadiness(namespace, name));
                 this.hideComponent("modal-readiness");
                 this.reloadComponent();
-            } catch (e) {
-                 console.log(e);
+            } catch (e: any) {
+                alert(e.error.message);
+                console.log(e);
             }
         } else {
             if(this.selectedReadinessType.toLowerCase() == "http") {
@@ -899,8 +915,9 @@ export class VmpooldetailsComponent implements OnInit {
                 const data = await lastValueFrom(this.kubeVirtService.updatePoolReadiness(namespace, name, JSON.stringify(this.myVmPoolReadinessProbe)));
                 this.hideComponent("modal-readiness");
                 this.reloadComponent();
-            } catch (e) {
-                 console.log(e);
+            } catch (e: any) {
+                alert(e.error.message);
+                console.log(e);
             }
         }
     }

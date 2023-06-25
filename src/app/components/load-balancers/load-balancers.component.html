@@ -19,15 +19,16 @@
                 <thead>
                   <tr>
                     <th style="width: 10px">&nbsp;</th>
-                    <th style="width: 40px">Namespace</th>
-                    <th style="width: 120px">Name</th>
+                    <th style="width: 35px">Namespace</th>
+                    <th style="width: 70px">Name</th>
                     <th style="width: 40px">Type</th>
                     <th style="width: 20px">ClusterIP</th>
+                    <th style="width: 20px">Load Balancer</th>
                     <th style="width: 20px">Protocol</th>
-                    <th style="width: 20px">Port</th>
-                    <th style="width: 40px">Target Port</th>
+                    <th style="width: 60px">Port</th>
+                    <th style="width: 80px">Target Port</th>
                     <th style="width: 80px">Target Resource</th>
-                    <th style="width: 80px">Actions</th>
+                    <th style="width: 90px">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -37,6 +38,7 @@
                     <td style="line-height: 2.2 !important;">{{thisLoadBalancer.name}}</td>
                     <td style="line-height: 2.2 !important;">{{thisLoadBalancer.type}}</td>
                     <td style="line-height: 2.2 !important;">{{thisLoadBalancer.clusterIP}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisLoadBalancer.loadBalancer}}</td>
                     <td style="line-height: 2.2 !important;">{{thisLoadBalancer.ports[0].protocol}}</td>
                     <td style="line-height: 2.2 !important;">{{thisLoadBalancer.ports[0].listenport}}</td>
                     <td style="line-height: 2.2 !important;">{{thisLoadBalancer.ports[0].targetport}}</td>
@@ -218,6 +220,7 @@
               <select #changelbtype class="custom-select rounded-0" name="changelb-type" id="changelb-type">
                   <option value="ClusterIP">ClusterIP</option>
                   <option value="LoadBalancer">LoadBalancer</option>
+                  <option value="NodePort">NodePort</option>
               </select>
             </div>
             <div class="modal-footer justify-content-between">
