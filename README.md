@@ -10,11 +10,12 @@ For a Quick Start, go to our website [https://kubevirt-manager.io/](https://kube
 
 ## INTRODUCTION
 
-I've created this Frontend for `KubeVirt` while I was trying to learn a little bit of `Angular`. Basically this tool uses `kubectl proxy` to proxy API requests to `kubeapiserver`. To handle the `Disk`/`Volume` part, the tool works through [CDI](https://github.com/kubevirt/containerized-data-importer/).  
+I've created this Frontend for `KubeVirt` while I was trying to learn a little bit of `Angular`. Basically this tool uses `kubectl proxy` to proxy API requests to `kubeapiserver`. To handle the `Disk`/`Volume` part, the tool works through [CDI](https://github.com/kubevirt/containerized-data-importer/). As the time passed by, support for other features like `HPA`, `Services`, `Prometheus` and `Cluster API` were added.  
 For a Quick Start, go to our website [https://kubevirt-manager.io/](https://kubevirt-manager.io/) as we provide a [bundled.yaml](kubernetes/bundled.yaml) file that has the basic setup.
 
 ## REQUIREMENTS
 
+These are the **minimum** requirements to have the system running.  
 Kubevirt featureGate `ExpandDisks` is **required**.
 
 `CDI` is **required** with featureGate `HonorWaitForFirstConsumer` active: 
@@ -76,12 +77,10 @@ You will need to restart (delete) the `Pod` or redeploy the solution for the cha
 
 To use `kubevirt-manager` with `cluster-api-provider` for `KubeVirt` you must install Cluster API.   
 Check [Cluster API Introduction](https://cluster-api.sigs.k8s.io/introduction.html) for more information.   
-Feature `ClusterResourceSet` is **required** by the tool to automate CNI and Add-ons fuctionality. Either enable it before installing `Cluster API` by following the documentation on [ClusterResourceSet](https://cluster-api.sigs.k8s.io/tasks/experimental-features/cluster-resource-set.html), or enable it by adding `ClusterResourceSet=true` to the `feature-gates` argument line of your already running `capi-controller-manager` Deployment. Don't forget to wait for `capi-controller-manager` pods to restart or restart it manually if needed. The following can be done with a command like the below: 
+Feature `ClusterResourceSet` is **required** by the tool to automate CNI and Add-ons fuctionality on `Standard` clusters. Either enable it before installing `Cluster API` by following the documentation on [ClusterResourceSet](https://cluster-api.sigs.k8s.io/tasks/experimental-features/cluster-resource-set.html), or enable it by adding `ClusterResourceSet=true` to the `feature-gates` argument line of your already running `capi-controller-manager` Deployment. Don't forget to wait for `capi-controller-manager` pods to restart or restart it manually if needed. The following can be done with a command like the below: 
 ```sh
 $ kubectl edit -n capi-system deployment.apps/capi-controller-manager
-```  
-
-*Note:* This feature needs Internet access, both from the `cluster` to import images and from the `client web browser` to import features.   
+```   
 
 ## NGINX AUTHENTICATION
 
@@ -104,10 +103,12 @@ You may use `kubernetes/prometheus-config.yaml` as a reference to make sure your
 
 ## HOW TO USE IT
 
-To use the tool, you can either use `kubectl port-forward` on port 8080, use a `Service` with type `NodePort` or `LoadBalancer`, or, create an `Ingress` for your service.  
+The recommended way to use this tool is through an `Ingress` or a `Service`.  
+You can also use `kubectl port-forward` on port 8080.
+
 *Note:* As the tool needs Websocket support, if you are using an `Ingress` make sure you set it up accordingly.
 
-## Screenshot
+## Screenshots
 
 Dashboard:</br>
 <img src="images/screenshot_01.png" width="96%"/>
@@ -150,6 +151,13 @@ Access the tool at: http://localhost:8001/
 *Note:* This method doesn't like `websocket` VNC.
 *Note:* This method doesn't support `Prometheus` integration.  
 *Note:* This method doesn't support `NGINX basic_auth`.  
+
+## Testing
+The tests implemente are pretty simple so far. To run the tests, simply execure:
+```sh
+npm test
+```
+
 
 ## References
 
