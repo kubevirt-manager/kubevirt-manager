@@ -236,6 +236,27 @@ export class KClusterComponent implements OnInit {
     }
 
     /*
+     * Show New Window
+     */
+    showNew(): void {
+        clearInterval(this.myInterval);
+        let modalDiv = document.getElementById("modal-new");
+        let modalTitle = document.getElementById("new-title");
+        let modalBody = document.getElementById("new-value");
+        if(modalTitle != null) {
+            modalTitle.replaceChildren("New Kubernetes Cluster");
+        }
+        
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+    }
+
+    /*
      * Show Delete Window
      */
     showDelete(namespace: string, name: string): void {
@@ -294,6 +315,11 @@ export class KClusterComponent implements OnInit {
                     alert(e.error.message);
                 }
                 try {
+                    let kccConfig = await lastValueFrom(this.xK8sService.deleteKCCConfigMap(clusterNamespace, clusterName + "-kcc"));
+                } catch (e: any) {
+                    console.log(e);
+                }
+                try {
                     let resourceSet = await lastValueFrom(this.xK8sService.deleteClusterResourseSet(clusterNamespace, clusterName));
                 } catch (e: any) {
                     console.log(e);
@@ -314,6 +340,7 @@ export class KClusterComponent implements OnInit {
      * Show New Cluster Window
      */
     async showNewCluster(): Promise<void> {
+        this.hideComponent("modal-new");
         clearInterval(this.myInterval);
         let i = 0;
         let modalDiv = document.getElementById("modal-newcluster");
@@ -341,6 +368,20 @@ export class KClusterComponent implements OnInit {
         }
         if (selectorNamespacesField != null) {
             selectorNamespacesField.innerHTML = nsSelectorOptions;
+        }
+
+        /* Show window before loading the rest 
+         * to avoid delays
+         */
+        if(modalTitle != null) {
+            modalTitle.replaceChildren("New Kubernetes Cluster");
+        }
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
         }
 
         /* Load Kubernetes Versions on Selector */
@@ -403,11 +444,45 @@ export class KClusterComponent implements OnInit {
 
         await this.loadFeatureList();
 
+    }
+
+    /*
+     * Show New Cluster Window
+     */
+    async showNewClusterCustom(): Promise<void> {
+        this.hideComponent("modal-new");
+        clearInterval(this.myInterval);
+        let i = 0;
+        let modalDiv = document.getElementById("modal-newclustercustom");
+        let modalTitle = document.getElementById("newclustercustom-title");
+        let modalBody = document.getElementById("newclustercustom-value");
+
+        let selectorNamespacesField = document.getElementById("newclustercustom-namespace");
+        let selectorCPTypeField = document.getElementById("newclustercustom-controlplane-type");
+        let selectorNPTypeField = document.getElementById("newclustercustom-nodepool-type");
+
+        let selectorCPPCField = document.getElementById("newclustercustom-controlplane-pc");
+        let selectorNPPCField = document.getElementById("newclustercustom-nodepool-pc");
+
+        let selectorCPSCField = document.getElementById("newclustercustom-controlplane-disksc");
+        let selectorNPSCField = document.getElementById("newclustercustom-nodepool-disksc");
+
+        /* Load Namespace List and Set Selector */
+        let data = await lastValueFrom(this.k8sService.getNamespaces());
+        let nsSelectorOptions = "";
+        for (i = 0; i < data.items.length; i++) {
+            nsSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
+        }
+        if (selectorNamespacesField != null) {
+            selectorNamespacesField.innerHTML = nsSelectorOptions;
+        }
+
+        /* Show window before loading the rest 
+         * to avoid delays
+         */
         if(modalTitle != null) {
             modalTitle.replaceChildren("New Kubernetes Cluster");
         }
-
-
         if(modalDiv != null) {
             modalDiv.setAttribute("class", "modal fade show");
             modalDiv.setAttribute("aria-modal", "true");
@@ -415,10 +490,49 @@ export class KClusterComponent implements OnInit {
             modalDiv.setAttribute("aria-hidden", "false");
             modalDiv.setAttribute("style","display: block;");
         }
+
+        /* Load ClusterInstanceType List and Set Selector */
+        data = await lastValueFrom(this.kubeVirtService.getClusterInstanceTypes());
+        let typeSelectorOptions = "<option value=none></option>";
+        for (i = 0; i < data.items.length; i++) {
+            typeSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
+        }
+        if (selectorCPTypeField != null && selectorNPTypeField != null) {
+            typeSelectorOptions += "<option value=custom>custom</option>\n";
+            selectorCPTypeField.innerHTML = typeSelectorOptions;
+            selectorNPTypeField.innerHTML = typeSelectorOptions;
+        }
+
+        /* Load Storage Class List and Set Selector */
+        data = await lastValueFrom(this.k8sApisService.getStorageClasses());
+        let storageSelectorOptions = "";
+        for (i = 0; i < data.items.length; i++) {
+            storageSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
+        }
+        if (selectorCPSCField != null && selectorNPSCField != null) {
+            selectorCPSCField.innerHTML = storageSelectorOptions;
+            selectorNPSCField.innerHTML = storageSelectorOptions;
+        }
+
+        /* Load Priority Class List and Set Selector */
+        data = await lastValueFrom(this.k8sApisService.getPriorityClasses());
+        let prioritySelectorOptions = "";
+        for (i = 0; i < data.items.length; i++) {
+            if(data.items[i].metadata["name"].toLowerCase() == "vm-standard") {
+                prioritySelectorOptions += "<option value=" + data.items[i].metadata["name"] +" selected>" + data.items[i].metadata["name"] + "</option>\n";
+            } else {
+                prioritySelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
+            }
+        }
+        if (selectorCPPCField != null && selectorNPPCField != null) {
+            selectorCPPCField.innerHTML = prioritySelectorOptions;
+            selectorNPPCField.innerHTML = prioritySelectorOptions;
+        }
+
     }
 
     /*
-     * Create new PRE-BAKED Cluster
+     * Create new Standard Cluster
      */
     async applyNewCluster(
         clustername: string,
@@ -631,6 +745,211 @@ export class KClusterComponent implements OnInit {
                 this.loadKubevirtCloudControllerManager(clusternamespace, clustername);
 
                 this.hideComponent("modal-newcluster");
+                this.reloadComponent();
+            } catch (e: any) {
+                console.log(e);
+                alert(e.error.message);
+            }
+        }
+
+    }
+
+    /*
+     * Create new Standard Cluster
+     */
+    async applyNewClusterCustom(
+        clustername: string,
+        clusternamespace: string,
+        clusterlabelkeyone: string,
+        clusterlabelvalueone: string,
+        clusterlabelkeytwo: string,
+        clusterlabelvaluetwo: string,
+        clusterlabelkeythree: string,
+        clusterlabelvaluethree: string,
+        clusterversion: string,
+        clusterdns: string,
+        clusterpodcidr: string,
+        clustersvccidr: string,
+        clusternetwork: string,
+        clusternetworktype: string,
+        clustercontrolplaneeptype: string,
+        clustercontrolplaneepannotationskeyone: string,
+        clustercontrolplaneepannotationsvalueone: string,
+        clustercontrolplaneepannotationskeytwo: string,
+        clustercontrolplaneepannotationsvaluetwo: string,
+        clustercontrolplanetype: string,
+        clustercontrolplanecpumemsockets: string,
+        clustercontrolplanecpumemcores: string,
+        clustercontrolplanecpumemthreads: string,
+        clustercontrolplanecpumemmemory: string,
+        clustercontrolplanepc: string,
+        clustercontrolplanereplicas: string,
+        clustercontrolplaneimageurl: string,
+        clustercontrolplanedisksize: string,
+        clustercontrolplanedisksc: string,
+        clustercontrolplanediskam: string,
+        clustercontrolplanediskcm: string,
+        clusternodepoolname: string,
+        clusternodepooltype: string,
+        clusternodepoolcpumemsockets: string,
+        clusternodepoolcpumemcores: string,
+        clusternodepoolcpumemthreads: string,
+        clusternodepoolcpumemmemory: string,
+        clusternodepoolpc: string,
+        clusternodepoolreplicas: string,
+        clusternodepoolimageurl: string,
+        clusternodepooldisksize: string,
+        clusternodepooldisksc: string,
+        clusternodepooldiskam: string,
+        clusternodepooldiskcm: string
+    ) {
+
+        /* Loading control plane data needed for validation */
+        let controlPlaneTypedCpus = 0;
+        if(clustercontrolplanetype != "custom" && clustercontrolplanetype != "")
+        {
+            try {
+                const data = await lastValueFrom(this.kubeVirtService.getClusterInstanceType(clustercontrolplanetype));
+                controlPlaneTypedCpus = Number(data.spec.cpu["guest"]);
+            } catch (e: any) {
+                console.log(e);
+                alert(e.error.message);
+            }
+        }
+
+        /*
+         * Basic Field Validation
+         */
+        if(clustername == "" || clusternamespace == "") {
+            alert("You need to fill in the name and namespace fields!");
+        } else if(clustername.includes(this.charDot)) {
+            alert("Your cluster name should not have . (dot) character!");
+        } else if (clusterdns == "") {
+            alert("Cluster DNS should not be empty");
+        } else if (clustercontrolplaneimageurl == "") {
+            alert("You must enter an URL for Control Plane Disk!");
+        } else if (!clustercontrolplaneimageurl.startsWith("http")) {
+            alert("Control Plane Disk URL must start with http or https");
+        } else if (clusterversion == "" || clusterversion.toLowerCase() == "none") {
+            alert("You need to select a Kubernetes Version for you cluster!");
+        } else if (clustercontrolplaneeptype == "" || clustercontrolplaneeptype.toLowerCase() == "none") {
+            alert("Please select an Endpoint Type for you Kubernetes API!");
+        } else if(this.checkClusterExists(clustername, clusternamespace)) {
+            alert("Cluster with name/namespace combination already exists!");
+        } else if(clustercontrolplanetype.toLowerCase() == "none" || clustercontrolplanetype.toLocaleLowerCase() == "") {
+            alert("Please select a valid VM Type for Control Plane!");
+        } else if(clusternodepooltype.toLowerCase() == "none" || clusternodepooltype.toLocaleLowerCase() == "") {
+            alert("Please select a valid VM Type for Node Pool!");
+        } else if(Number(clustercontrolplanereplicas)%2 == 0 || Number(clustercontrolplanereplicas) == 0 || clustercontrolplanereplicas == "") {
+            alert("Control Plane replicas number needs to be an odd number!");
+        } else if(clustercontrolplanedisksize == "") {
+            alert("Check Control Plane disk size!");
+        } else if (clusternodepoolimageurl == "") {
+            alert("You must enter an URL for Node Pool Disk!");
+        } else if (!clusternodepoolimageurl.startsWith("http")) {
+            alert("Node Pool Disk URL must start with http or https");
+        } else if(clusternodepooldisksize == "") {
+            alert("Check Node Pool disk size!");
+        } else if(Number(clusternodepoolreplicas) == 0 || clusternodepoolreplicas == "") {
+            alert("Please check your Node Pool replicas number!");
+        } else if((clustercontrolplanetype.toLowerCase() == "custom") && (clustercontrolplanecpumemsockets == "" || clustercontrolplanecpumemcores == "" || clustercontrolplanecpumemthreads == "" || clustercontrolplanecpumemmemory == "")) {
+            alert("To use Control Plane with Custom Type, you must fill in all CPU and Memory fields!");
+        } else if((clusternodepooltype.toLowerCase() == "custom") && (clusternodepoolcpumemsockets == "" || clusternodepoolcpumemcores == "" || clusternodepoolcpumemthreads == "" || clusternodepoolcpumemmemory == "")) {
+            alert("To use Node Pool with Custom Type, you must fill in all CPU and Memory fields!");
+        } else if((clustercontrolplanetype == "custom") && ((Number(clustercontrolplanecpumemcores) * Number(clustercontrolplanecpumemsockets) * Number(clustercontrolplanecpumemthreads)) < 2 )) {
+            alert("Control Plane machines needs at least 2 vCPU!");
+        } else if(clustercontrolplanetype != "custom" && controlPlaneTypedCpus < 2) {
+            alert("Control Plane machines needs at least 2 vCPU, choose a bigger VM Type!");
+        } else {
+
+            /* Auto Fill CIDR Blocks */
+            if(clusterpodcidr == "") {
+                clusterpodcidr = "10.243.0.0/16";
+            }
+            if(clustersvccidr == "") {
+                clustersvccidr = "10.95.0.0/16";
+            }
+
+            let clustercontrolplaneosdist = "custom";
+            let clustercontrolplaneosversion = "custom";
+            let clusternodepoolosdist = "custom";
+            let clusternodepoolosversion = "custom";
+
+            /* Generate random VXLAN Port */
+            let clustercnivxlanport = "0000";
+            let clustercni = "manual";
+            let clustercniversion = "manual";
+
+            /* Create Cluster Related Objects */
+            try {
+                this.createClusterRelatedObjects(clustername,
+                                            clusternamespace,
+                                            clusterlabelkeyone,
+                                            clusterlabelvalueone,
+                                            clusterlabelkeytwo,
+                                            clusterlabelvaluetwo,
+                                            clusterlabelkeythree,
+                                            clusterlabelvaluethree,
+                                            clustercni,
+                                            clustercniversion,
+                                            clustercnivxlanport,
+                                            clusterpodcidr,
+                                            clustersvccidr,
+                                            clustercontrolplaneeptype,
+                                            clustercontrolplaneepannotationskeyone,
+                                            clustercontrolplaneepannotationsvalueone,
+                                            clustercontrolplaneepannotationskeytwo,
+                                            clustercontrolplaneepannotationsvaluetwo);
+
+                this.createControlPlaneRelatedObjects(clustername,
+                                            clusternamespace,
+                                            clusterversion,
+                                            clusterdns,
+                                            clusterpodcidr,
+                                            clustersvccidr,
+                                            clusternetwork,
+                                            clusternetworktype,
+                                            clustercontrolplaneosdist,
+                                            clustercontrolplaneosversion,
+                                            clustercontrolplaneimageurl,
+                                            clustercontrolplanetype,
+                                            clustercontrolplanecpumemsockets,
+                                            clustercontrolplanecpumemcores,
+                                            clustercontrolplanecpumemthreads,
+                                            clustercontrolplanecpumemmemory,
+                                            clustercontrolplanepc,
+                                            clustercontrolplanereplicas,
+                                            clustercontrolplanedisksize,
+                                            clustercontrolplanedisksc,
+                                            clustercontrolplanediskam,
+                                            clustercontrolplanediskcm);
+
+                this.createNodePoolRelatedObjects(clustername,
+                                            clusternamespace,
+                                            clusterversion,
+                                            clusternetwork,
+                                            clusternetworktype,
+                                            clusternodepoolname,
+                                            clusternodepoolosdist,
+                                            clusternodepoolosversion,
+                                            clusternodepoolimageurl,
+                                            clusternodepooltype,
+                                            clusternodepoolcpumemsockets,
+                                            clusternodepoolcpumemcores,
+                                            clusternodepoolcpumemthreads,
+                                            clusternodepoolcpumemmemory,
+                                            clusternodepoolpc,
+                                            clusternodepoolreplicas,
+                                            clusternodepooldisksize,
+                                            clusternodepooldisksc,
+                                            clusternodepooldiskam,
+                                            clusternodepooldiskcm);
+
+                /* Custom cluster doesn't support CNI and Features so far */
+
+                this.loadKubevirtCloudControllerManager(clusternamespace, clustername);
+
+                this.hideComponent("modal-newclustercustom");
                 this.reloadComponent();
             } catch (e: any) {
                 console.log(e);
@@ -1473,6 +1792,17 @@ export class KClusterComponent implements OnInit {
     updateClusterDNS(newname: string): void {
         let suffix = ".cluster.local";
         let clusterDNSField = document.getElementById("newcluster-dns");
+        if(clusterDNSField != null) {
+            clusterDNSField.setAttribute("value", newname + suffix);
+        }
+    }
+
+    /*
+     * UPDATE New Cluster DNS according to cluster name
+     */
+    updateClusterDNSCustom(newname: string): void {
+        let suffix = ".cluster.local";
+        let clusterDNSField = document.getElementById("newclustercustom-dns");
         if(clusterDNSField != null) {
             clusterDNSField.setAttribute("value", newname + suffix);
         }

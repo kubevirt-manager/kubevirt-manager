@@ -239,6 +239,22 @@ export class VmlistComponent implements OnInit {
             console.log(e);
         }
 
+        /* Show new window
+         * before loading everything
+         * to avoid delays
+         */
+        if(modalTitle != null) {
+            modalTitle.replaceChildren("New Virtual Machine: " + nodeName);
+        }
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+
+
         /* Load ClusterInstanceType List and Set Selector */
         let typeSelectorOptions = "<option value=none></option>";
         try {
@@ -294,10 +310,6 @@ export class VmlistComponent implements OnInit {
             selectorPCField.innerHTML = prioritySelectorOptions;
         }
 
-        if(modalTitle != null) {
-            modalTitle.replaceChildren("New Virtual Machine: " + nodeName);
-        }
-
         /* Clean up devices */
         while(this.myVmTemplateCustom.spec.template.spec.domain.devices.disks.length > 0) {
             this.myVmTemplateCustom.spec.template.spec.domain.devices.disks.pop();
@@ -324,14 +336,6 @@ export class VmlistComponent implements OnInit {
         }
         while(this.myVmTemplateTyped.spec.template.spec.domain.devices.interfaces.length > 0) {
             this.myVmTemplateTyped.spec.template.spec.domain.devices.interfaces.pop();
-        }
-
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade show");
-            modalDiv.setAttribute("aria-modal", "true");
-            modalDiv.setAttribute("role", "dialog");
-            modalDiv.setAttribute("aria-hidden", "false");
-            modalDiv.setAttribute("style","display: block;");
         }
     }
 

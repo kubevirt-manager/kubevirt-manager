@@ -48,46 +48,88 @@ describe('KClusterComponent', () => {
     const contentValue = componentElem.querySelector('#modal-delete');
     expect(contentValue).toBeTruthy();
   });
-  it('should contain New Cluster Screen', () => {
+  it('should contain New ClusterScreen', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#modal-new');
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain New Cluster Standard Screen', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
     const contentValue = componentElem.querySelector('#modal-newcluster');
     expect(contentValue).toBeTruthy();
   });
-  it('should contain New Cluster Screen: General Tab', () => {
+  it('should contain New Cluster Standard Screen: General Tab', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
     const contentValue = componentElem.querySelector('#newcluster-home');
     expect(contentValue).toBeTruthy();
   });
-  it('should contain New Cluster Screen: Details Tab', () => {
+  it('should contain New Cluster Standard Screen: Details Tab', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
     const contentValue = componentElem.querySelector('#newcluster-details');
     expect(contentValue).toBeTruthy();
   });
-  it('should contain New Cluster Screen: Network Tab', () => {
+  it('should contain New Cluster Standard Screen: Network Tab', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
     const contentValue = componentElem.querySelector('#newcluster-net');
     expect(contentValue).toBeTruthy();
   });
-  it('should contain New Cluster Screen: Control Plane Tab', () => {
+  it('should contain New Cluster Standard Screen: Control Plane Tab', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
     const contentValue = componentElem.querySelector('#newcluster-controlplane');
     expect(contentValue).toBeTruthy();
   });
-  it('should contain New Cluster Screen: Node Pool Tab', () => {
+  it('should contain New Cluster Standard Screen: Node Pool Tab', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
     const contentValue = componentElem.querySelector('#newcluster-nodepool');
     expect(contentValue).toBeTruthy();
   });
-  it('should contain New Cluster Screen: Advanced Tab', () => {
+  it('should contain New Cluster Standard Screen: Advanced Tab', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
     const contentValue = componentElem.querySelector('#newcluster-advanced');
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain New Cluster Custom Screen', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#modal-newclustercustom');
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain New Cluster Custom Screen: General Tab', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#newclustercustom-home');
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain New Cluster Custom Screen: Details Tab', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#newclustercustom-details');
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain New Cluster Custom Screen: Network Tab', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#newclustercustom-net');
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain New Cluster Custom Screen: Control Plane Tab', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#newclustercustom-controlplane');
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain New Cluster Custom Screen: Node Pool Tab', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#newclustercustom-nodepool');
     expect(contentValue).toBeTruthy();
   });
 });

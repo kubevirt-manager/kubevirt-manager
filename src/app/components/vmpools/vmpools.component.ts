@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
@@ -256,6 +255,21 @@ export class VMPoolsComponent implements OnInit {
             console.log(e);
         }
 
+        /* Show new window
+         * to avoid delays
+         */
+        if(modalTitle != null) {
+            modalTitle.replaceChildren("New Virtual Machine Pool");
+        }
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+
+
         /* Load ClusterInstanceType List and Set Selector */
         let typeSelectorOptions = "<option value=none></option>";
         try {
@@ -311,10 +325,6 @@ export class VMPoolsComponent implements OnInit {
             selectorPCField.innerHTML = prioritySelectorOptions;
         }
 
-        if(modalTitle != null) {
-            modalTitle.replaceChildren("New Virtual Machine Pool");
-        }
-
         /* Clean up devices */
         while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.length > 0) {
             this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.pop();
@@ -343,13 +353,6 @@ export class VMPoolsComponent implements OnInit {
             this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.pop();
         }
 
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade show");
-            modalDiv.setAttribute("aria-modal", "true");
-            modalDiv.setAttribute("role", "dialog");
-            modalDiv.setAttribute("aria-hidden", "false");
-            modalDiv.setAttribute("style","display: block;");
-        }
     }
 
     /*

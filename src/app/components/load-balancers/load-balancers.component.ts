@@ -4,7 +4,6 @@ import { lastValueFrom } from 'rxjs';
 import { LoadBalancerPort } from 'src/app/models/load-balancer-port.model';
 import { LoadBalancer } from 'src/app/models/load-balancer.model';
 import { K8sService } from 'src/app/services/k8s.service';
-import { HttpErrorResponse } from '@angular/common/http';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
 import { Services } from 'src/app/templates/services.apitemplate';
 

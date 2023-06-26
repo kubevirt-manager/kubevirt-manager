@@ -223,6 +223,11 @@ export class XK8sService {
         return this.http.post(`${baseUrl}/namespaces/${namespace}/configmaps`, cmvalue, { 'headers': headers } );
     }
 
+    deleteKCCConfigMap(namespace: string, name: string): Observable<any> {
+        let baseUrl = './k8s/api/v1'
+        return this.http.delete(`${baseUrl}/namespaces/${namespace}/configmaps/${name}`);
+    }
+
     createKCCController(namespace: string, kccvalue: Object): Observable<any> {
         let baseUrl = './k8s/apis/apps/v1'
         const headers = {

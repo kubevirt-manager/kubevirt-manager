@@ -48,8 +48,8 @@ export class DashboardComponent implements OnInit {
     /* Prometheus query data */
     promStartTime = 0;
     promEndTime = 0;
-    promInterval = 1800; // Prometheus Window 30 minutes
-    promStep = 20;       // Prometheus Step 20 seconds
+    promInterval = 3600; // Prometheus Window 30 minutes
+    promStep = 30;       // Prometheus Step 20 seconds
 
     /* Chart.JS placeholder */
     cpuChart: any;
