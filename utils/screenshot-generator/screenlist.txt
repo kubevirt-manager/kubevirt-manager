@@ -1,0 +1,14 @@
+screenshot_01.png,http://172.16.145.211/
+screenshot_02.png,http://172.16.145.211/vmlist
+screenshot_03.png,http://172.16.145.211/vmdetail/default/custom-cluster-control-plane-l82qr
+screenshot_04.png,http://172.16.145.211/vmpools
+screenshot_05.png,http://172.16.145.211/vmpooldetail/virtualmachines/test-pool
+screenshot_06.png,http://172.16.145.211/autoscale
+screenshot_07.png,http://172.16.145.211/kcluster
+screenshot_08.png,http://172.16.145.211/kclusterdetails/default/std-cluster
+screenshot_09.png,http://172.16.145.211/nodelist
+screenshot_10.png,http://172.16.145.211/dsklist
+screenshot_11.png,http://172.16.145.211/citlist
+screenshot_12.png,http://172.16.145.211/lblist
+screenshot_13.png,http://172.16.145.211/netlist
+screenshot_14.png,http://172.16.145.211/vncviewer/virtualmachines/test-pool-1
