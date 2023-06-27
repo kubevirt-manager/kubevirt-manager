@@ -189,11 +189,7 @@ export class XK8sService {
 
     deleteClusterResourseSet(namespace: string, name: string): Observable<any> {
         let baseUrl = './k8s/apis/addons.cluster.x-k8s.io/v1alpha3'
-        const headers = {
-            'content-type': 'application/json',
-            'accept': 'application/json'
-        };
-        return this.http.delete(`${baseUrl}/namespaces/${namespace}/${name}`);
+        return this.http.delete(`${baseUrl}/namespaces/${namespace}/clusterresourcesets/${name}`);
     }
 
     createKCCServiceAccount(namespace: string, saalue: Object): Observable<any> {
@@ -245,5 +241,61 @@ export class XK8sService {
     deleteKCCServices(namespace: string, name: string): Observable<any> {
         var baseUrl ='./k8s/api/v1';
         return this.http.delete(`${baseUrl}/namespaces/${namespace}/services/${name}`);
+    }
+
+    createCSIController(namespace: string, kccvalue: Object): Observable<any> {
+        let baseUrl = './k8s/apis/apps/v1'
+        const headers = {
+            'content-type': 'application/json',
+            'accept': 'application/json'
+        };
+        return this.http.post(`${baseUrl}/namespaces/${namespace}/deployments`, kccvalue, { 'headers': headers } );
+    }
+
+    createCSIServiceAccount(namespace: string, saalue: Object): Observable<any> {
+        let baseUrl = './k8s/api/v1'
+        const headers = {
+            'content-type': 'application/json',
+            'accept': 'application/json'
+        };
+        return this.http.post(`${baseUrl}/namespaces/${namespace}/serviceaccounts`, saalue, { 'headers': headers } );
+    }
+
+    createCSIRoleBinding(namespace: string, rbvalue: Object): Observable<any> {
+        let baseUrl = './k8s/apis/rbac.authorization.k8s.io/v1'
+        const headers = {
+            'content-type': 'application/json',
+            'accept': 'application/json'
+        };
+        return this.http.post(`${baseUrl}/namespaces/${namespace}/rolebindings`, rbvalue, { 'headers': headers } );
+    }
+
+    createCSIConfigMap(namespace: string, cmvalue: Object): Observable<any> {
+        let baseUrl = './k8s/api/v1'
+        const headers = {
+            'content-type': 'application/json',
+            'accept': 'application/json'
+        };
+        return this.http.post(`${baseUrl}/namespaces/${namespace}/configmaps`, cmvalue, { 'headers': headers } );
+    }
+
+    deleteCSIController(namespace: string, name: string): Observable<any> {
+        let baseUrl = './k8s/apis/apps/v1'
+        return this.http.delete(`${baseUrl}/namespaces/${namespace}/deployments/${name}`);
+    }
+
+    deleteCSIServiceAccount(namespace: string, name: string): Observable<any> {
+        let baseUrl = './k8s/api/v1'
+        return this.http.delete(`${baseUrl}/namespaces/${namespace}/serviceaccounts/${name}`);
+    }
+
+    deleteCSIRoleBinding(namespace: string, name: string): Observable<any> {
+        let baseUrl = './k8s/apis/rbac.authorization.k8s.io/v1'
+        return this.http.delete(`${baseUrl}/namespaces/${namespace}/rolebindings/${name}`);
+    }
+
+    deleteCSIConfigMap(namespace: string, name: string): Observable<any> {
+        let baseUrl = './k8s/api/v1'
+        return this.http.delete(`${baseUrl}/namespaces/${namespace}/configmaps/${name}`);
     }
 }

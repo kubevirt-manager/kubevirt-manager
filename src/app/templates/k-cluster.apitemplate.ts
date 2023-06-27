@@ -403,4 +403,203 @@ export class KClusterTemplate {
         }
       }
 
+    CSIController = {
+        "kind": "Deployment",
+        "apiVersion": "apps/v1",
+        "metadata": {
+          "name": "",
+          "namespace": "",
+          "labels": {}
+        },
+        "spec": {
+          "replicas": 1,
+          "selector": {
+            "matchLabels": {}
+          },
+          "template": {
+            "metadata": {
+              "labels": {}
+            },
+            "spec": {
+              "serviceAccount": "",
+              "priorityClassName": "system-cluster-critical",
+              "nodeSelector": {
+                "node-role.kubernetes.io/control-plane": ""
+              },
+              "tolerations": [
+                {
+                  "key": "CriticalAddonsOnly",
+                  "operator": "Exists"
+                },
+                {
+                  "key": "node-role.kubernetes.io/master",
+                  "operator": "Exists",
+                  "effect": "NoSchedule"
+                }
+              ],
+              "containers": [
+                {
+                  "name": "csi-driver",
+                  "imagePullPolicy": "Always",
+                  "image": "quay.io/kubevirt/csi-driver:latest",
+                  "args": [
+                    "--endpoint=$(CSI_ENDPOINT)",
+                    "--infra-cluster-namespace=$(INFRACLUSTER_NAMESPACE)",
+                    "--infra-cluster-labels=$(INFRACLUSTER_LABELS)",
+                    "--tenant-cluster-kubeconfig=/var/run/secrets/tenantcluster/value",
+                    "--run-node-service=false",
+                    "--run-controller-service=true",
+                    "--v=5"
+                  ],
+                  "ports": [
+                    {
+                      "name": "healthz",
+                      "containerPort": 10301,
+                      "protocol": "TCP"
+                    }
+                  ],
+                  "env": [{}],
+                  "volumeMounts": [
+                    {
+                      "name": "socket-dir",
+                      "mountPath": "/var/lib/csi/sockets/pluginproxy/"
+                    },
+                    {
+                      "name": "tenantcluster",
+                      "mountPath": "/var/run/secrets/tenantcluster"
+                    }
+                  ],
+                  "resources": {
+                    "requests": {
+                      "memory": "50Mi",
+                      "cpu": "10m"
+                    }
+                  }
+                },
+                {
+                  "name": "csi-provisioner",
+                  "image": "quay.io/openshift/origin-csi-external-provisioner:latest",
+                  "args": [
+                    "--csi-address=$(ADDRESS)",
+                    "--default-fstype=ext4",
+                    "--kubeconfig=/var/run/secrets/tenantcluster/value",
+                    "--v=5"
+                  ],
+                  "env": [{}],
+                  "volumeMounts": [
+                    {
+                      "name": "socket-dir",
+                      "mountPath": "/var/lib/csi/sockets/pluginproxy/"
+                    },
+                    {
+                      "name": "tenantcluster",
+                      "mountPath": "/var/run/secrets/tenantcluster"
+                    }
+                  ]
+                },
+                {
+                  "name": "csi-attacher",
+                  "image": "quay.io/openshift/origin-csi-external-attacher:latest",
+                  "args": [
+                    "--csi-address=$(ADDRESS)",
+                    "--kubeconfig=/var/run/secrets/tenantcluster/value",
+                    "--v=5"
+                  ],
+                  "env": [{}],
+                  "volumeMounts": [
+                    {
+                      "name": "socket-dir",
+                      "mountPath": "/var/lib/csi/sockets/pluginproxy/"
+                    },
+                    {
+                      "name": "tenantcluster",
+                      "mountPath": "/var/run/secrets/tenantcluster"
+                    }
+                  ],
+                  "resources": {
+                    "requests": {
+                      "memory": "50Mi",
+                      "cpu": "10m"
+                    }
+                  }
+                },
+                {
+                  "name": "csi-liveness-probe",
+                  "image": "quay.io/openshift/origin-csi-livenessprobe:latest",
+                  "args": [
+                    "--csi-address=/csi/csi.sock",
+                    "--probe-timeout=3s",
+                    "--health-port=10301"
+                  ],
+                  "env": [{}],
+                  "volumeMounts": [
+                    {
+                      "name": "socket-dir",
+                      "mountPath": "/csi"
+                    },
+                    {
+                      "name": "tenantcluster",
+                      "mountPath": "/var/run/secrets/tenantcluster"
+                    }
+                  ],
+                  "resources": {
+                    "requests": {
+                      "memory": "50Mi",
+                      "cpu": "10m"
+                    }
+                  }
+                }
+              ],
+              "volumes": [{}]
+            }
+          }
+        }
+      }
+
+    CSIServiceAccount = {
+        "apiVersion": "v1",
+        "kind": "ServiceAccount",
+        "metadata": {
+          "name": "",
+          "namespace": "",
+          "labels": {}
+        }
+      }
+
+    CSIRoleBinding = {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "RoleBinding",
+        "metadata": {
+          "name": "",
+          "namespace": "",
+          "labels": {}
+        },
+        "roleRef": {
+          "apiGroup": "rbac.authorization.k8s.io",
+          "kind": "ClusterRole",
+          "name": "kubevirt-manager-csi"
+        },
+        "subjects": [
+          {
+            "kind": "ServiceAccount",
+            "name": "",
+            "namespace": ""
+          }
+        ]
+      }
+
+      CSIConfigMap = {
+        "apiVersion": "v1",
+        "kind": "ConfigMap",
+        "metadata": {
+          "name": "",
+          "namespace": "",
+          "labels": {}
+        },
+        "data": {
+          "infraClusterNamespace": "",
+          "infraClusterLabels": ""
+        }
+      }
+
 }
