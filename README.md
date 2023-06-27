@@ -77,7 +77,7 @@ You will need to restart (delete) the `Pod` or redeploy the solution for the cha
 
 To use `kubevirt-manager` with `cluster-api-provider` for `KubeVirt` you must install Cluster API.   
 Check [Cluster API Introduction](https://cluster-api.sigs.k8s.io/introduction.html) for more information.   
-Feature `ClusterResourceSet` is **required** by the tool to automate CNI and Add-ons fuctionality on `Standard` clusters. Either enable it before installing `Cluster API` by following the documentation on [ClusterResourceSet](https://cluster-api.sigs.k8s.io/tasks/experimental-features/cluster-resource-set.html), or enable it by adding `ClusterResourceSet=true` to the `feature-gates` argument line of your already running `capi-controller-manager` Deployment. Don't forget to wait for `capi-controller-manager` pods to restart or restart it manually if needed. The following can be done with a command like the below: 
+Feature `ClusterResourceSet` is **required** by the tool to automate CNI and Add-ons fuctionality on `Standard` clusters. Either enable it before installing `Cluster API` by following the documentation on [ClusterResourceSet](https://cluster-api.sigs.k8s.io/tasks/experimental-features/cluster-resource-set.html) and export `EXP_CLUSTER_RESOURCE_SET=true` before running `clusterctl generate`, or enable it by adding `ClusterResourceSet=true` to the `feature-gates` argument line of your already running `capi-controller-manager` Deployment. Don't forget to wait for `capi-controller-manager` pods to restart or restart it manually if needed. The following can be done with a command like the below: 
 ```sh
 $ kubectl edit -n capi-system deployment.apps/capi-controller-manager
 ```   
