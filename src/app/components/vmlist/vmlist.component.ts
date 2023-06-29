@@ -575,7 +575,7 @@ export class VmlistComponent implements OnInit {
                     console.log(e);
                     throw new Error("Error creating Disk1 from Image!");
                 }
-            } if(newvmdiskonetype == "gcs") {
+            } else if(newvmdiskonetype == "gcs") {
                 /* Create Disk From GCS Image */
                 let disk1name = newvmnamespace + "-"+ newvmname + "-disk1";
                 try {
@@ -591,7 +591,7 @@ export class VmlistComponent implements OnInit {
                     console.log(e);
                     throw new Error("Error creating Disk1 from Image!");
                 }
-            } if(newvmdiskonetype == "registry") {
+            } else if(newvmdiskonetype == "registry") {
                 /* Create Disk From Container Registry Image */
                 let disk1name = newvmnamespace + "-"+ newvmname + "-disk1";
                 try {
@@ -698,7 +698,7 @@ export class VmlistComponent implements OnInit {
                     console.log(e);
                     throw new Error("Error creating Disk2 from Image!");
                 }
-            } if(newvmdisktwotype == "registry") {
+            } else if(newvmdisktwotype == "registry") {
                 /* Create Disk From Container Registry Image */
                 let disk2name = newvmnamespace + "-"+ newvmname + "-disk2";
                 try {
@@ -746,7 +746,7 @@ export class VmlistComponent implements OnInit {
                     console.log(e);
                     throw new Error("Error creating Disk2 from PVC!");
                 }
-            }else if (newvmdisktwotype == "dv") {
+            } else if (newvmdisktwotype == "dv") {
                 /* Use Existing Disk */
                 if(newvmdisktwocm != "") {
                     disk2 = { 'name': "disk2", 'cache': newvmdisktwocm, 'disk': {}};

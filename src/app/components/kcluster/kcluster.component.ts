@@ -299,7 +299,6 @@ export class KClusterComponent implements OnInit {
                     let configData = await lastValueFrom(this.xK8sService.deleteConfigSecret(clusterNamespace, clusterName + "-config"));
                 } catch (e: any) {
                     console.log(e);
-                    alert(e.error.message);
                 }
                 try {
                     let controllerData = await lastValueFrom(this.xK8sService.getKCCServices(clusterNamespace, clusterName));
@@ -312,7 +311,6 @@ export class KClusterComponent implements OnInit {
                     }                    
                 } catch (e: any) {
                     console.log(e);
-                    alert(e.error.message);
                 }
                 try {
                     let kccConfig = await lastValueFrom(this.xK8sService.deleteKCCConfigMap(clusterNamespace, clusterName + "-kcc"));
@@ -600,7 +598,6 @@ export class KClusterComponent implements OnInit {
                 controlPlaneTypedCpus = Number(data.spec.cpu["guest"]);
             } catch (e: any) {
                 console.log(e);
-                alert(e.error.message);
             }
         }
 
@@ -813,7 +810,6 @@ export class KClusterComponent implements OnInit {
                 controlPlaneTypedCpus = Number(data.spec.cpu["guest"]);
             } catch (e: any) {
                 console.log(e);
-                alert(e.error.message);
             }
         }
 
@@ -1608,7 +1604,6 @@ export class KClusterComponent implements OnInit {
                     data = await lastValueFrom(this.xK8sService.createClusterResourseSet(clusternamespace, thisClusterResourceSetObj));
                 } catch (e: any) {
                     console.log(e);
-                    alert(e.error.message);
                 }
             }
 
@@ -1686,7 +1681,6 @@ export class KClusterComponent implements OnInit {
             data = await lastValueFrom(this.xK8sService.createKCCConfigMap(namespace, thisConfigMap));
             data = await lastValueFrom(this.xK8sService.createKCCController(namespace, thisController));
         } catch (e: any) {
-            alert(e.error.message);
             console.log(e);
         }
     }

@@ -418,6 +418,7 @@ export class VmdetailsComponent implements OnInit {
             this.hideComponent("modal-type");
             this.reloadComponent();
         } catch (e: any) {
+            alert(e.message.error);
             console.log(e);
         }
     }
@@ -460,7 +461,8 @@ export class VmdetailsComponent implements OnInit {
                 this.hideComponent("modal-resize");
                 this.reloadComponent();
             } catch (e: any) {
-                 console.log(e);
+                alert(e.error.message);
+                console.log(e);
             }
         }
     }
@@ -497,6 +499,7 @@ export class VmdetailsComponent implements OnInit {
             this.hideComponent("modal-pc");
             this.reloadComponent();
         } catch (e: any) {
+            alert(e.message.error);
             console.log(e);
         }
     }

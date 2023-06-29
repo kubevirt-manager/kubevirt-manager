@@ -1145,6 +1145,7 @@ export class KClusterDetailsComponent implements OnInit {
                     this.hideComponent("modal-delete");
                     this.reloadComponent();
                 } catch (e: any) {
+                    alert(e.error.message);
                     console.log(e);
                 }
             }
