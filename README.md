@@ -31,6 +31,8 @@ volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true
 ```
 
+*Note: These settings are required to work with a hostpath csi driver, in order to prevent virtual machine instances from being started in a node different from the node in which the disk/volume resides.*
+
 ## HOW TO INSTALL IT
 
 ### Create the Namespace
@@ -81,6 +83,17 @@ Feature `ClusterResourceSet` is **required** by the tool to automate CNI and Add
 ```sh
 $ kubectl edit -n capi-system deployment.apps/capi-controller-manager
 ```   
+
+*Note:* Pre-baked images are provided from kubevirt-manager.online domain.  
+*Note:* Pre-baked images were created using [image-builder](https://github.com/kubernetes-sigs/image-builder) project.  
+*Note:* Pre-baked images have `qemu-guest-agent` pre installed to provide instance details on dashboard.  
+*Note:* CNI files are also provided from kubevirt-manager.online domain.  
+*Note:* CNI files were mostly generated from original Helm Charts using `helm template`.   
+*Note:* CNI files have some value substituion before applying to the cluster in order to support user customization.   
+*Note:* The supported CNIs can be found [here](https://kubevirt-manager.online/cni-versions.json).   
+*Note:* Features are also provided as YAML files from kubevirt-manager.online domain.   
+*Note:* Features files were mostly generated from original Helm Charts using `helm template`.    
+*Note:* The supported features can be found [here](https://kubevirt-manager.online/features.json).   
 
 ## NGINX AUTHENTICATION
 
@@ -177,6 +190,10 @@ npm test
 14. [Kubernetes Cluster API Provider for Kubevirt](https://github.com/kubernetes-sigs/cluster-api-provider-kubevirt)
 15. [Cluster API Quick Start](https://cluster-api.sigs.k8s.io/user/quick-start.html)
 16. [ClusterResourceSet](https://cluster-api.sigs.k8s.io/tasks/experimental-features/cluster-resource-set.html)
+17. [image-builder](https://github.com/kubernetes-sigs/image-builder)
+18. [capk-versions.json](https://kubevirt-manager.online/capk-versions.json)
+19. [cni-versions.json](https://kubevirt-manager.online/cni-versions.json)
+20. [features.json](https://kubevirt-manager.online/features.json)
 
 ## License
 
