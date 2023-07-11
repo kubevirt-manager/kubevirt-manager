@@ -114,6 +114,9 @@ export class VmdetailsComponent implements OnInit {
         this.activeVm.running = data.spec["running"];
         if (data.status) {
             this.activeVm.printableStatus = data.status["printableStatus"];
+            if (this.activeVm.printableStatus.toLowerCase() == "running") {
+                this.activeVm.running = true;
+            }
         }
 
         /* Getting VM Type */

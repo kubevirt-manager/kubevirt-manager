@@ -9,17 +9,17 @@ export class KubevirtMgrCapk {
     constructor(private http: HttpClient) { }
 
     loadImages(): Observable<any> {
-        let baseUrl = 'https://static.kubevirt-manager.io'
+        let baseUrl = 'https://kubevirt-manager.online'
         return this.http.get(`${baseUrl}/capk-versions.json`, {responseType: 'json'});
     }
 
     loadCNIs(): Observable<any> {
-        let baseUrl = 'https://static.kubevirt-manager.io'
+        let baseUrl = 'https://kubevirt-manager.online'
         return this.http.get(`${baseUrl}/cni-versions.json`, {responseType: 'json'});
     }
 
     loadFeatures(): Observable<any> {
-        let baseUrl = 'https://static.kubevirt-manager.io'
+        let baseUrl = 'https://kubevirt-manager.online'
         return this.http.get(`${baseUrl}/features.json`, {responseType: 'json'});
     }
 

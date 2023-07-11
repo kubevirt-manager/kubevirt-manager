@@ -620,9 +620,9 @@ export class KClusterComponent implements OnInit {
             alert("Please select an Endpoint Type for you Kubernetes API!");
         } else if(this.checkClusterExists(clustername, clusternamespace)) {
             alert("Cluster with name/namespace combination already exists!");
-        } else if(clustercontrolplanetype.toLowerCase() == "none" || clustercontrolplanetype.toLocaleLowerCase() == "") {
+        } else if(clustercontrolplanetype.toLowerCase() == "none" || clustercontrolplanetype.toLowerCase() == "") {
             alert("Please select a valid VM Type for Control Plane!");
-        } else if(clusternodepooltype.toLowerCase() == "none" || clusternodepooltype.toLocaleLowerCase() == "") {
+        } else if(clusternodepooltype.toLowerCase() == "none" || clusternodepooltype.toLowerCase() == "") {
             alert("Please select a valid VM Type for Node Pool!");
         } else if(Number(clustercontrolplanereplicas)%2 == 0 || Number(clustercontrolplanereplicas) == 0 || clustercontrolplanereplicas == "") {
             alert("Control Plane replicas number needs to be an odd number!");
@@ -832,9 +832,9 @@ export class KClusterComponent implements OnInit {
             alert("Please select an Endpoint Type for you Kubernetes API!");
         } else if(this.checkClusterExists(clustername, clusternamespace)) {
             alert("Cluster with name/namespace combination already exists!");
-        } else if(clustercontrolplanetype.toLowerCase() == "none" || clustercontrolplanetype.toLocaleLowerCase() == "") {
+        } else if(clustercontrolplanetype.toLowerCase() == "none" || clustercontrolplanetype.toLowerCase() == "") {
             alert("Please select a valid VM Type for Control Plane!");
-        } else if(clusternodepooltype.toLowerCase() == "none" || clusternodepooltype.toLocaleLowerCase() == "") {
+        } else if(clusternodepooltype.toLowerCase() == "none" || clusternodepooltype.toLowerCase() == "") {
             alert("Please select a valid VM Type for Node Pool!");
         } else if(Number(clustercontrolplanereplicas)%2 == 0 || Number(clustercontrolplanereplicas) == 0 || clustercontrolplanereplicas == "") {
             alert("Control Plane replicas number needs to be an odd number!");
@@ -1200,7 +1200,7 @@ export class KClusterComponent implements OnInit {
         let disk1 = {};
         let device1 = {};
         let disk1dv = new DataVolume().httpDisk;
-        let disk1name = namespace + "-"+ name + "-control-plane-disk1";
+        let disk1name = "disk1";
         disk1dv.metadata.name = disk1name;
         disk1dv.metadata.namespace = namespace;
         disk1dv.spec.pvc.storageClassName = controlplanedisksc;
@@ -1407,7 +1407,7 @@ export class KClusterComponent implements OnInit {
         let disk1 = {};
         let device1 = {};
         let disk1dv = new DataVolume().httpDisk;
-        let disk1name = namespace + "-"+ name + "-" + nodepoolname + "-disk1";
+        let disk1name = "disk1";
         disk1dv.metadata.name = disk1name;
         disk1dv.metadata.namespace = namespace;
         disk1dv.spec.pvc.storageClassName = nodepooldisksc;

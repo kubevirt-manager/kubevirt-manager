@@ -269,6 +269,9 @@ export class VmpooldetailsComponent implements OnInit {
             currentVm.creationTimestamp = new Date(vms[i].metadata["creationTimestamp"]);
             currentVm.running = vms[i].spec["running"];
             currentVm.status = vms[i].status["printableStatus"];
+            if (currentVm.status.toLowerCase() == "running") {
+                currentVm.running = true;
+            }
             try {
                 currentVm.nodeSel = vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"];
             } catch (e: any) {
@@ -734,7 +737,7 @@ export class VmpooldetailsComponent implements OnInit {
     async onChangeLivenessType(hcType: string) {
         let modalPath = document.getElementById("pooldetails-liveness-path-panel");
         if (modalPath != null) {
-            if (hcType.toLocaleLowerCase() == "http") {
+            if (hcType.toLowerCase() == "http") {
                 modalPath.setAttribute("class", "modal fade show");
                 modalPath.setAttribute("aria-modal", "true");
                 modalPath.setAttribute("role", "dialog");
@@ -856,7 +859,7 @@ export class VmpooldetailsComponent implements OnInit {
     async onChangeReadinessType(hcType: string) {
         let modalPath = document.getElementById("pooldetails-readiness-path-panel");
         if (modalPath != null) {
-            if (hcType.toLocaleLowerCase() == "http") {
+            if (hcType.toLowerCase() == "http") {
                 modalPath.setAttribute("class", "modal fade show");
                 modalPath.setAttribute("aria-modal", "true");
                 modalPath.setAttribute("role", "dialog");

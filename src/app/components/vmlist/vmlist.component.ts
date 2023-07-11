@@ -99,8 +99,10 @@ export class VmlistComponent implements OnInit {
             try {
                 currentVm.status = vms[i].status["printableStatus"];
                 /* Working around a bug when scaling down and VM stuck in terminating */
-                if(currentVm.status.toLocaleLowerCase() == "terminating") {
-                    currentVm.running = false;                
+                if(currentVm.status.toLowerCase() == "terminating") {
+                    currentVm.running = false;
+                } else if (currentVm.status.toLowerCase() == "running") {
+                    currentVm.running = true;
                 } else {
                     currentVm.running = vms[i].spec["running"];
                 }
@@ -410,7 +412,7 @@ export class VmlistComponent implements OnInit {
             alert("You need to select the disk!");
         } else if(this.checkVmExists(newvmname, newvmnamespace)) {
             alert("VM with name/namespace combination already exists!");
-        } else if(newvmtype.toLowerCase() == "none" || newvmtype.toLocaleLowerCase() == "") {
+        } else if(newvmtype.toLowerCase() == "none" || newvmtype.toLowerCase() == "") {
             alert("Please select a valid VM type!");
         } else {
 

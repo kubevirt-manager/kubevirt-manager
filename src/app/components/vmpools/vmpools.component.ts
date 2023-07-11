@@ -137,6 +137,9 @@ export class VMPoolsComponent implements OnInit {
             currentVm.running = vms[i].spec["running"];
             try {
                 currentVm.status = vms[i].status["printableStatus"];
+                if (currentVm.status.toLowerCase() == "running") {
+                    currentVm.running = true;
+                }
             } catch (e: any) {
                 currentVm.status = "";
                 console.log(e);
@@ -437,7 +440,7 @@ export class VMPoolsComponent implements OnInit {
             alert("You need to select the disk!");
         } else if(this.checkPoolExists(newpoolname, newpoolnamespace)) {
             alert("Pool with name/namespace combination already exists!");
-        } else if(newpooltype.toLowerCase() == "none" || newpooltype.toLocaleLowerCase() == "") {
+        } else if(newpooltype.toLowerCase() == "none" || newpooltype.toLowerCase() == "") {
             alert("Please select a valid VM type!");
         } else if(newpoollivenessenable == "true" && (newpoollivenessport == "" || newpoollivenessinitialdelay == "" ||  newpoollivenessinterval == "" || newpoollivenesstimeout == "" || newpoollivenessfailure == "" || newpoollivenesssuccess == "")) {
             alert("You need to enter all the Liveness Probe details!");
@@ -1550,7 +1553,7 @@ export class VMPoolsComponent implements OnInit {
     async onChangeLivenessType(hcType: string) {
         let modalPath = document.getElementById("newpool-liveness-path-panel");
         if (modalPath != null) {
-            if (hcType.toLocaleLowerCase() == "http") {
+            if (hcType.toLowerCase() == "http") {
                 modalPath.setAttribute("class", "modal fade show");
                 modalPath.setAttribute("aria-modal", "true");
                 modalPath.setAttribute("role", "dialog");
@@ -1606,7 +1609,7 @@ export class VMPoolsComponent implements OnInit {
     async onChangeReadinessType(hcType: string) {
         let modalPath = document.getElementById("newpool-readiness-path-panel");
         if (modalPath != null) {
-            if (hcType.toLocaleLowerCase() == "http") {
+            if (hcType.toLowerCase() == "http") {
                 modalPath.setAttribute("class", "modal fade show");
                 modalPath.setAttribute("aria-modal", "true");
                 modalPath.setAttribute("role", "dialog");

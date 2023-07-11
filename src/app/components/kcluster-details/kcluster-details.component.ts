@@ -418,8 +418,10 @@ export class KClusterDetailsComponent implements OnInit {
             try {
                 currentVm.status = vms[i].status["printableStatus"];
                 /* Working around a bug when scaling down and VM stuck in terminating */
-                if(currentVm.status.toLocaleLowerCase() == "terminating") {
-                    currentVm.running = false;                
+                if(currentVm.status.toLowerCase() == "terminating") {
+                    currentVm.running = false;
+                } else if (currentVm.status.toLowerCase() == "running") {
+                    currentVm.running = true;
                 } else {
                     currentVm.running = vms[i].spec["running"];
                 }
@@ -562,8 +564,10 @@ export class KClusterDetailsComponent implements OnInit {
                     try {
                         currentVm.status = vms[i].status["printableStatus"];
                         /* Working around a bug when scaling down and VM stuck in terminating */
-                        if(currentVm.status.toLocaleLowerCase() == "terminating") {
-                            currentVm.running = false;                
+                        if(currentVm.status.toLowerCase() == "terminating") {
+                            currentVm.running = false;
+                        } else if (currentVm.status.toLowerCase() == "running") {
+                            currentVm.running = true;
                         } else {
                             currentVm.running = vms[i].spec["running"];
                         }
@@ -876,7 +880,7 @@ export class KClusterDetailsComponent implements OnInit {
             }
         }
 
-        if(controlplanetype.toLowerCase() == "none" || controlplanetype.toLocaleLowerCase() == "") {
+        if(controlplanetype.toLowerCase() == "none" || controlplanetype.toLowerCase() == "") {
             alert("Please select a valid VM Type for Control Plane!");
         } else if(controlplanedisksize == "") {
             alert("Check Control Plane disk size!");
@@ -975,7 +979,7 @@ export class KClusterDetailsComponent implements OnInit {
             let disk1 = {};
             let device1 = {};
             let disk1dv = new DataVolume().httpDisk;
-            let disk1name = this.activeCluster.namespace + "-"+ this.activeCluster.name + "-control-plane-disk1";
+            let disk1name = "disk1";
             disk1dv.metadata.name = disk1name;
             disk1dv.metadata.namespace = this.activeCluster.namespace;
             disk1dv.spec.pvc.storageClassName = controlplanedisksc;
@@ -1175,7 +1179,7 @@ export class KClusterDetailsComponent implements OnInit {
         /* PERFORM VALIDATION */
         if (nodepoolname == "") {
             alert("Please set new Node Pool name!");
-        } else if(nodepooltype.toLowerCase() == "none" || nodepooltype.toLocaleLowerCase() == "") {
+        } else if(nodepooltype.toLowerCase() == "none" || nodepooltype.toLowerCase() == "") {
             alert("Please select a valid VM Type for Node Pool!");
         } else if(nodepoolosdist == "none" || nodepoolosdist == "") {
             alert("Choose an Operating System for your Node Pool!");
@@ -1310,7 +1314,7 @@ export class KClusterDetailsComponent implements OnInit {
             let disk1 = {};
             let device1 = {};
             let disk1dv = new DataVolume().httpDisk;
-            let disk1name = namespace + "-"+ name + "-" + nodepoolname + "-disk1";
+            let disk1name = "disk1";
             disk1dv.metadata.name = disk1name;
             disk1dv.metadata.namespace = namespace;
             disk1dv.spec.pvc.storageClassName = nodepooldisksc;

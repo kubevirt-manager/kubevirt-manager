@@ -146,7 +146,7 @@ export class KClusterTemplate {
                   "namespace": ""
                 }
               },
-              "clusterName": "capi-quickstart",
+              "clusterName": "",
               "infrastructureRef": {
                 "apiVersion": "infrastructure.cluster.x-k8s.io/v1alpha1",
                 "kind": "KubevirtMachineTemplate",
@@ -177,7 +177,7 @@ export class KClusterTemplate {
                 },
                 "spec": {
                   "dataVolumeTemplates": [{}],
-                  "running": true,
+                  "runStrategy": "Once",
                   "instancetype": {
                     "kind": "VirtualMachineClusterInstancetype",
                     "name": ""
@@ -224,7 +224,7 @@ export class KClusterTemplate {
                 },
                 "spec": {
                   "dataVolumeTemplates": [{}],
-                  "running": true,
+                  "runStrategy": "Once",
                   "template": {
                     "metadata": {
                       "labels": {}
