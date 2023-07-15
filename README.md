@@ -123,20 +123,7 @@ You can also use `kubectl port-forward` on port 8080.
 
 ## Screenshots
 
-Dashboard:</br>
-<img src="images/screenshot_01.png" width="96%"/>
-</br>Virtual Machines:</br>
-<img src="images/screenshot_02.png" width="96%"/>
-</br>Node Pools:</br>
-<img src="images/screenshot_03.png" width="96%"/>
-</br>Instance Types & Network: </br>
-<img src="images/screenshot_05.png" width="46%"/>
-<img src="images/screenshot_07.png" width="46%"/>
-</br>Data Volumes & Load Balancers: </br>
-<img src="images/screenshot_04.png" width="46%"/>
-<img src="images/screenshot_06.png" width="46%"/>
-</br>VNC Screen</br>
-<img src="images/screenshot_08.png" width="96%"/>
+To optimize the load of the main repo README, screenshots were removed from here. To see the screenshots, visit [images](images/) directory.
 
 
 ## Building
