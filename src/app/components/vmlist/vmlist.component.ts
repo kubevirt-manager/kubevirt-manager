@@ -58,26 +58,30 @@ export class VmlistComponent implements OnInit {
      * Load Nodes
      */
     async getNodes(): Promise<void> {
-        let currentNode = new K8sNode;
-        const data = await lastValueFrom(this.k8sService.getNodes());
-        let nodes = data.items;
-        for (let i = 0; i < nodes.length; i++) {
+        try {
+            let currentNode = new K8sNode;
+            const data = await lastValueFrom(this.k8sService.getNodes());
+            let nodes = data.items;
+            for (let i = 0; i < nodes.length; i++) {
+                currentNode = new K8sNode();
+                currentNode.name = nodes[i].metadata["name"];
+                for(let j = 0; j < this.vmList.length; j++) {
+                    if (this.vmList[j].nodeSel == currentNode.name)
+                        currentNode.vmlist.push(this.vmList[j]);
+                }
+                this.nodeList.push(currentNode);
+            }
+            /* auto-selects node when power on vm */
             currentNode = new K8sNode();
-            currentNode.name = nodes[i].metadata["name"];
+            currentNode.name = "auto-select";
             for(let j = 0; j < this.vmList.length; j++) {
                 if (this.vmList[j].nodeSel == currentNode.name)
                     currentNode.vmlist.push(this.vmList[j]);
             }
             this.nodeList.push(currentNode);
+        } catch (e: any) {
+            console.log(e);
         }
-        /* auto-selects node when power on vm */
-        currentNode = new K8sNode();
-        currentNode.name = "auto-select";
-        for(let j = 0; j < this.vmList.length; j++) {
-            if (this.vmList[j].nodeSel == currentNode.name)
-                currentNode.vmlist.push(this.vmList[j]);
-        }
-        this.nodeList.push(currentNode);
     }
 
     /*
@@ -95,26 +99,31 @@ export class VmlistComponent implements OnInit {
             try {
                 currentVm.status = vms[i].status["printableStatus"];
                 /* Working around a bug when scaling down and VM stuck in terminating */
-                if(currentVm.status.toLocaleLowerCase() == "terminating") {
-                    currentVm.running = false;                
+                if(currentVm.status.toLowerCase() == "terminating") {
+                    currentVm.running = false;
+                } else if (currentVm.status.toLowerCase() == "running") {
+                    currentVm.running = true;
                 } else {
                     currentVm.running = vms[i].spec["running"];
                 }
-            } catch (e) {
+            } catch (e: any) {
                 currentVm.status = "";
                 currentVm.running = false;
+                console.log(e);
             }
             try {
                 currentVm.nodeSel = vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"];
-            } catch (e) {
+            } catch (e: any) {
                 currentVm.nodeSel = "auto-select";
+                console.log(e);
             }
 
             /* Getting VM Type */
             try {
                 currentVm.instType = vms[i].spec.instancetype.name;
-            } catch(e) {
+            } catch(e: any) {
                 currentVm.instType = "custom";
+                console.log(e);
             }
 
             if(currentVm.instType == "custom") {
@@ -124,11 +133,12 @@ export class VmlistComponent implements OnInit {
                     currentVm.sockets = vms[i].spec.template.spec.domain.cpu["sockets"];
                     currentVm.threads = vms[i].spec.template.spec.domain.cpu["threads"];
                     currentVm.memory = vms[i].spec.template.spec.domain.resources.requests["memory"];
-                } catch (_){
+                } catch (e: any){
                     currentVm.cores = currentVm.cores || 0;
                     currentVm.sockets = currentVm.sockets || 0;
                     currentVm.threads = currentVm.threads || 0;
                     currentVm.memory = currentVm.memory || "N/A";
+                    console.log(e);
                 }
 
             } else {
@@ -139,11 +149,12 @@ export class VmlistComponent implements OnInit {
                     currentVm.memory = data.spec.memory["guest"];
                     currentVm.sockets = 1;
                     currentVm.threads = 1;
-                } catch (e) {
+                } catch (e: any) {
                     currentVm.sockets = 0;
                     currentVm.threads = 0;
                     currentVm.cores = 0;
                     currentVm.memory = "";
+                    console.log(e);
                 }
             }
 
@@ -159,12 +170,12 @@ export class VmlistComponent implements OnInit {
                     currentVmi.name = datavmi.metadata["name"];
                     currentVmi.namespace = datavmi.metadata["namespace"];
                     currentVmi.creationTimestamp = new Date(datavmi.metadata["creationTimestamp"]);
-                    currentVmi.osId = datavmi.status.guestOSInfo["id"]
-                    currentVmi.osKernRel = datavmi.status.guestOSInfo["kernelRelease"]
-                    currentVmi.osKernVer = datavmi.status.guestOSInfo["kernelVersion"]
-                    currentVmi.osName = datavmi.status.guestOSInfo["name"]
+                    currentVmi.osId = datavmi.status.guestOSInfo["id"];
+                    currentVmi.osKernRel = datavmi.status.guestOSInfo["kernelRelease"];
+                    currentVmi.osKernVer = datavmi.status.guestOSInfo["kernelVersion"];
+                    currentVmi.osName = datavmi.status.guestOSInfo["name"];
                     currentVmi.osPrettyName = datavmi.status.guestOSInfo["prettyName"];
-                    currentVmi.osVersion = datavmi.status.guestOSInfo["version"]
+                    currentVmi.osVersion = datavmi.status.guestOSInfo["version"];
 
                     /* Only works with guest-agent installed if not on podNetwork */
                     try {
@@ -177,14 +188,15 @@ export class VmlistComponent implements OnInit {
                             currentVmi.ifAddr = datavmi.status.interfaces[1]["ipAddress"];
                             currentVmi.ifName = datavmi.status.interfaces[1]["name"];
                         }
-                    } catch(e) {
+                    } catch(e: any) {
                         currentVmi.ifAddr = "";
                         currentVmi.ifName = "";
+                        console.log(e);
                     }
 
                     currentVmi.nodeName = datavmi.status["nodeName"];
                     currentVm.vmi = currentVmi;
-                } catch (e) {
+                } catch (e: any) {
                     console.log(e);
                     console.log("ERROR Retrieving VMI: " + currentVm.name + "-" + currentVm.namespace + ":" + currentVm.status);
                 }
@@ -210,60 +222,94 @@ export class VmlistComponent implements OnInit {
         let selectorSCOneField = document.getElementById("newvm-diskonesc");
         let selectorSCTwoField = document.getElementById("newvm-disktwosc");
 
+        let data: any;
+
         /* Set Node for VM */
         if(inputNewvmNode != null) {
             inputNewvmNode.setAttribute("value", nodeName);
         }
 
         /* Load Namespace List and Set Selector */
-        let data = await lastValueFrom(this.k8sService.getNamespaces());
         let nsSelectorOptions = "";
-        for (i = 0; i < data.items.length; i++) {
-            this.namespaceList.push(data.items[i].metadata["name"]);
-            nsSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
+        try {
+            data = await lastValueFrom(this.k8sService.getNamespaces());
+            for (i = 0; i < data.items.length; i++) {
+                this.namespaceList.push(data.items[i].metadata["name"]);
+                nsSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
+            }
+        } catch (e: any) {
+            console.log(e);
         }
+
+        /* Show new window
+         * before loading everything
+         * to avoid delays
+         */
+        if(modalTitle != null) {
+            modalTitle.replaceChildren("New Virtual Machine: " + nodeName);
+        }
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+
+
+        /* Load ClusterInstanceType List and Set Selector */
+        let typeSelectorOptions = "<option value=none></option>";
+        try {
+            data = await lastValueFrom(this.kubeVirtService.getClusterInstanceTypes());
+            for (i = 0; i < data.items.length; i++) {
+                typeSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
+            }
+        } catch (e: any) {
+            console.log(e);
+        }
+
+        /* Load Priority Class List and Set Selector */
+        let storageSelectorOptions = "";
+        try {
+            data = await lastValueFrom(this.k8sApisService.getStorageClasses());
+            for (i = 0; i < data.items.length; i++) {
+                storageSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
+            }
+        } catch (e: any) {
+            console.log(e);
+        }
+
+        /* Load Storage Class List and Set Selector */
+        let prioritySelectorOptions = "";
+        try {
+            data = await lastValueFrom(this.k8sApisService.getPriorityClasses());
+            for (i = 0; i < data.items.length; i++) {
+                if(data.items[i].metadata["name"].toLowerCase() == "vm-standard") {
+                    prioritySelectorOptions += "<option value=" + data.items[i].metadata["name"] +" selected>" + data.items[i].metadata["name"] + "</option>\n";
+                } else {
+                    prioritySelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
+                }
+            }
+        } catch (e: any) {
+            console.log(e);
+        }
+
         if (selectorNamespacesField != null) {
             selectorNamespacesField.innerHTML = nsSelectorOptions;
         }
 
-        /* Load ClusterInstanceType List and Set Selector */
-        data = await lastValueFrom(this.kubeVirtService.getClusterInstanceTypes());
-        let typeSelectorOptions = "<option value=none></option>";
-        for (i = 0; i < data.items.length; i++) {
-            typeSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
-        }
         if (selectorTypeField != null) {
             typeSelectorOptions += "<option value=custom>custom</option>\n";
             selectorTypeField.innerHTML = typeSelectorOptions;
         }
 
-        /* Load Priority Class List and Set Selector */
-        data = await lastValueFrom(this.k8sApisService.getStorageClasses());
-        let storageSelectorOptions = "";
-        for (i = 0; i < data.items.length; i++) {
-            storageSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
-        }
         if (selectorSCOneField != null && selectorSCTwoField != null) {
             selectorSCOneField.innerHTML = storageSelectorOptions;
             selectorSCTwoField.innerHTML = storageSelectorOptions;
         }
 
-        /* Load Storage Class List and Set Selector */
-        data = await lastValueFrom(this.k8sApisService.getPriorityClasses());
-        let prioritySelectorOptions = "";
-        for (i = 0; i < data.items.length; i++) {
-            if(data.items[i].metadata["name"].toLowerCase() == "vm-standard") {
-                prioritySelectorOptions += "<option value=" + data.items[i].metadata["name"] +" selected>" + data.items[i].metadata["name"] + "</option>\n";
-            } else {
-                prioritySelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
-            }
-        }
         if (selectorPCField != null) {
             selectorPCField.innerHTML = prioritySelectorOptions;
-        }
-
-        if(modalTitle != null) {
-            modalTitle.replaceChildren("New Virtual Machine: " + nodeName);
         }
 
         /* Clean up devices */
@@ -292,14 +338,6 @@ export class VmlistComponent implements OnInit {
         }
         while(this.myVmTemplateTyped.spec.template.spec.domain.devices.interfaces.length > 0) {
             this.myVmTemplateTyped.spec.template.spec.domain.devices.interfaces.pop();
-        }
-
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade show");
-            modalDiv.setAttribute("aria-modal", "true");
-            modalDiv.setAttribute("role", "dialog");
-            modalDiv.setAttribute("aria-hidden", "false");
-            modalDiv.setAttribute("style","display: block;");
         }
     }
 
@@ -374,7 +412,7 @@ export class VmlistComponent implements OnInit {
             alert("You need to select the disk!");
         } else if(this.checkVmExists(newvmname, newvmnamespace)) {
             alert("VM with name/namespace combination already exists!");
-        } else if(newvmtype.toLowerCase() == "none" || newvmtype.toLocaleLowerCase() == "") {
+        } else if(newvmtype.toLowerCase() == "none" || newvmtype.toLowerCase() == "") {
             alert("Please select a valid VM type!");
         } else {
 
@@ -518,8 +556,9 @@ export class VmlistComponent implements OnInit {
                         disk1 = { 'name': "disk1", 'disk': {}};
                     }
                     device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
-                } catch (e) {
-                    alert(e);
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                     throw new Error("Error creating Disk1 from Image!");
                 }
             } else if(newvmdiskonetype == "s3") {
@@ -533,11 +572,12 @@ export class VmlistComponent implements OnInit {
                         disk1 = { 'name': "disk1", 'disk': {}};
                     }
                     device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
-                } catch (e) {
-                    alert(e);
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                     throw new Error("Error creating Disk1 from Image!");
                 }
-            } if(newvmdiskonetype == "gcs") {
+            } else if(newvmdiskonetype == "gcs") {
                 /* Create Disk From GCS Image */
                 let disk1name = newvmnamespace + "-"+ newvmname + "-disk1";
                 try {
@@ -548,11 +588,12 @@ export class VmlistComponent implements OnInit {
                         disk1 = { 'name': "disk1", 'disk': {}};
                     }
                     device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
-                } catch (e) {
-                    alert(e);
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                     throw new Error("Error creating Disk1 from Image!");
                 }
-            } if(newvmdiskonetype == "registry") {
+            } else if(newvmdiskonetype == "registry") {
                 /* Create Disk From Container Registry Image */
                 let disk1name = newvmnamespace + "-"+ newvmname + "-disk1";
                 try {
@@ -563,8 +604,9 @@ export class VmlistComponent implements OnInit {
                         disk1 = { 'name': "disk1", 'disk': {}};
                     }
                     device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
-                } catch (e) {
-                    alert(e);
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                     throw new Error("Error creating Disk1 from Image!");
                 }
             } else if (newvmdiskonetype == "blank") {
@@ -578,8 +620,9 @@ export class VmlistComponent implements OnInit {
                         disk1 = { 'name': "disk1", 'disk': {}};
                     }
                     device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
-                } catch (e) {
-                    alert(e);
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                     throw new Error("Error creating Disk1 from Blank!");
                 }
             } else if (newvmdiskonetype == "pvc") {
@@ -593,8 +636,9 @@ export class VmlistComponent implements OnInit {
                         disk1 = { 'name': "disk1", 'disk': {}};
                     }
                     device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
-                } catch (e) {
-                    alert(e);
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                     throw new Error("Error creating Disk1 from PVC!");
                 }
             } else if (newvmdiskonetype == "dv") {
@@ -619,8 +663,9 @@ export class VmlistComponent implements OnInit {
                         disk2 = { 'name': "disk2", 'disk': {}};
                     }
                     device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                } catch (e) {
-                    alert(e);
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                     throw new Error("Error creating Disk2 from Image!");
                 }
             } else if(newvmdisktwotype == "s3") {
@@ -634,8 +679,9 @@ export class VmlistComponent implements OnInit {
                         disk2 = { 'name': "disk2", 'disk': {}};
                     }
                     device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                } catch (e) {
-                    alert(e);
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                     throw new Error("Error creating Disk2 from Image!");
                 }
             } else if(newvmdisktwotype == "gcs") {
@@ -649,11 +695,12 @@ export class VmlistComponent implements OnInit {
                         disk2 = { 'name': "disk2", 'disk': {}};
                     }
                     device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                } catch (e) {
-                    alert(e);
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                     throw new Error("Error creating Disk2 from Image!");
                 }
-            } if(newvmdisktwotype == "registry") {
+            } else if(newvmdisktwotype == "registry") {
                 /* Create Disk From Container Registry Image */
                 let disk2name = newvmnamespace + "-"+ newvmname + "-disk2";
                 try {
@@ -664,8 +711,9 @@ export class VmlistComponent implements OnInit {
                         disk2 = { 'name': "disk2", 'disk': {}};
                     }
                     device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                } catch (e) {
-                    alert(e);
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                     throw new Error("Error creating Disk2 from Image!");
                 }
             } else if (newvmdisktwotype == "blank") {
@@ -679,8 +727,9 @@ export class VmlistComponent implements OnInit {
                         disk2 = { 'name': "disk2", 'disk': {}};
                     }
                     device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                } catch (e) {
-                    alert(e);
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                     throw new Error("Error creating Disk2 from Blank!");
                 }
             } else if (newvmdisktwotype == "pvc") {
@@ -694,11 +743,12 @@ export class VmlistComponent implements OnInit {
                         disk2 = { 'name': "disk2", 'disk': {}};
                     }
                     device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                } catch (e) {
-                    alert(e);
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                     throw new Error("Error creating Disk2 from PVC!");
                 }
-            }else if (newvmdisktwotype == "dv") {
+            } else if (newvmdisktwotype == "dv") {
                 /* Use Existing Disk */
                 if(newvmdisktwocm != "") {
                     disk2 = { 'name': "disk2", 'cache': newvmdisktwocm, 'disk': {}};
@@ -808,8 +858,8 @@ export class VmlistComponent implements OnInit {
                     data = await lastValueFrom(this.kubeVirtService.createVm(newvmnamespace,newvmname, this.myVmTemplateCustom));
                     this.hideComponent("modal-newvm");
                     this.reloadComponent();
-                } catch (e) {
-                    alert(e);
+                } catch (e: any) {
+                    alert(e.error.message);
                     console.log(e);
                 }
             } else {
@@ -831,8 +881,8 @@ export class VmlistComponent implements OnInit {
                     data = await lastValueFrom(this.kubeVirtService.createVm(newvmnamespace,newvmname, this.myVmTemplateTyped));
                     this.hideComponent("modal-newvm");
                     this.reloadComponent();
-                } catch (e) {
-                    alert(e);
+                } catch (e: any) {
+                    alert(e.error.message);
                     console.log(e);
                 }
             }
@@ -893,7 +943,8 @@ export class VmlistComponent implements OnInit {
                     const data = await lastValueFrom(this.kubeVirtService.scaleVm(resizeNamespace, resizeName, cores, threads, sockets, memory));
                     this.hideComponent("modal-resize");
                     this.reloadComponent();
-                } catch (e) {
+                } catch (e: any) {
+                    alert(e.error.message);
                     console.log(e);
                 }
             }
@@ -943,7 +994,8 @@ export class VmlistComponent implements OnInit {
                     const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
                     this.hideComponent("modal-delete");
                     this.reloadComponent();
-                } catch (e) {
+                } catch (e: any) {
+                    alert(e.error.message);
                     console.log(e);
                 }
             }
@@ -1003,7 +1055,8 @@ export class VmlistComponent implements OnInit {
                     const data = await lastValueFrom(this.kubeVirtService.changeVmType(vmNamespace, vmName, vmType));
                     this.hideComponent("modal-type");
                     this.reloadComponent();
-                } catch (e) {
+                } catch (e: any) {
+                    alert(e.error.message);
                     console.log(e);
                 }
             }
@@ -1124,11 +1177,15 @@ export class VmlistComponent implements OnInit {
      * New VM: Load Image Options
      */
     async loadPVCOptions(dvNamespace: string){
-        let data = await lastValueFrom(this.k8sService.getNamespacedPersistentVolumeClaims(dvNamespace));
         let pvcSelectorOptions = "";
-        let pvcs = data.items;
-        for (let i = 0; i < pvcs.length; i++) {
-            pvcSelectorOptions += "<option value=" + pvcs[i].metadata["name"] +">" + pvcs[i].metadata["name"] + "</option>\n";
+        try {
+            let data = await lastValueFrom(this.k8sService.getNamespacedPersistentVolumeClaims(dvNamespace));
+            let pvcs = data.items;
+            for (let i = 0; i < pvcs.length; i++) {
+                pvcSelectorOptions += "<option value=" + pvcs[i].metadata["name"] +">" + pvcs[i].metadata["name"] + "</option>\n";
+            }
+        } catch (e: any) {
+            console.log(e);
         }
         return pvcSelectorOptions;
     }
@@ -1138,11 +1195,15 @@ export class VmlistComponent implements OnInit {
      */
     async loadDiskOptions(dvNamespace: string) {
         let diskSelectorOptions = "";
-        let data = await lastValueFrom(await this.dataVolumesService.getNamespacedDataVolumes(dvNamespace));
-        let disks = data.items;
-        for (let i = 0; i < disks.length; i++) {
+        try {
+            let data = await lastValueFrom(await this.dataVolumesService.getNamespacedDataVolumes(dvNamespace));
+            let disks = data.items;
+            for (let i = 0; i < disks.length; i++) {
 
-            diskSelectorOptions += "<option value=" + disks[i].metadata["name"] +">" + disks[i].metadata["name"] + "</option>\n";
+                diskSelectorOptions += "<option value=" + disks[i].metadata["name"] +">" + disks[i].metadata["name"] + "</option>\n";
+            }
+        } catch (e: any) {
+            console.log(e);
         }
         return diskSelectorOptions;
     }
@@ -1290,12 +1351,16 @@ export class VmlistComponent implements OnInit {
      * Check Multus Support
      */
     async checkNetwork(): Promise<void> {
-        const data = await lastValueFrom(this.k8sApisService.getCrds());
-        let crds = data.items;
-        for (let i = 0; i < crds.length; i++) {
-            if(crds[i].metadata["name"] == "network-attachment-definitions.k8s.cni.cncf.io") {
-                this.networkCheck = true;
+        try {
+            const data = await lastValueFrom(this.k8sApisService.getCrds());
+            let crds = data.items;
+            for (let i = 0; i < crds.length; i++) {
+                if(crds[i].metadata["name"] == "network-attachment-definitions.k8s.cni.cncf.io") {
+                    this.networkCheck = true;
+                }
             }
+        } catch (e: any) {
+            console.log(e);
         }
     }
 

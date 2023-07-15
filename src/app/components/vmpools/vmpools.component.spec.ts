@@ -3,7 +3,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { VMPoolsComponent } from './vmpools.component';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
-
+ 
 describe('VMPoolsComponent', () => {
   let component: VMPoolsComponent;
   let fixture: ComponentFixture<VMPoolsComponent>;

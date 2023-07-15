@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
@@ -46,10 +45,14 @@ export class DiskListComponent implements OnInit {
      * Get StorageClasses from Kubernetes
      */
     async getStorageClasses(): Promise<void> {
-        const data = await lastValueFrom(this.k8sApisService.getStorageClasses());
-        let scs = data.items;
-        for (let i = 0; i < scs.length; i++) {
-            this.storageClassesList.push(scs[i].metadata["name"]);
+        try {
+            const data = await lastValueFrom(this.k8sApisService.getStorageClasses());
+            let scs = data.items;
+            for (let i = 0; i < scs.length; i++) {
+                this.storageClassesList.push(scs[i].metadata["name"]);
+            }
+        } catch (e: any) {
+            console.log(e);
         }
     }
 
@@ -57,10 +60,14 @@ export class DiskListComponent implements OnInit {
      * Get Namespaces from Kubernetes
      */
     async getNamespaces(): Promise<void> {
-        const data = await lastValueFrom(this.k8sService.getNamespaces());
-        let nss = data.items;
-        for (let i = 0; i < nss.length; i++) {
-          this.namespacesList.push(nss[i].metadata["name"]);
+        try {
+            const data = await lastValueFrom(this.k8sService.getNamespaces());
+            let nss = data.items;
+            for (let i = 0; i < nss.length; i++) {
+            this.namespacesList.push(nss[i].metadata["name"]);
+            }
+        } catch (e: any) {
+            console.log(e);
         }
     }
 
@@ -68,30 +75,34 @@ export class DiskListComponent implements OnInit {
      * Get DataVolumes
      */
     async getDVs(): Promise<void> {
-        const data = await lastValueFrom(this.dataVolumesService.getDataVolumes());
-        let disks = data.items;
-        let currentDisk = new VMDisk;
-        for (let i = 0; i < disks.length; i++) {
-            currentDisk = new VMDisk();
-            currentDisk["namespace"] = disks[i].metadata["namespace"];
-            currentDisk["name"] = disks[i].metadata["name"];
-            currentDisk["status"] = disks[i].status["phase"];
-            currentDisk["progress"] = disks[i].status["progress"];;
-            currentDisk["storageclass"] = disks[i].spec.pvc["storageClassName"];
-            currentDisk["accessmode"] = disks[i].spec.pvc.accessModes[0];
-            currentDisk["bound"] = false;
-            if(disks[i].status["phase"].toLowerCase() == "succeeded") {
-                let pvcdata = await lastValueFrom(this.k8sService.getPersistentVolumeClaimsInfo(currentDisk["namespace"], currentDisk["name"]));
-                currentDisk["succeeded"] = true;
-                currentDisk["size"] = currentDisk["size"] = pvcdata.spec.resources.requests["storage"];
-                if(pvcdata.status["phase"].toLowerCase() == "bound") {
-                    currentDisk["bound"] = true;                
+        try {
+            const data = await lastValueFrom(this.dataVolumesService.getDataVolumes());
+            let disks = data.items;
+            let currentDisk = new VMDisk;
+            for (let i = 0; i < disks.length; i++) {
+                currentDisk = new VMDisk();
+                currentDisk["namespace"] = disks[i].metadata["namespace"];
+                currentDisk["name"] = disks[i].metadata["name"];
+                currentDisk["status"] = disks[i].status["phase"];
+                currentDisk["progress"] = disks[i].status["progress"];;
+                currentDisk["storageclass"] = disks[i].spec.pvc["storageClassName"];
+                currentDisk["accessmode"] = disks[i].spec.pvc.accessModes[0];
+                currentDisk["bound"] = false;
+                if(disks[i].status["phase"].toLowerCase() == "succeeded") {
+                    let pvcdata = await lastValueFrom(this.k8sService.getPersistentVolumeClaimsInfo(currentDisk["namespace"], currentDisk["name"]));
+                    currentDisk["succeeded"] = true;
+                    currentDisk["size"] = currentDisk["size"] = pvcdata.spec.resources.requests["storage"];
+                    if(pvcdata.status["phase"].toLowerCase() == "bound") {
+                        currentDisk["bound"] = true;                
+                    }
+                } else {
+                    currentDisk["succeeded"] = false;
+                    currentDisk["size"] = disks[i].spec.pvc.resources.requests["storage"];
                 }
-            } else {
-                currentDisk["succeeded"] = false;
-                currentDisk["size"] = disks[i].spec.pvc.resources.requests["storage"];
+                this.diskList.push(currentDisk);
             }
-            this.diskList.push(currentDisk);
+        } catch (e: any) {
+            console.log(e);
         }
     }
 
@@ -134,17 +145,13 @@ export class DiskListComponent implements OnInit {
             let diskName = diskField.getAttribute("value");
             if(diskSize != null && diskName != null && diskNamespace != null) {
                 try {
-                    let newSize = diskSize.trim() + "Gi"
+                    let newSize = diskSize.trim() + "Gi";
                     const data = await lastValueFrom(this.k8sService.resizePersistentVolumeClaims(diskNamespace, diskName, newSize));
                     this.hideComponent("modal-resize");
                     this.reloadComponent();
-                } catch (e) {
-                    if (e instanceof HttpErrorResponse) {
-                        alert(e.error["message"])
-                    } else {
-                        console.log(e);
-                        alert("Internal Error!");
-                    }
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                 }
             }
         }
@@ -247,13 +254,9 @@ export class DiskListComponent implements OnInit {
                 const data = await lastValueFrom(this.dataVolumesService.createBlankDataVolume(diskNamespace, diskName, diskSize, diskSc, diskAm));
                 this.hideComponent("modal-new");
                 this.reloadComponent();
-            } catch (e) {
-                if (e instanceof HttpErrorResponse) {
-                    alert(e.error["message"])
-                } else {
-                    console.log(e);
-                    alert("Internal Error!");
-                }
+            } catch (e: any) {
+                alert(e.error.message);
+                console.log(e);
             }
         }
     }
@@ -308,13 +311,9 @@ export class DiskListComponent implements OnInit {
                     let deleteDataVolume = await lastValueFrom(this.dataVolumesService.deleteDataVolume(diskNamespace, diskName));
                     this.hideComponent("modal-delete");
                     this.reloadComponent();
-                } catch (e) {
-                    if (e instanceof HttpErrorResponse) {
-                        alert(e.error["message"])
-                    } else {
-                        console.log(e);
-                        alert("Internal Error!");
-                    }
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                 }
             }
         }

@@ -92,6 +92,10 @@ export class VmdetailsComponent implements OnInit {
         this.vmNamespace = this.route.snapshot.params['namespace'];
         await this.loadVm();
         this.loadVnc();
+        let navTitle = document.getElementById("nav-title");
+        if(navTitle != null) {
+            navTitle.replaceChildren("Virtual Machine Details");
+        }
     }
 
     /*
@@ -109,16 +113,20 @@ export class VmdetailsComponent implements OnInit {
         this.activeVm.creationTimestamp = new Date(data.metadata["creationTimestamp"]);
         this.activeVm.running = data.spec["running"];
         if (data.status) {
-            this.activeVm.printableStatus = data.status["printableStatus"]
+            this.activeVm.printableStatus = data.status["printableStatus"];
+            if (this.activeVm.printableStatus.toLowerCase() == "running") {
+                this.activeVm.running = true;
+            }
         }
 
         /* Getting VM Type */
         try {
             this.activeVm.instType = data.spec.instancetype.name;
             this.customTemplate = false;
-        } catch(e) {
+        } catch(e: any) {
             this.activeVm.instType = "custom";
             this.customTemplate = true;
+            console.log(e);
         }
 
         if(this.activeVm.instType == "custom") {
@@ -135,17 +143,19 @@ export class VmdetailsComponent implements OnInit {
                 this.activeVm.memory = data.spec.memory["guest"];
                 this.activeVm.sockets = 1;
                 this.activeVm.threads = 1;
-            } catch (e) {
+            } catch (e: any) {
                 this.activeVm.sockets = 0;
                 this.activeVm.threads = 0;
                 this.activeVm.cores = 0;
                 this.activeVm.memory = "";
+                console.log(e);
             }
         }
         try {
             this.activeVm.priorityClass = data.spec.template.spec.priorityClassName;
-        } catch (e) {
+        } catch (e: any) {
             this.activeVm.priorityClass = "";
+            console.log(e);
         }
 
         /* Loading Network Info */
@@ -160,12 +170,12 @@ export class VmdetailsComponent implements OnInit {
                 currentVmi.namespace = datavmi.metadata["namespace"];
                 currentVmi.running = true;
                 currentVmi.creationTimestamp = new Date(datavmi.metadata["creationTimestamp"]);
-                currentVmi.osId = datavmi.status.guestOSInfo["id"]
-                currentVmi.osKernRel = datavmi.status.guestOSInfo["kernelRelease"]
-                currentVmi.osKernVer = datavmi.status.guestOSInfo["kernelVersion"]
-                currentVmi.osName = datavmi.status.guestOSInfo["name"]
+                currentVmi.osId = datavmi.status.guestOSInfo["id"];
+                currentVmi.osKernRel = datavmi.status.guestOSInfo["kernelRelease"];
+                currentVmi.osKernVer = datavmi.status.guestOSInfo["kernelVersion"];
+                currentVmi.osName = datavmi.status.guestOSInfo["name"];
                 currentVmi.osPrettyName = datavmi.status.guestOSInfo["prettyName"];
-                currentVmi.osVersion = datavmi.status.guestOSInfo["version"]
+                currentVmi.osVersion = datavmi.status.guestOSInfo["version"];
 
                 /* Only works with guest-agent installed if not on podNetwork */
                 try {
@@ -178,9 +188,10 @@ export class VmdetailsComponent implements OnInit {
                         currentVmi.ifAddr = datavmi.status.interfaces[1]["ipAddress"];
                         currentVmi.ifName = datavmi.status.interfaces[1]["name"];
                     }
-                } catch(e) {
+                } catch(e: any) {
                     currentVmi.ifAddr = "";
                     currentVmi.ifName = "";
+                    console.log(e);
                 }
 
                 for(let k = 0; k < datavmi.status.interfaces.length; k++) {
@@ -193,7 +204,7 @@ export class VmdetailsComponent implements OnInit {
 
                 currentVmi.nodeName = datavmi.status["nodeName"];
                 this.activeVm.vmi = currentVmi;
-            } catch (e) {
+            } catch (e: any) {
                 console.log(e);
                 console.log("ERROR Retrieving VMI: " + this.activeVm.name + "-" + this.activeVm.namespace + ":" + this.activeVm.status);
             }
@@ -214,34 +225,51 @@ export class VmdetailsComponent implements OnInit {
             ip: ""
         };
 
-        for(let i = 0; i < interfaces.length; i++) {
-            actualNetwork.name = interfaces[i].name;
-            try {
-                actualNetwork.network = networks[i].multus.networkName;
-            } catch (e) {
-                actualNetwork.network = "podNetwork";
-            }
-
-            try {
-                if(interfaces[i].masquerade != null) {
-                    actualNetwork.type = "masquerade";
-                } else {
-                    actualNetwork.type = "bridge";
+        if(interfaces != null && networks != null) {
+            for(let i = 0; i < interfaces.length; i++) {
+                actualNetwork.name = interfaces[i].name;
+                try {
+                    actualNetwork.network = networks[i].multus.networkName;
+                } catch (e: any) {
+                    actualNetwork.network = "podNetwork";
+                    console.log(e);
                 }
-            } catch (e) {
-                actualNetwork.type = "bridge";
+
+                try {
+                    if(interfaces[i].masquerade != null) {
+                        actualNetwork.type = "masquerade";
+                    } else {
+                        actualNetwork.type = "bridge";
+                    }
+                } catch (e: any) {
+                    actualNetwork.type = "bridge";
+                    console.log(e);
+                }
+                if(i == 0) {
+                    try {
+                        this.vmNetwork1.name = actualNetwork.name;
+                        this.vmNetwork1.network = actualNetwork.network;
+                        this.vmNetwork1.type = actualNetwork.type;
+                        this.hasNet1 = true;
+                    } catch (e: any) {
+                        this.hasNet1 = false;
+                        console.log(e);
+                    }
+                } else if (i == 1) {
+                    try {
+                        this.vmNetwork2.name = actualNetwork.name;
+                        this.vmNetwork2.network = actualNetwork.network;
+                        this.vmNetwork2.type = actualNetwork.type;
+                        this.hasNet2 = true;
+                    } catch (e: any) {
+                        this.hasNet2 = false;
+                        console.log(e);
+                    }
+                }
             }
-            if(i == 0) {
-                this.vmNetwork1.name = actualNetwork.name;
-                this.vmNetwork1.network = actualNetwork.network;
-                this.vmNetwork1.type = actualNetwork.type
-                this.hasNet1 = true;
-            } else if (i == 1) {
-                this.vmNetwork2.name = actualNetwork.name;
-                this.vmNetwork2.network = actualNetwork.network;
-                this.vmNetwork2.type = actualNetwork.type
-                this.hasNet2 = true;
-            }
+        } else {
+            this.hasNet1 = false;
+            this.hasNet2 = false;
         }
     }
 
@@ -339,9 +367,10 @@ export class VmdetailsComponent implements OnInit {
                     this.hasDisk2 = true;
                     this.disk2Info = thisDiskInfo;
                 }
-            } catch (e) {
+            } catch (e: any) {
                 this.hasDisk1 = false;
                 this.hasDisk2 = false;
+                console.log(e);
             }
         }
     }
@@ -391,7 +420,8 @@ export class VmdetailsComponent implements OnInit {
             const data = await lastValueFrom(this.kubeVirtService.changeVmType(namespace, name, type));
             this.hideComponent("modal-type");
             this.reloadComponent();
-        } catch (e) {
+        } catch (e: any) {
+            alert(e.message.error);
             console.log(e);
         }
     }
@@ -433,8 +463,9 @@ export class VmdetailsComponent implements OnInit {
                 const data = await lastValueFrom(this.kubeVirtService.scaleVm(resizeNamespace, resizeName, cores, threads, sockets, memory));
                 this.hideComponent("modal-resize");
                 this.reloadComponent();
-            } catch (e) {
-                 console.log(e);
+            } catch (e: any) {
+                alert(e.error.message);
+                console.log(e);
             }
         }
     }
@@ -470,7 +501,8 @@ export class VmdetailsComponent implements OnInit {
             const data = await lastValueFrom(this.kubeVirtService.changeVmPc(namespace, name, pc));
             this.hideComponent("modal-pc");
             this.reloadComponent();
-        } catch (e) {
+        } catch (e: any) {
+            alert(e.message.error);
             console.log(e);
         }
     }
@@ -505,6 +537,7 @@ export class VmdetailsComponent implements OnInit {
             let rfb = new RFB(screenDiv, url);
         }
     }
+    
     /*
      * Reload this component
      */

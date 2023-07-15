@@ -9,7 +9,7 @@ describe('DashboardComponent', () => {
   let fixture: ComponentFixture<DashboardComponent>;
 
   beforeEach(async () => {
-    const k8sSpy = jasmine.createSpyObj('K8sService',['getNodes','getNamespaces'])
+    const k8sSpy = jasmine.createSpyObj('K8sService',['getNodes'])
 
     await TestBed.configureTestingModule({
       imports: [HttpClientTestingModule], 
@@ -146,20 +146,20 @@ describe('DashboardComponent', () => {
     const contentValue = componentElem.querySelector('#net-info');
     expect(contentValue.textContent).toContain('5');
   });
-  it('should contain sc-info', () => {
-    component.storageClassesInfo = 5;
+  it('should contain cluster-info', () => {
+    component.kclusterInfo = 5;
     fixture.detectChanges();
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
-    const contentValue = componentElem.querySelector('#sc-info');
+    const contentValue = componentElem.querySelector('#cluster-info');
     expect(contentValue.textContent).toContain('5');
   });
-  it('should contain ns-info', () => {
-    component.namespacesInfo = 8;
+  it('should contain as-info', () => {
+    component.autoscaleInfo = 8;
     fixture.detectChanges();
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
-    const contentValue = componentElem.querySelector('#ns-info');
+    const contentValue = componentElem.querySelector('#as-info');
     expect(contentValue.textContent).toContain('8');
   });
   it('should contain it-info', () => {

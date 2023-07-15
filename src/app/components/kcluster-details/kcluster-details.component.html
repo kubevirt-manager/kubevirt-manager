@@ -1,0 +1,649 @@
+<div class="content">
+    <div class="container-fluid">
+      <div class="content-wrapper">
+        &nbsp;<br>
+        <div class="card card-outline">
+          <div class="card-header">
+            <h3 class="card-title">
+                <b> &nbsp; {{clusterName}} &nbsp; </b>
+            </h3>
+          </div>
+          <div class="card-body">
+            <div class="card">
+                <div class="card-header p-2">
+                  <ul class="nav nav-pills">
+                    <li class="nav-item"><a class="nav-link active" href="#overview" data-toggle="tab">Overview</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#kube" data-toggle="tab">Kubernetes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#services" data-toggle="tab">Services</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#controlplane" data-toggle="tab">Control Plane</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#pools" data-toggle="tab">Worker Pools</a></li>
+                  </ul>
+                </div>
+                <div class="card-body">
+                  <div class="tab-content">
+                    <!-- Overview -->
+                    <div class="active tab-pane" id="overview">
+                        <dt>General</dt>
+                        <br>
+                        <dd>Name: {{activeCluster.name}} </dd>
+                        <dd>Namespace: {{activeCluster.namespace}} </dd>
+                        <dd>SSH Private Key (capk user): <a href="javascript:void(0);" (click)="getSSHKey(activeCluster.namespace, activeCluster.name)" title="Download SSH Key...">download</a></dd>
+                        <hr>
+                        <dt>Control Plane</dt>
+                        <br>
+                        <dd>Initialized: {{activeCluster.controlPlane.initialized}}</dd>
+                        <dd>Master Pools: 1 </dd>
+                        <dd>Total Master Nodes: {{activeCluster.controlPlane.replicas}} </dd>
+                        <hr>
+                        <dt>Workers</dt>
+                        <br>
+                        <dd>Worker Pools: {{activeCluster.workerPools}} </dd>
+                        <dd>Total Worker Nodes: {{activeCluster.totalWorkers}} </dd>
+                        <hr>
+                        <dt>Status</dt>
+                        <br>
+                        <dd>Control Plane Ready: {{activeCluster.controlPlaneReady}} </dd>
+                        <dd>Infrastructure Ready: {{activeCluster.infrastructureReady}} </dd>
+                        <dd>Created At: {{activeCluster.creationTimestamp}} </dd>
+                    </div>
+                    <!-- Kubernetes -->
+                    <div class="tab-pane" id="kube">
+                        <dt>Kubernetes Config</dt>
+                        <br>
+                        <dd>Kubernetes Version: {{activeCluster.controlPlane.version}} </dd>
+                        <dd>Kubeconfig file: <a href="javascript:void(0);" (click)="getKubeconfig(activeCluster.namespace, activeCluster.name)" title="Download Kubeconfig...">download</a></dd>
+                        <dd>Kubernetes API Endpoint: {{activeCluster.cpHost}}:{{activeCluster.cpPort}}</dd>
+                        <dd>Container Network Interface: {{activeCluster.cniPlugin}} </dd>
+                        <dd>Container Network Interface Version: {{activeCluster.cniPluginVersion}} </dd>
+                        <dd>Container Network Interface VXLAN Tunnel Port: {{activeCluster.cniVXLANPort}} </dd>
+                        <dd>IPv4 Pod CIDRs: {{activeCluster.podCidrs}} </dd>
+                        <dd>IPv4 Service CIDRs: {{activeCluster.svcCidrs}} </dd>
+                        <dd>Cluster DNS Domain: {{activeCluster.controlPlane.dnsDomain}}</dd>
+                        <hr>
+                        <dt>Features</dt>
+                        <br>
+                        <dd>Cert Manager: {{activeCluster.features.certManager}}</dd>
+                        <dd>Kubernetes Dashboard: {{activeCluster.features.kubeDashboard}}</dd>
+                        <dd>Metrics Server: {{activeCluster.features.metricsServer}}</dd>
+                        <dd>HAProxy Ingress: {{activeCluster.features.haproxyIngress}}</dd>
+                        <dd>NGINX Ingress: {{activeCluster.features.nginxIngress}}</dd>
+                        <dd>Tekton + Tekton Dashboard: {{activeCluster.features.tekton}}</dd>
+                    </div>
+                    <!-- Services -->
+                    <div class="tab-pane" id="services">
+                        <table class="table table-sm" style="vertical-align: middle !important;">
+                            <thead>
+                              <tr>
+                                <th style="width: 10px">&nbsp;</th>
+                                <th style="width: 40px">Name</th>
+                                <th style="width: 20px">Type</th>
+                                <th style="width: 20px">ClusterIP</th>
+                                <th style="width: 20px">Load Balancer</th>
+                                <th style="width: 20px">Protocol</th>
+                                <th style="width: 20px">Port</th>
+                                <th style="width: 80px">Target Port</th>
+                                <th style="width: 220px">Target Resource</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr *ngFor="let thisLoadBalancer of activeCluster.loadBalancerList">
+                                <td style="line-height: 2.2 !important; align-content: center;"><i class="fas fa-sitemap"></i></td>
+                                <td style="line-height: 2.2 !important;">{{thisLoadBalancer.name}}</td>
+                                <td style="line-height: 2.2 !important;">{{thisLoadBalancer.type}}</td>
+                                <td style="line-height: 2.2 !important;">{{thisLoadBalancer.clusterIP}}</td>
+                                <td style="line-height: 2.2 !important;">{{thisLoadBalancer.loadBalancer}}</td>
+                                <td style="line-height: 2.2 !important;">{{thisLoadBalancer.ports[0].protocol}}</td>
+                                <td style="line-height: 2.2 !important;">{{thisLoadBalancer.ports[0].listenport}}</td>
+                                <td style="line-height: 2.2 !important;">{{thisLoadBalancer.ports[0].targetport}}</td>
+                                <td style="line-height: 2.2 !important;">{{thisLoadBalancer.targetResource}}</td>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Control Plane -->
+                    <div class="tab-pane" id="controlplane">
+                        <dt>Pool</dt>
+                        <br>
+                        <table class="table table-sm" style="vertical-align: middle !important;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 180px">Pool Name</th>
+                                    <th style="width: 40px">Version</th>
+                                    <th style="width: 60px">VM Type</th>
+                                    <th style="width: 18px">vCPU</th>
+                                    <th style="width: 18px">Memory</th>
+                                    <th style="width: 18px">Running</th>
+                                    <th style="width: 25px">Replicas</th>
+                                    <th style="width: 25px">Ready</th>
+                                    <th style="width: 60px">Priority Class</th>
+                                    <th style="width: 120px">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="line-height: 2.2 !important;">{{activeCluster.controlPlane.name}}</td>
+                                    <td style="line-height: 2.2 !important;">{{activeCluster.controlPlane.version}}</td>
+                                    <td style="line-height: 2.2 !important;">{{activeCluster.controlPlane.machineTemplate.instType}}</td>
+                                    <td style="line-height: 2.2 !important;">{{(activeCluster.controlPlane.machineTemplate.cores || 0) * (activeCluster.controlPlane.machineTemplate.sockets || 0) * (activeCluster.controlPlane.machineTemplate.threads || 0)}}</td>
+                                    <td style="line-height: 2.2 !important;">{{activeCluster.controlPlane.machineTemplate.memory}}</td>
+                                    <td style="line-height: 2.2 !important;">true</td>
+                                    <td style="line-height: 2.2 !important;">{{activeCluster.controlPlane.replicas}}</td>
+                                    <td style="line-height: 2.2 !important;">{{activeCluster.controlPlaneReady}}</td>
+                                    <td style="line-height: 2.2 !important;">{{activeCluster.controlPlane.machineTemplate.priorityClass}}</td>
+                                    <td style="line-height: 2.2 !important;">
+                                        <!--- SCALE REPLICAS -->
+                                        <span>
+                                            <a class="btn" (click)="showReplicasCp(activeCluster.controlPlane.name)" title="Scale...">
+                                            <i class="fas fa-arrow-up"></i>
+                                            </a>
+                                        </span>
+                                        <!--- CHANGE TYPE BUTTON -->
+                                        <span>
+                                            <a class="btn" (click)="showConfigCp()" title="Change type...">
+                                            <i class="fas fa-cog"></i>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <br>
+                        <hr>
+                        <dt>Instances</dt>
+                        <br>
+                        <table class="table table-sm" style="vertical-align: middle !important;">
+                            <thead>
+                                <tr>
+                                <th style="width: 10px">&nbsp;</th>
+                                <th style="width: 140px">Virtual Machine</th>
+                                <th style="width: 60px">Node</th>
+                                <th style="width: 50px">Status</th>
+                                <th style="width: 50px">IP Address</th>
+                                <th style="width: 50px">Ready</th>
+                                <th style="width: 180px">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let thisVM of activeCluster.controlPlane.vmlist">
+                                    <td style="line-height: 2.2 !important; align-content: center;">
+                                    <span>
+                                        <span>
+                                        <span class="badge"><i class="fas fa-hdd"></i></span>
+                                        </span>
+                                    </span>
+                                    </td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.name}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.nodeSel}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.status}}</a></td>
+                                    <td style="line-height: 2.2 !important;">
+                                    <span [ngSwitch]="thisVM.status">
+                                        <span *ngSwitchCase="'Running'">
+                                            <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.vmi.ifAddr}}</a>
+                                        </span>
+                                        <span *ngSwitchDefault>
+                                            <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">&nbsp;</a>
+                                        </span>
+                                    </span>
+                                    </td>
+                                    <td style="line-height: 2.2 !important;">{{thisVM.ready}}</td>
+                                    <td style="line-height: 0 !important;">
+                                    <!--- INFO BUTTON -->
+                                    <span>
+                                        <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="Show info...">
+                                        <i class="fas fa-info"></i>
+                                        </a>
+                                    </span>
+                                    <!--- VNC BUTTON -->
+                                    <span [ngSwitch]="thisVM.status">
+                                        <a class="btn" routerLink="/vncviewer/{{thisVM.namespace}}/{{thisVM.name}}" title="Open console..." *ngSwitchCase="'Running'">
+                                        <i class="fas fa-desktop"></i>
+                                        </a>
+                                        <a class="btn disabled" routerLink="/vncviewer/{{thisVM.namespace}}/{{thisVM.name}}" title="Open console..." *ngSwitchDefault>
+                                        <i class="fas fa-desktop disabled"></i>
+                                        </a>
+                                    </span>
+                                    <!--- POWER ON BUTTON -->
+                                    <span [ngSwitch]="thisVM.running">
+                                        <a class="btn disabled" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchCase="true">
+                                          <i class="fas fa-plug disabled"></i>
+                                        </a>
+                                        <a class="btn" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchDefault>
+                                          <i class="fas fa-plug"></i>
+                                        </a>
+                                    </span>
+                                    <!--- POWER OFF BUTTON -->
+                                    <span [ngSwitch]="thisVM.running">
+                                        <a class="btn" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchCase="true">
+                                          <i class="fas fa-power-off"></i>
+                                        </a>
+                                        <a class="btn disabled" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchDefault>
+                                          <i class="fas fa-power-off disabled"></i>
+                                        </a>
+                                    </span>
+                                    <!--- RESTART BUTTON -->
+                                    <span [ngSwitch]="thisVM.running">
+                                        <a class="btn" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchCase="true">
+                                          <i class="fas fa-redo"></i>
+                                        </a>
+                                        <a class="btn disabled" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchDefault>
+                                          <i class="fas fa-redo disabled"></i>
+                                        </a>
+                                    </span>
+                                    <!--- DELETE BUTTON -->
+                                    <span [ngSwitch]="thisVM.running">
+                                        <a class="btn disabled" title="Delete..." *ngSwitchCase="true">
+                                            <i class="fas fa-trash disabled"></i>
+                                        </a>
+                                        <a class="btn" title="Delete..." *ngSwitchDefault>
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Worker Pools -->
+                    <div class="tab-pane" id="pools">
+                        <dt>
+                            Pools
+                            <button type="button" style="float: right; padding: 10px;" class="btn btn-tool" (click)='showNewNodePool()'>
+                                <i class="fas fa-plus-square" title="New worker pool..."></i>
+                            </button>
+                        </dt>
+                        <br>
+                        <table class="table table-sm" style="vertical-align: middle !important;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 180px">Pool Name</th>
+                                    <th style="width: 40px">Version</th>
+                                    <th style="width: 60px">VM Type</th>
+                                    <th style="width: 18px">vCPU</th>
+                                    <th style="width: 18px">Memory</th>
+                                    <th style="width: 18px">Running</th>
+                                    <th style="width: 25px">Replicas</th>
+                                    <th style="width: 60px">Priority Class</th>
+                                    <th style="width: 120px">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let thisPool of activeCluster.machineDeployments">
+                                    <td style="line-height: 2.2 !important;">{{thisPool.name}}</td>
+                                    <td style="line-height: 2.2 !important;">{{thisPool.version}}</td>
+                                    <td style="line-height: 2.2 !important;">{{thisPool.machineTemplate.instType}}</td>
+                                    <td style="line-height: 2.2 !important;">{{(thisPool.machineTemplate.cores || 0) * (thisPool.machineTemplate.sockets || 0) * (thisPool.machineTemplate.threads || 0)}}</td>
+                                    <td style="line-height: 2.2 !important;">{{thisPool.machineTemplate.memory}}</td>
+                                    <td style="line-height: 2.2 !important;">true</td>
+                                    <td style="line-height: 2.2 !important;">{{thisPool.replicas}}</td>
+                                    <td style="line-height: 2.2 !important;">{{thisPool.machineTemplate.priorityClass}}</td>
+                                    <td style="line-height: 2.2 !important;">
+                                        <!--- SCALE REPLICAS -->
+                                        <span>
+                                            <a class="btn" (click)="showReplicasWp(thisPool.namespace, thisPool.name, thisPool.replicas)"  title="Scale...">
+                                            <i class="fas fa-arrow-up"></i>
+                                            </a>
+                                        </span>
+                                        <!--- DELETE BUTTON -->
+                                        <span>
+                                            <a class="btn" (click)="showDeleteWp(thisPool.namespace, thisPool.name)" title="Delete...">
+                                            <i class="fas fa-trash"></i>
+                                            </a>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <br>
+                        <hr>
+                        <dt>Instances</dt>
+                        <br>
+                        <table class="table table-sm" style="vertical-align: middle !important;">
+                            <thead>
+                                <tr>
+                                <th style="width: 10px">&nbsp;</th>
+                                <th style="width: 140px">Virtual Machine</th>
+                                <th style="width: 60px">Node</th>
+                                <th style="width: 50px">Status</th>
+                                <th style="width: 50px">IP Address</th>
+                                <th style="width: 50px">Ready</th>
+                                <th style="width: 180px">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let thisVM of allWorkers">
+                                    <td style="line-height: 2.2 !important; align-content: center;">
+                                    <span>
+                                        <span>
+                                        <span class="badge"><i class="fas fa-hdd"></i></span>
+                                        </span>
+                                    </span>
+                                    </td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.name}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.nodeSel}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.status}}</a></td>
+                                    <td style="line-height: 2.2 !important;">
+                                    <span [ngSwitch]="thisVM.status">
+                                        <span *ngSwitchCase="'Running'">
+                                            <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.vmi.ifAddr}}</a>
+                                        </span>
+                                        <span *ngSwitchDefault>
+                                            <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">&nbsp;</a>
+                                        </span>
+                                    </span>
+                                    </td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.ready}}</a></td>
+                                    <td style="line-height: 0 !important;">
+                                    <!--- INFO BUTTON -->
+                                    <span>
+                                        <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="Show info...">
+                                        <i class="fas fa-info"></i>
+                                        </a>
+                                    </span>
+                                    <!--- VNC BUTTON -->
+                                    <span [ngSwitch]="thisVM.status">
+                                        <a class="btn" routerLink="/vncviewer/{{thisVM.namespace}}/{{thisVM.name}}" title="Open console..." *ngSwitchCase="'Running'">
+                                        <i class="fas fa-desktop"></i>
+                                        </a>
+                                        <a class="btn disabled" routerLink="/vncviewer/{{thisVM.namespace}}/{{thisVM.name}}" title="Open console..." *ngSwitchDefault>
+                                        <i class="fas fa-desktop disabled"></i>
+                                        </a>
+                                    </span>
+                                    <!--- POWER ON BUTTON -->
+                                    <span [ngSwitch]="thisVM.running">
+                                        <a class="btn disabled" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchCase="true">
+                                          <i class="fas fa-plug disabled"></i>
+                                        </a>
+                                        <a class="btn" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchDefault>
+                                          <i class="fas fa-plug"></i>
+                                        </a>
+                                    </span>
+                                    <!--- POWER OFF BUTTON -->
+                                    <span [ngSwitch]="thisVM.running">
+                                        <a class="btn" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchCase="true">
+                                          <i class="fas fa-power-off"></i>
+                                        </a>
+                                        <a class="btn disabled" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchDefault>
+                                          <i class="fas fa-power-off disabled"></i>
+                                        </a>
+                                    </span>
+                                    <!--- RESTART BUTTON -->
+                                    <span [ngSwitch]="thisVM.running">
+                                        <a class="btn" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchCase="true">
+                                          <i class="fas fa-redo"></i>
+                                        </a>
+                                        <a class="btn disabled" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchDefault>
+                                          <i class="fas fa-redo disabled"></i>
+                                        </a>
+                                    </span>
+                                    <!--- DELETE BUTTON -->
+                                    <span [ngSwitch]="thisVM.running">
+                                        <a class="btn disabled" title="Delete..." *ngSwitchCase="true">
+                                            <i class="fas fa-trash disabled"></i>
+                                        </a>
+                                        <a class="btn" title="Delete..." *ngSwitchDefault>
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--                               -->
+    <!-- Modal: Replicas Control Plane -->
+    <!--                               -->
+    <div class="modal fade" id="modal-replicas-cp" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="replicas-cp-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-replicas-cp")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="replicas-cp-value">
+              <div class="form-group">
+                <label for="replicasInput">New number of replicas</label>
+                <input [(ngModel)]="activeCluster.controlPlane.replicas" #replicascpinput type="number" class="form-control" id="replicas-cp-input" name="replicas-cp-input">
+              </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-replicas-cp")'>Close</button>
+              <button type="button" class="btn btn-primary" (click)='applyReplicasCp(activeCluster.controlPlane.namespace, activeCluster.controlPlane.name, replicascpinput.value)'>Resize</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div> 
+    </div>
+
+    <!--                             -->
+    <!-- Modal: Replicas Worker Pool -->
+    <!--                             -->
+    <div class="modal fade" id="modal-replicas-wp" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="replicas-wp-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-replicas-wp")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="replicas-wp-value">
+              <div class="form-group">
+                <input type=hidden name="replicas-wp-name" id="replicas-wp-name">
+                <input type=hidden name="replicas-wp-namespace" id="replicas-wp-namespace">
+                <label for="replicasInput">New number of replicas</label>
+                <input #replicaswpinput type="number" class="form-control" id="replicas-wp-input" name="replicas-wp-input" placeholder="0">
+              </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-replicas-wp")'>Close</button>
+              <button type="button" class="btn btn-primary" (click)='applyReplicasWp(replicaswpinput.value)'>Resize</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div> 
+
+    <!--                           -->
+    <!-- Modal: Delete Worker Pool -->
+    <!--                           -->
+    <div class="modal fade" id="modal-delete-wp" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="delete-wp-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-delete-wp")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <input type="hidden" id="delete-wp-namespace" name="delete-wp-namespace" value="">
+            <input type="hidden" id="delete-wp-name" name="delete-wp-name" value="">
+            <div class="modal-body" id="delete-wp-value">
+              <p>BODY_TEMPLATE</p>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-delete-wp")'>Close</button>
+              <button type="button" class="btn btn-danger" (click)='applyDeleteWp()'>Delete</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!--                             -->
+    <!-- Modal: Config Control Plane -->
+    <!--                             -->
+    <div class="modal fade" id="modal-config-cp" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="config-cp-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-config-cp")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="config-cp-value">
+                        <label for="config-controlplane-type">Virtual Machine Type:</label>
+                        <select #configcontrolplanetype class="custom-select rounded-0" name="config-controlplane-type" id="config-controlplane-type" (change)="onChangeControlPlaneType(configcontrolplanetype.value)">
+                          <option>Value 1</option>
+                        </select>
+                        <div class="pane fade" id="config-custom-cpu-memory" name="config-custom-cpu-memory" style="display: none;" aria-hidden="true">
+                          <label for="config-controlplane-cpumem-sockets">Sockets:</label>
+                          <input #configcontrolplanecpumemsockets type="number" class="form-control" id="config-controlplane-cpumem-sockets" name="config-controlplane-cpumem-sockets">
+                          <label for="config-controlplane-cpumem-cores">Cores:</label>
+                          <input #configcontrolplanecpumemcores type="number" class="form-control" id="config-controlplane-cpumem-cores" name="config-controlplane-cpumem-cores">
+                          <label for="config-controlplane-cpumem-threads">Threads:</label>
+                          <input #configcontrolplanecpumemthreads type="number" class="form-control" id="config-controlplane-cpumem-threads" name="config-controlplane-cpumem-threads">
+                          <label for="config-controlplane-cpumem-memory">Memory (in GB):</label>
+                          <input #configcontrolplanecpumemmemory type="number" class="form-control" id="config-controlplane-cpumem-memory" name="config-controlplane-cpumem-memory">
+                        </div>
+                        <label for="config-controlplane-priorityclass">Priority Class:</label>
+                        <select #configcontrolplanepc class="custom-select rounded-0" name="config-controlplane-pc" id="config-controlplane-pc">
+                          <option>Value 1</option>
+                        </select>
+                        <label for="config-controlplane-disk">Boot Disk</label>
+                        <div class="row">
+                            <div class="col-3">
+                                <label for="config-controlplane-disksize">Size in GB:</label>
+                                <input #configcontrolplanedisksize type=number class="form-control" name="config-controlplane-disksize" id="config-controlplane-disksize" placeholder="100">
+                            </div>
+                            <div class="col-3">
+                                <label for="config-controlplane-disksc">Storage Class:</label>
+                                <select #configcontrolplanedisksc class="custom-select rounded-0" name="config-controlplane-disksc" id="config-controlplane-disksc">
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label for="config-controlplane-diskam">Access Mode:</label>
+                                <select #configcontrolplanediskam class="custom-select rounded-0" name="config-controlplane-diskam" id="config-controlplane-diskam">
+                                    <option>ReadWriteOnce</option>
+                                    <option>ReadOnlyMany</option>
+                                    <option>ReadWriteMany</option>
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label for="config-controlplane-diskcm">Cache Mode:</label>
+                                <select #configcontrolplanediskcm class="custom-select rounded-0" name="config-controlplane-diskcm" id="config-controlplane-diskcm">
+                                  <option value="">Automatic</option>
+                                  <option value="none">None</option>
+                                  <option value="writethrough">WriteThrough</option>
+                                  <option value="writeback">WriteBack</option>
+                                </select>
+                            </div>
+                        </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-config-cp")'>Close</button>
+              <button type="button" class="btn btn-primary" (click)='applyControlPlaneConfig(configcontrolplanetype.value, configcontrolplanecpumemsockets.value, configcontrolplanecpumemcores.value, configcontrolplanecpumemthreads.value, configcontrolplanecpumemmemory.value, configcontrolplanepc.value, configcontrolplanedisksize.value, configcontrolplanedisksc.value, configcontrolplanediskam.value, configcontrolplanediskcm.value)'>Apply</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!--                        -->
+    <!-- Modal: New Worker Pool -->
+    <!--                        -->
+    <div class="modal fade" id="modal-new-wp" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="new-wp-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-new-wp")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="new-wp-value">
+                        <label for="newnodepool-name">Pool Name:</label>
+                        <input #newnodepoolname type="text" class="form-control" id="newnodepool-name" name="newnodepool-name" value="pool-name">
+                        <div class="row">
+                            <div class="col-6" name="newnodepool-linux-col">
+                              <label for="newnodepool-osdist">Operating System:</label>
+                              <select #newnodepoolosdist class="custom-select rounded-0" name="newnodepool-osdist" id="newnodepool-osdist" (change)="onChangeNodePoolOS(newnodepoolosdist.value)">
+                                <option value="none">None</option>
+                              </select>
+                            </div>
+                            <div class="col-6">
+                              <label for="newnodepool-osversion">OS Version:</label>
+                              <select #newnodepoolosversion class="custom-select rounded-0" name="newnodepool-osversion" id="newnodepool-osversion">
+                              </select>
+                            </div>
+                        </div>
+                      <br> 
+                      <label for="newnodepool-type">Virtual Machine Type:</label>
+                      <select #newnodepooltype class="custom-select rounded-0" name="newnodepool-type" id="newnodepool-type" (change)="onChangeNodePoolType(newnodepooltype.value)">
+                          <option>Value 1</option>
+                      </select>
+                      <div class="pane fade" id="nodepool-custom-cpu-memory" name="nodepool-custom-cpu-memory" style="display: none;" aria-hidden="true">
+                          <label for="newnodepool-cpumem-sockets">Sockets:</label>
+                          <input #newnodepoolcpumemsockets type="number" class="form-control" id="newnodepool-cpumem-sockets" name="newnodepool-cpumem-sockets">
+                          <label for="newnodepool-cpumem-cores">Cores:</label>
+                          <input #newnodepoolcpumemcores type="number" class="form-control" id="newnodepool-cpumem-cores" name="newnodepool-cpumem-cores">
+                          <label for="newnodepool-cpumem-threads">Threads:</label>
+                          <input #newnodepoolcpumemthreads type="number" class="form-control" id="newnodepool-cpumem-threads" name="newnodepool-cpumem-threads">
+                          <label for="newnodepool-cpumem-memory">Memory (in GB):</label>
+                          <input #newnodepoolcpumemmemory type="number" class="form-control" id="newnodepool-cpumem-memory" name="newnodepool-cpumem-memory">
+                      </div>
+                      <label for="newnodepool-priorityclass">Priority Class:</label>
+                      <select #newnodepoolpc class="custom-select rounded-0" name="newnodepool-pc" id="newnodepool-pc">
+                          <option>Value 1</option>
+                      </select>
+                      <label for="newnodepool-replicas">Number of Nodes:</label>
+                      <input #newnodepoolreplicas type="number" class="form-control" id="newnodepool-replicas" name="newnodepool-replicas">
+                      <br>
+                      <label for="newnodepool-disk">Boot Disk</label>
+                        <div class="row">
+                            <div class="col-3">
+                                <label for="newnodepool-disksize">Size in GB:</label>
+                                <input #newnodepooldisksize type=number class="form-control" name="newnodepool-disksize" id="newnodepool-disksize" placeholder="100">
+                            </div>
+                            <div class="col-3">
+                                <label for="newnodepool-disksc">Storage Class:</label>
+                                <select #newnodepooldisksc class="custom-select rounded-0" name="newnodepool-disksc" id="newnodepool-disksc">
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label for="newnodepool-diskam">Access Mode:</label>
+                                <select #newnodepooldiskam class="custom-select rounded-0" name="newnodepool-diskam" id="newnodepool-diskam">
+                                    <option>ReadWriteOnce</option>
+                                    <option>ReadOnlyMany</option>
+                                    <option>ReadWriteMany</option>
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label for="newnodepool-diskcm">Cache Mode:</label>
+                                <select #newnodepooldiskcm class="custom-select rounded-0" name="newnodepool-diskcm" id="nnewnodepool-diskcm">
+                                  <option value="">Automatic</option>
+                                  <option value="none">None</option>
+                                  <option value="writethrough">WriteThrough</option>
+                                  <option value="writeback">WriteBack</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">&nbsp;</div>
+                         <div class="modal-footer justify-content-between">
+                            <button type="button" class="btn btn-default" (click)='hideComponent("modal-newcluster")'>Close</button>
+                            <button type="button" class="btn btn-primary" (click)='createNodePoolRelatedObjects(newnodepoolname.value, newnodepoolosdist.value, newnodepoolosversion.value, newnodepooltype.value, newnodepoolcpumemsockets.value, newnodepoolcpumemcores.value, newnodepoolcpumemthreads.value, newnodepoolcpumemmemory.value, newnodepoolpc.value, newnodepoolreplicas.value, newnodepooldisksize.value, newnodepooldisksc.value, newnodepooldiskam.value, newnodepooldiskcm.value)'>Create</button>
+                        </div>
+
+
+
+            </div>
+            <!-- /.modal-content -->
+          </div>
+        <!-- /.modal-dialog -->
+        </div> 
+    </div>
+
+</div>

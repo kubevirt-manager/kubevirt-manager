@@ -23,7 +23,8 @@ export class VirtualMachine {
                     'domain': {
                         'devices': {
                             'disks':[{}],
-                            'interfaces': [{}]
+                            'interfaces': [{}],
+                            'networkInterfaceMultiqueue': true
                         },
                     },
                     'networks':[{}],
@@ -58,7 +59,8 @@ export class VirtualMachine {
                         },
                         'devices': {
                             'disks':[{}],
-                            'interfaces': [{}]
+                            'interfaces': [{}],
+                            'networkInterfaceMultiqueue': true
                         },
                         'resources': {
                             'requests': {

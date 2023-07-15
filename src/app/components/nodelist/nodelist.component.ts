@@ -28,23 +28,27 @@ export class NodelistComponent implements OnInit {
      * Get Nodes from Kubernetes
      */
     async getNodes(): Promise<void> {
-        let currentNode = new K8sNode;
-        const data = await lastValueFrom(this.k8sService.getNodes());
-        let nodes = data.items;
-        for (let i = 0; i < nodes.length; i++) {
-            currentNode = new K8sNode();
-            currentNode.name = nodes[i].metadata["name"];
-            currentNode.arch = nodes[i].status.nodeInfo["architecture"];
-            currentNode.cidr = nodes[i].spec["podCIDR"];
-            currentNode.mem = this.convertSize(nodes[i].status.capacity["memory"]);
-            currentNode.disk = this.convertSize(nodes[i].status.capacity["ephemeral-storage"]);
-            currentNode.cpu = nodes[i].status.capacity["cpu"];
-            currentNode.os = nodes[i].status.nodeInfo["operatingSystem"];
-            currentNode.osimg = nodes[i].status.nodeInfo["osImage"];
-            currentNode.kernel = nodes[i].status.nodeInfo["kernelVersion"];
-            currentNode.criver = nodes[i].status.nodeInfo["containerRuntimeVersion"];
-            currentNode.kubever = nodes[i].status.nodeInfo["kubeletVersion"];
-            this.nodeList.push(currentNode);
+        try {
+            let currentNode = new K8sNode;
+            const data = await lastValueFrom(this.k8sService.getNodes());
+            let nodes = data.items;
+            for (let i = 0; i < nodes.length; i++) {
+                currentNode = new K8sNode();
+                currentNode.name = nodes[i].metadata["name"];
+                currentNode.arch = nodes[i].status.nodeInfo["architecture"];
+                currentNode.cidr = nodes[i].spec["podCIDR"];
+                currentNode.mem = this.convertSize(nodes[i].status.capacity["memory"]);
+                currentNode.disk = this.convertSize(nodes[i].status.capacity["ephemeral-storage"]);
+                currentNode.cpu = nodes[i].status.capacity["cpu"];
+                currentNode.os = nodes[i].status.nodeInfo["operatingSystem"];
+                currentNode.osimg = nodes[i].status.nodeInfo["osImage"];
+                currentNode.kernel = nodes[i].status.nodeInfo["kernelVersion"];
+                currentNode.criver = nodes[i].status.nodeInfo["containerRuntimeVersion"];
+                currentNode.kubever = nodes[i].status.nodeInfo["kubeletVersion"];
+                this.nodeList.push(currentNode);
+            }
+        } catch (e: any) {
+            console.log(e);
         }
     }
 

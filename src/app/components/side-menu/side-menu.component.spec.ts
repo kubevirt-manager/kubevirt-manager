@@ -18,6 +18,7 @@ describe('SideMenuComponent', () => {
     fixture = TestBed.createComponent(SideMenuComponent);
     component = fixture.componentInstance;
     component.networkCheck = true;
+    component.capkCheck = true;
     fixture.detectChanges();
   });
 
@@ -81,6 +82,12 @@ describe('SideMenuComponent', () => {
   it('should contain Auto Scaling item', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.query(By.css('.fa-expand-alt'))
+    const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain Cluster item', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.query(By.css('.fa-cubes'))
     const contentValue = componentElem.nativeElement;
     expect(contentValue).toBeTruthy();
   });

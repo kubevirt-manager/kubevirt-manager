@@ -13,6 +13,8 @@ import { VNCViewerComponent } from './components/vncviewer/vncviewer.component';
 import { AutoscaleComponent } from './components/autoscale/autoscale.component';
 import { VmdetailsComponent } from './components/vmdetails/vmdetails.component';
 import { VmpooldetailsComponent } from './components/vmpooldetails/vmpooldetails.component';
+import { KClusterComponent } from './components/kcluster/kcluster.component';
+import { KClusterDetailsComponent } from './components/kcluster-details/kcluster-details.component';
 
 const routes: Routes = [
   { path: '', component: DashboardComponent },
@@ -28,6 +30,8 @@ const routes: Routes = [
   { path: 'lblist', component: LoadBalancersComponent},
   { path: 'citlist', component: ClusterInstanceTypeListComponent},
   { path: 'refresh', component: RefreshComponent},
+  { path: 'kcluster', component: KClusterComponent},
+  { path: 'kclusterdetails/:namespace/:name', component: KClusterDetailsComponent},
   { path: 'vncviewer/:namespace/:name', component: VNCViewerComponent}
 ];
 

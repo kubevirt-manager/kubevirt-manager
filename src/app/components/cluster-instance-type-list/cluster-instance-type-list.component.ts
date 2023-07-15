@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
@@ -90,13 +89,9 @@ export class ClusterInstanceTypeListComponent implements OnInit {
                     const data = await lastValueFrom(this.kubeVirtService.editClusterInstanceType(typeName, cpuSize, memorySize));
                     this.hideComponent("model-edit");
                     this.reloadComponent();
-                } catch (e) {
-                    if (e instanceof HttpErrorResponse) {
-                        alert(e.error["message"])
-                    } else {
-                        console.log(e);
-                        alert("Internal Error!");
-                    }
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                 }
             }
         }
@@ -141,13 +136,9 @@ export class ClusterInstanceTypeListComponent implements OnInit {
                     const data = await lastValueFrom(await this.kubeVirtService.deleteClusterInstanceType(typeName));
                     this.hideComponent("model-delete");
                     this.reloadComponent();
-                } catch (e) {
-                    if (e instanceof HttpErrorResponse) {
-                        alert(e.error["message"])
-                    } else {
-                        console.log(e);
-                        alert("Internal Error!");
-                    }
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
                 }
             }
         }
@@ -184,13 +175,9 @@ export class ClusterInstanceTypeListComponent implements OnInit {
                 const data = await lastValueFrom(this.kubeVirtService.createClusterInstanceType(typeName, this.myClusterInstanceTypeTemplate));
                 this.hideComponent("model-new");
                 this.reloadComponent();
-            } catch (e) {
-                if (e instanceof HttpErrorResponse) {
-                    alert(e.error["message"])
-                } else {
-                    console.log(e);
-                    alert("Internal Error!");
-                }
+            } catch (e: any) {
+                alert(e.error.message);
+                console.log(e);
             }
         }
     }

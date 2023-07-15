@@ -226,21 +226,27 @@
                                         </span>
                                     </span>
                                     </td>
-                                    <td style="line-height: 2.2 !important;">{{thisVM.name}}</td>
-                                    <td style="line-height: 2.2 !important;">{{thisVM.nodeSel}}</td>
-                                    <td style="line-height: 2.2 !important;">{{thisVM.status}}</td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.name}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.nodeSel}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.status}}</a></td>
                                     <td style="line-height: 2.2 !important;">
                                     <span [ngSwitch]="thisVM.status">
                                         <span *ngSwitchCase="'Running'">
-                                        {{thisVM.vmi.ifAddr}}
+                                            <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.vmi.ifAddr}}</a>
                                         </span>
                                         <span *ngSwitchDefault>
-                                        &nbsp;
+                                            <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">&nbsp;</a>
                                         </span>
                                     </span>
                                     </td>
-                                    <td style="line-height: 2.2 !important;">{{thisVM.ready}}</td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.ready}}</a></td>
                                     <td style="line-height: 0 !important;">
+                                    <!--- INFO BUTTON -->
+                                    <span>
+                                        <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="Show info...">
+                                        <i class="fas fa-info"></i>
+                                        </a>
+                                    </span>
                                     <!--- REMOVE BUTTON -->
                                     <span>
                                         <a class="btn" (click)='removeVmFromPool(thisVM.namespace, thisVM.name, thisVM.nodeSel)' title="Remove from pool...">

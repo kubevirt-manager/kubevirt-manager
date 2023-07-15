@@ -40,3 +40,6 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Temporary Screenshots
+/utils/screenshot-generator/data/*.png

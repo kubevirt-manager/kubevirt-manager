@@ -7,6 +7,7 @@ import { KubeVirtService } from 'src/app/services/kube-virt.service';
 import { PrometheusService } from 'src/app/services/prometheus.service';
 import { Chart } from 'chart.js/auto'
 import { Router } from '@angular/router';
+import { XK8sService } from 'src/app/services/x-k8s.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -39,16 +40,16 @@ export class DashboardComponent implements OnInit {
     memInfo = 0;
     storageInfo = 0;
     netInfo = 0;
-    storageClassesInfo = 0;
-    namespacesInfo = 0;
+    kclusterInfo = 0;
+    autoscaleInfo = 0;
     instanceTypesInfo = 0;
     loadBalancers = 0;
 
     /* Prometheus query data */
     promStartTime = 0;
     promEndTime = 0;
-    promInterval = 1800; // Prometheus Window 30 minutes
-    promStep = 20;       // Prometheus Step 20 seconds
+    promInterval = 3600; // Prometheus Window 30 minutes
+    promStep = 30;       // Prometheus Step 20 seconds
 
     /* Chart.JS placeholder */
     cpuChart: any;
@@ -64,7 +65,8 @@ export class DashboardComponent implements OnInit {
         private k8sApisService: K8sApisService,
         private kubeVirtService: KubeVirtService,
         private dataVolumesService: DataVolumesService,
-        private prometheusService: PrometheusService
+        private prometheusService: PrometheusService,
+        private xK8sService: XK8sService
     ) { }
 
     async ngOnInit(): Promise<void> {
@@ -73,8 +75,8 @@ export class DashboardComponent implements OnInit {
         this.getDisks();
         this.getNetworks();
         this.getPools();
-        this.getStorageClasses();
-        this.getNamespaces();
+        this.getClusters();
+        this.getScalingGroups();
         this.getInstanceTypes();
         this.getLoadBalancers();
         this.loadPrometheus();
@@ -102,7 +104,7 @@ export class DashboardComponent implements OnInit {
                 this.stgGraph();
                 this.enableRows();
             }
-        } catch (e) {
+        } catch (e: any) {
             console.log("No prometheus...");
         }
     }
@@ -452,78 +454,110 @@ export class DashboardComponent implements OnInit {
      * Get VMs Information
      */
     async getVMs(): Promise<void> {
-        const data = await lastValueFrom(this.kubeVirtService.getVMs());
-        let vms = data.items;
-        this.vmInfo.total = data.items.length;
-        for (let i = 0; i < vms.length; i++) {
-            if(vms[i].status["printableStatus"] == "Running") {
-                this.vmInfo.running += 1;
+        try {
+            const data = await lastValueFrom(this.kubeVirtService.getVMs());
+            let vms = data.items;
+            this.vmInfo.total = data.items.length;
+            for (let i = 0; i < vms.length; i++) {
+                if(vms[i].status["printableStatus"] == "Running") {
+                    this.vmInfo.running += 1;
+                }
             }
+            this.vmInfo.percent = Math.round((this.vmInfo.running * 100) / this.vmInfo.total);
+        } catch (e: any) {
+            console.log(e);
         }
-        this.vmInfo.percent = Math.round((this.vmInfo.running * 100) / this.vmInfo.total);
     }
 
     /*
      * Get Data Volumes Information
      */
     async getDisks(): Promise<void> {
-        const data = await lastValueFrom(this.dataVolumesService.getDataVolumes());
-        this.discInfo = data.items.length;
+        try {
+            const data = await lastValueFrom(this.dataVolumesService.getDataVolumes());
+            this.discInfo = data.items.length;
+        } catch (e: any) {
+            console.log(e);
+        }
     }
 
     /*
      * Get Network Attachments from Kubernetes
      */
     async getNetworks(): Promise<void> {
-        const data = await lastValueFrom(this.k8sApisService.getNetworkAttachs());
-        this.netInfo = data.items.length;
+        try {
+            const data = await lastValueFrom(this.k8sApisService.getNetworkAttachs());
+            this.netInfo = data.items.length;
+        } catch (e: any) {
+            console.log(e);
+        }
     }
 
     /*
      * Get VM Pools
      */
     async getPools(): Promise<void> {
-        const data = await lastValueFrom(this.kubeVirtService.getVMPools());
-        let pools = data.items;
-        this.poolInfo.total = data.items.length;
-        for (let i = 0; i < pools.length; i++) {
-            if(pools[i].spec.virtualMachineTemplate.spec["running"]) {
-                this.poolInfo.running += 1;
+        try {
+            const data = await lastValueFrom(this.kubeVirtService.getVMPools());
+            let pools = data.items;
+            this.poolInfo.total = data.items.length;
+            for (let i = 0; i < pools.length; i++) {
+                if(pools[i].spec.virtualMachineTemplate.spec["running"]) {
+                    this.poolInfo.running += 1;
+                }
             }
+            this.poolInfo.percent = Math.round((this.poolInfo.running * 100) / this.poolInfo.total);
+        } catch (e: any) {
+            console.log(e);
         }
-        this.poolInfo.percent = Math.round((this.poolInfo.running * 100) / this.poolInfo.total);
     }
 
     /*
-     * Get Storage Classes
+     * Get Clusters
      */
-    async getStorageClasses(): Promise<void> {
-        const data = await lastValueFrom(this.k8sApisService.getStorageClasses());
-        this.storageClassesInfo = data.items.length;
+    async getClusters(): Promise<void> {
+        try {
+            const data = await lastValueFrom(this.xK8sService.getClusters());
+            this.kclusterInfo = data.items.length;
+        } catch (e: any) {
+            console.log(e);
+        }
     }
 
     /*
-     * Get Namespaces
+     * Get HPA
      */
-    async getNamespaces(): Promise<void> {
-        const data = await lastValueFrom(this.k8sService.getNamespaces());
-        this.namespacesInfo = data.items.length;
+    async getScalingGroups(): Promise<void> {
+        try {
+            const data = await lastValueFrom(this.k8sApisService.getHpas());
+            this.autoscaleInfo = data.items.length;
+        } catch (e: any) {
+            console.log(e);
+        }
     }
 
     /*
      * Get Cluster Instance Types
      */
     async getInstanceTypes(): Promise<void> {
-        const data = await lastValueFrom(this.kubeVirtService.getClusterInstanceTypes());
-        this.instanceTypesInfo = data.items.length;
+        try {
+            const data = await lastValueFrom(this.kubeVirtService.getClusterInstanceTypes());
+            this.instanceTypesInfo = data.items.length;
+        } catch (e: any) {
+            console.log(e);
+        }
     }
 
     /*
      * Get Services from Kubernetes
      */
     async getLoadBalancers(): Promise<void> {
-        const data = await lastValueFrom(this.k8sService.getServices());
-        this.loadBalancers = data.items.length;
+        try {
+            const data = await lastValueFrom(this.k8sService.getServices());
+            this.loadBalancers = data.items.length;
+        } catch (e: any) {
+            console.log(e);
+        }
     }
 
     /*

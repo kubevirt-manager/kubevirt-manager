@@ -1,0 +1,735 @@
+<div class="content">
+    <div class="container-fluid">
+      <div class="content-wrapper">
+        &nbsp;<br>
+        <div class="card card-outline">
+          <div class="card-header">
+            <h3 class="card-title">
+              Clusters
+            </h3>
+            <div class="card-tools">
+              <button type="button" (click)="showNew()" class="btn btn-tool">
+                  <i class="fas fa-plus-square" title="Create cluster..."></i>
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card card-outline">
+            <tbody>
+                <table class="table table-sm" style="vertical-align: middle !important;">
+                <thead>
+                    <tr>
+                        <th style="width: 5px">&nbsp;</th>
+                        <th style="width: 120px">Namespace</th>
+                        <th style="width: 160px">Name</th>
+                        <th style="width: 20px">Control Plane</th>
+                        <th style="width: 120px">Version</th>
+                        <th style="width: 90px">Worker Pools</th>
+                        <th style="width: 90px">Total Workers</th>
+                        <th style="width: 120px">Control Plane Ready</th>
+                        <th style="width: 140px">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr *ngFor="let thisCluster of clusterList">
+                    <td style="line-height: 2.2 !important;"><i class="fas fa-cubes"></i></td>
+                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterdetails/{{thisCluster.namespace}}/{{thisCluster.name}}" title="Cluster details...">{{thisCluster.namespace}}</a></td>
+                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterdetails/{{thisCluster.namespace}}/{{thisCluster.name}}" title="Cluster details...">{{thisCluster.name}}</a></td>
+                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterdetails/{{thisCluster.namespace}}/{{thisCluster.name}}" title="Cluster details...">{{thisCluster.cpHost}}:{{thisCluster.cpPort}}</a></td>
+                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterdetails/{{thisCluster.namespace}}/{{thisCluster.name}}" title="Cluster details...">kubernetes {{thisCluster.controlPlane.version}}</a></td>
+                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterdetails/{{thisCluster.namespace}}/{{thisCluster.name}}" title="Cluster details...">{{thisCluster.workerPools}}</a></td>
+                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterdetails/{{thisCluster.namespace}}/{{thisCluster.name}}" title="Cluster details...">{{thisCluster.totalWorkers}}</a></td>
+                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterdetails/{{thisCluster.namespace}}/{{thisCluster.name}}" title="Cluster details...">{{thisCluster.controlPlaneReady}}</a></td>
+                    <td style="line-height: 2.2 !important;">
+                        <span>
+                            <a class="btn" routerLink="/kclusterdetails/{{thisCluster.namespace}}/{{thisCluster.name}}" title="Cluster details...">
+                            <i class="fas fa-info"></i>
+                            </a>
+                        </span>
+                        <span>
+                            <a class="btn" (click)="getKubeconfig(thisCluster.namespace, thisCluster.name)" title="Download Kubeconfig...">
+                            <i class="fas fa-download"></i>
+                            </a>
+                        </span>
+                        <span>
+                            <a class="btn" (click)="getSSHKey(thisCluster.namespace, thisCluster.name)" title="Download SSH Key...">
+                            <i class="fas fa-terminal"></i>
+                            </a>
+                        </span>
+                        <span>
+                            <a class="btn" (click)="showDelete(thisCluster.namespace, thisCluster.name)" title="Delete cluster...">
+                            <i class="fas fa-trash"></i>
+                            </a>
+                        </span>
+                    </td>
+                </tr>
+                </tbody>
+                </table>
+            </tbody>
+            </div>
+          </div>
+          <!-- /.card-body -->
+        </div>
+      </div>
+
+    <!--               -->
+    <!-- Modal: NEW    -->
+    <!--               -->
+    <div class="modal fade" id="modal-new" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="new-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-new")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="new-value">
+                <div class="callout callout-primary">
+                    <h5>Standard</h5>
+                    <p><b>Standard</b> clusters will use images created and provided by kubevirt-manager.io initiative.</p>
+                    <p>Cluster also supports different CNI configurations provided by kubevirt-manager.io as well as features like Ingress, Dashboard and Tekton.</p>
+                    <button type="button" class="btn btn-primary" (click)='showNewCluster()'>Standard</button>
+                </div>
+                <br>
+                <div class="callout callout-primary">
+                    <h5>Custom</h5>
+                    <p><b>Custom</b> clusters require you to provide the disk images to be imported by the cluster.</p>
+                    <p>CNI needs to be installed manually and features like Ingress, Dashboard and Tekton are not provided.</p>
+                    <button type="button" class="btn btn-primary" (click)='showNewClusterCustom()'>Custom</button>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-between">&nbsp;</div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!--                  -->
+    <!-- Modal: Delete    -->
+    <!--                  -->
+    <div class="modal fade" id="modal-delete" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="delete-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-delete")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <input type="hidden" id="delete-namespace" name="delete-namespace" value="">
+            <input type="hidden" id="delete-name" name="delete-name" value="">
+            <div class="modal-body" id="delete-value">
+              <p>BODY_TEMPLATE</p>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-delete")'>Close</button>
+              <button type="button" class="btn btn-danger" (click)="applyDelete()">Delete</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+
+    <!--                              -->
+    <!-- Modal: New PRE-BAKED cluster -->
+    <!--                              -->
+    <div class="modal fade" id="modal-newcluster" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content">
+          <form name="newclusterform" id="newclusterform">
+            <div class="modal-header">
+              <h4 class="modal-title" id="newcluster-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-newcluster")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="newcluster-value">
+              <div class="card card-primary card-tabs">
+                <div class="card-header p-0 pt-1">
+                  <!-- TABS Selector-->
+                  <ul class="nav nav-tabs" id="custom-tabs-two-tab" role="tablist">
+                    <li class="nav-item">
+                      <a class="nav-link active" id="newcluster-home-tab" data-toggle="pill" href="#newcluster-home" role="tab" aria-controls="newcluster-home" aria-selected="false">General</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" id="newcluster-labels-tab" data-toggle="pill" href="#newcluster-details" role="tab" aria-controls="newcluster-details" aria-selected="false">Details</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="newcluster-net-tab" data-toggle="pill" href="#newcluster-net" role="tab" aria-controls="newcluster-net" aria-selected="false">Networking</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" id="newcluster-controlplane-tab" data-toggle="pill" href="#newcluster-controlplane" role="tab" aria-controls="newcluster-controlplane" aria-selected="false">Control Plane</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" id="newcluster-nodepool-tab" data-toggle="pill" href="#newcluster-nodepool" role="tab" aria-controls="newcluster-nodepool" aria-selected="false">Worker Pool</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" id="newcluster-advanced-tab" data-toggle="pill" href="#newcluster-advanced" role="tab" aria-controls="newcluster-advanced" aria-selected="false">Advanced</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="card-body">
+                  <div class="tab-content" id="custom-tabs-two-tabContent">
+                    <!-- GENERAL TAB -->
+                    <div class="tab-pane fade show active" id="newcluster-home" role="tabpanel" aria-labelledby="newcluster-home-tab">
+                      <label for="newcluster-name">Cluster Name:</label>
+                      <input #newclustername type="text" class="form-control" id="newcluster-name" name="newcluster-name" (change)="updateClusterDNS(newclustername.value)">
+                      <label for="newcluster-namespace">Namespace:</label>
+                      <select #newclusternamespace class="custom-select rounded-0" name="newcluster-namespace" id="newcluster-namespace">
+                        <option>Value 1</option>
+                      </select>
+                      <br><br>
+                      <label for="newcluster-labels">Labels</label>
+                        <br>
+                        <table class="table table-sm" style="vertical-align: middle !important;">
+                            <thead>
+                                <tr>
+                                <th style="width: 250px">Key</th>
+                                <th style="width: 250px">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                  <td style="line-height: 2.2 !important;"><input #newclusterlabelkeyone type="text" class="form-control" id="newcluster-labelkey-one" name="newcluster-labelkey-one"></td>
+                                  <td style="line-height: 2.2 !important;"><input #newclusterlabelvalueone type="text" class="form-control" id="newcluster-labelvalue-one" name="newcluster-labelvalue-one"></td>
+                                </tr>
+                                <tr>
+                                  <td style="line-height: 2.2 !important;"><input #newclusterlabelkeytwo type="text" class="form-control" id="newcluster-labelkey-two" name="newcluster-labelkey-two"></td>
+                                  <td style="line-height: 2.2 !important;"><input #newclusterlabelvaluetwo type="text" class="form-control" id="newcluster-labelvalue-two" name="newcluster-labelvalue-two"></td>
+                                </tr>
+                                <tr>
+                                  <td style="line-height: 2.2 !important;"><input #newclusterlabelkeythree type="text" class="form-control" id="newcluster-labelkey-three" name="newcluster-labelkey-three"></td>
+                                  <td style="line-height: 2.2 !important;"><input #newclusterlabelvaluethree type="text" class="form-control" id="newcluster-labelvalue-three" name="newcluster-labelvalue-three"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- DETAILS TAB -->
+                    <div class="tab-pane fade" id="newcluster-details" role="tabpanel" aria-labelledby="newcluster-details-tab">
+                        <label for="newcluster-version">Kubernetes Version:</label>
+                        <select #newclusterversion class="custom-select rounded-0" name="newcluster-version" id="newcluster-version" (change)="onChangeKubernetesVersion(newclusterversion.value)">
+                            <option>blank</option>
+                        </select>
+                        <label for="newcluster-cni">Conainter Network Interface:</label>
+                        <select #newclustercni class="custom-select rounded-0" name="newcluster-cni" id="newcluster-cni" (change)="onChangeCNI(newclustercni.value)" disabled>
+                            <option>blank</option>
+                        </select>
+                        <label for="newcluster-cniversion">CNI Version:</label>
+                        <select #newclustercniversion class="custom-select rounded-0" name="newcluster-cniversion" id="newcluster-cniversion" disabled>
+                        </select>
+                        <label for="newcluster-dns">Cluster DNS:</label>
+                        <input #newclusterdns type="text" class="form-control" id="newcluster-dns" name="newcluster-dns">
+                        <br>
+                        <label for="newcluster-cni-details">Kubernetes Networking Details</label>
+                        <br>
+                        <table class="table table-sm" style="vertical-align: middle !important;">
+                            <thead>
+                                <tr>
+                                <th style="width: 250px">Pod CIDR</th>
+                                <th style="width: 250px">Service CIDR</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="line-height: 2.2 !important;"><input #newclusterpodcidr type="text" class="form-control" id="newcluster-podcidr" name="newcluster-podcidr" placeholder="10.243.0.0/16"></td>
+                                    <td style="line-height: 2.2 !important;"><input #newclustersvccidr type="text" class="form-control" id="newcluster-svccidr" name="newcluster-dvccidr" placeholder="10.95.0.0/16"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- NETWORK TAB -->
+                    <div class="tab-pane fade" id="newcluster-net" role="tabpanel" aria-labelledby="newcluster-net-tab">
+                        <label for="newcluster-network">Node Network:</label>
+                        <select #newclusternetwork class="custom-select rounded-0" name="newcluster-network" id="newcluster-network">
+                          <option value=podNetwork>podNetwork</option>
+                        </select>
+                        <label for="newcluster-networktype">Node Network Type:</label>
+                        <select #newclusternetworktype class="custom-select rounded-0" name="newcluster-networktype" id="newcluster-networktype">
+                          <option value=bridge>bridge</option>
+                          <option value=masquerade>masquerade</option>
+                        </select>
+                        <label for="newcluster-controlplane-eptype">Kubernetes API Endpoint Type:</label>
+                      <select #newclustercontrolplaneeptype class="custom-select rounded-0" name="newcluster-controlplane-eptype" id="newcluster-controlplane-eptype">
+                          <option>LoadBalancer</option>
+                          <option>ClusterIP</option>
+                          <option>NodePort</option>
+                      </select>
+                      <br><br>
+                      <label for="newcluster-controlplane-epannotations">Endpoint Service Annotations</label>
+                      <br>
+                      <table class="table table-sm" style="vertical-align: middle !important;">
+                        <thead>
+                            <tr>
+                            <th style="width: 250px">Annotation</th>
+                            <th style="width: 250px">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                              <td style="line-height: 2.2 !important;"><input #newclustercontrolplaneepannotationskeyone type="text" class="form-control" id="newcluster-controlplane-epannotationskey-one" name="newcluster-controlplane-epannotationskey-one"></td>
+                              <td style="line-height: 2.2 !important;"><input #newclustercontrolplaneepannotationsvalueone type="text" class="form-control" id="newcluster-controlplane-epannotationsvalue-one" name="newcluster-controlplane-epannotationsvalue-one"></td>
+                            </tr>
+                            <tr>
+                                <td style="line-height: 2.2 !important;"><input #newclustercontrolplaneepannotationskeytwo type="text" class="form-control" id="newcluster-controlplane-epannotationskey-two" name="newcluster-controlplane-epannotationskey-two"></td>
+                                <td style="line-height: 2.2 !important;"><input #newclustercontrolplaneepannotationsvaluetwo type="text" class="form-control" id="newcluster-controlplane-epannotationsvalue-two" name="newcluster-controlplane-epannotationsvalue-two"></td>
+                            </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <!-- CONTROL PLANE TAB -->
+                    <div class="tab-pane fade" id="newcluster-controlplane" role="tabpanel" aria-labelledby="newcluster-controlplane-tab">
+                        <div class="row">
+                            <div class="col-6" name="newcluster-controlplane-linux-col">
+                              <label for="newcluster-controlplane-osdist">Operating System:</label>
+                              <select #newclustercontrolplaneosdist class="custom-select rounded-0" name="newcluster-controlplane-osdist" id="newcluster-controlplane-osdist" (change)="onChangeControlPlaneOS(newclusterversion.value,newclustercontrolplaneosdist.value)">
+                                <option value="none">None</option>
+                              </select>
+                            </div>
+                            <div class="col-6">
+                              <label for="newcluster-controlplane-osversion">OS Version:</label>
+                              <select #newclustercontrolplaneosversion class="custom-select rounded-0" name="newcluster-controlplane-osversion" id="newcluster-controlplane-osversion">
+                              </select>
+                            </div>
+                        </div>
+                      <br> 
+                      <label for="newcluster-controlplane-type">Virtual Machine Type:</label>
+                      <select #newclustercontrolplanetype class="custom-select rounded-0" name="newcluster-controlplane-type" id="newcluster-controlplane-type" (change)="onChangeControlPlaneType(newclustercontrolplanetype.value)">
+                          <option>Value 1</option>
+                      </select>
+                      <div class="pane fade" id="controlplane-custom-cpu-memory" name="controlplane-custom-cpu-memory" style="display: none;" aria-hidden="true">
+                          <label for="newcluster-controlplane-cpumem-sockets">Sockets:</label>
+                          <input #newclustercontrolplanecpumemsockets type="number" class="form-control" id="newcluster-controlplane-cpumem-sockets" name="newcluster-controlplane-cpumem-sockets">
+                          <label for="newcluster-controlplane-cpumem-cores">Cores:</label>
+                          <input #newclustercontrolplanecpumemcores type="number" class="form-control" id="newcluster-controlplane-cpumem-cores" name="newcluster-controlplane-cpumem-cores">
+                          <label for="newcluster-controlplane-cpumem-threads">Threads:</label>
+                          <input #newclustercontrolplanecpumemthreads type="number" class="form-control" id="newcluster-controlplane-cpumem-threads" name="newcluster-controlplane-cpumem-threads">
+                          <label for="newcluster-controlplane-cpumem-memory">Memory (in GB):</label>
+                          <input #newclustercontrolplanecpumemmemory type="number" class="form-control" id="newcluster-controlplane-cpumem-memory" name="newcluster-controlplane-cpumem-memory">
+                      </div>
+                      <label for="newcluster-controlplane-priorityclass">Priority Class:</label>
+                      <select #newclustercontrolplanepc class="custom-select rounded-0" name="newcluster-controlplane-pc" id="newcluster-controlplane-pc">
+                          <option>Value 1</option>
+                      </select>
+                      <label for="newcluster-controlplane-replicas">Number of Nodes: <i>(odd number)</i></label>
+                      <input #newclustercontrolplanereplicas type="number" class="form-control" id="newcluster-controlplane-replicas" name="newcluster-controlplane-replicas">
+                      <br>
+                      <label for="newcluster-controlplane-disk">Boot Disk</label>
+                        <div class="row">
+                            <div class="col-3">
+                                <label for="newcluster-controlplane-disksize">Size in GB:</label>
+                                <input #newclustercontrolplanedisksize type=number class="form-control" name="newcluster-controlplane-disksize" id="newcluster-controlplane-disksize" placeholder="100">
+                            </div>
+                            <div class="col-3">
+                                <label for="newcluster-controlplane-disksc">Storage Class:</label>
+                                <select #newclustercontrolplanedisksc class="custom-select rounded-0" name="newcluster-controlplane-disksc" id="newcluster-controlplane-disksc">
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label for="newcluster-controlplane-diskam">Access Mode:</label>
+                                <select #newclustercontrolplanediskam class="custom-select rounded-0" name="newcluster-controlplane-diskam" id="newcluster-controlplane-diskam">
+                                    <option>ReadWriteOnce</option>
+                                    <option>ReadOnlyMany</option>
+                                    <option>ReadWriteMany</option>
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label for="newcluster-controlplane-diskcm">Cache Mode:</label>
+                                <select #newclustercontrolplanediskcm class="custom-select rounded-0" name="newcluster-controlplane-diskcm" id="nnewcluster-controlplane-diskcm">
+                                  <option value="">Automatic</option>
+                                  <option value="none">None</option>
+                                  <option value="writethrough">WriteThrough</option>
+                                  <option value="writeback">WriteBack</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- NODEPOOL TAB -->
+                    <div class="tab-pane fade" id="newcluster-nodepool" role="tabpanel" aria-labelledby="newcluster-nodepool-tab">
+                        <label for="newcluster-nodepool-name">Pool Name:</label>
+                        <input #newclusternodepoolname type="text" class="form-control" id="newcluster-nodepool-name" name="newcluster-nodepool-name" value="default-pool">
+                        <div class="row">
+                            <div class="col-6" name="newcluster-nodepool-linux-col">
+                              <label for="newcluster-nodepool-osdist">Operating System:</label>
+                              <select #newclusternodepoolosdist class="custom-select rounded-0" name="newcluster-nodepool-osdist" id="newcluster-nodepool-osdist" (change)="onChangeNodePoolOS(newclusterversion.value,newclusternodepoolosdist.value)">
+                                <option value="none">None</option>
+                              </select>
+                            </div>
+                            <div class="col-6">
+                              <label for="newcluster-nodepool-osversion">OS Version:</label>
+                              <select #newclusternodepoolosversion class="custom-select rounded-0" name="newcluster-nodepool-osversion" id="newcluster-nodepool-osversion">
+                              </select>
+                            </div>
+                        </div>
+                      <br> 
+                      <label for="newcluster-nodepool-type">Virtual Machine Type:</label>
+                      <select #newclusternodepooltype class="custom-select rounded-0" name="newcluster-nodepool-type" id="newcluster-nodepool-type" (change)="onChangeNodePoolType(newclusternodepooltype.value)">
+                          <option>Value 1</option>
+                      </select>
+                      <div class="pane fade" id="nodepool-custom-cpu-memory" name="nodepool-custom-cpu-memory" style="display: none;" aria-hidden="true">
+                          <label for="newcluster-nodepool-cpumem-sockets">Sockets:</label>
+                          <input #newclusternodepoolcpumemsockets type="number" class="form-control" id="newcluster-nodepool-cpumem-sockets" name="newcluster-nodepool-cpumem-sockets">
+                          <label for="newcluster-nodepool-cpumem-cores">Cores:</label>
+                          <input #newclusternodepoolcpumemcores type="number" class="form-control" id="newcluster-nodepool-cpumem-cores" name="newcluster-nodepool-cpumem-cores">
+                          <label for="newcluster-nodepool-cpumem-threads">Threads:</label>
+                          <input #newclusternodepoolcpumemthreads type="number" class="form-control" id="newcluster-nodepool-cpumem-threads" name="newcluster-nodepool-cpumem-threads">
+                          <label for="newcluster-nodepool-cpumem-memory">Memory (in GB):</label>
+                          <input #newclusternodepoolcpumemmemory type="number" class="form-control" id="newcluster-nodepool-cpumem-memory" name="newcluster-nodepool-cpumem-memory">
+                      </div>
+                      <label for="newcluster-nodepool-priorityclass">Priority Class:</label>
+                      <select #newclusternodepoolpc class="custom-select rounded-0" name="newcluster-nodepool-pc" id="newcluster-nodepool-pc">
+                          <option>Value 1</option>
+                      </select>
+                      <label for="newcluster-nodepool-replicas">Number of Nodes:</label>
+                      <input #newclusternodepoolreplicas type="number" class="form-control" id="newcluster-nodepool-replicas" name="newcluster-nodepool-replicas">
+                      <br>
+                      <label for="newcluster-nodepool-disk">Boot Disk</label>
+                        <div class="row">
+                            <div class="col-3">
+                                <label for="newcluster-nodepool-disksize">Size in GB:</label>
+                                <input #newclusternodepooldisksize type=number class="form-control" name="newcluster-nodepool-disksize" id="newcluster-nodepool-disksize" placeholder="100">
+                            </div>
+                            <div class="col-3">
+                                <label for="newcluster-nodepool-disksc">Storage Class:</label>
+                                <select #newclusternodepooldisksc class="custom-select rounded-0" name="newcluster-nodepool-disksc" id="newcluster-nodepool-disksc">
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label for="newcluster-nodepool-diskam">Access Mode:</label>
+                                <select #newclusternodepooldiskam class="custom-select rounded-0" name="newcluster-nodepool-diskam" id="newcluster-nodepool-diskam">
+                                    <option>ReadWriteOnce</option>
+                                    <option>ReadOnlyMany</option>
+                                    <option>ReadWriteMany</option>
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label for="newcluster-nodepool-diskcm">Cache Mode:</label>
+                                <select #newclusternodepooldiskcm class="custom-select rounded-0" name="newcluster-nodepool-diskcm" id="nnewcluster-nodepool-diskcm">
+                                  <option value="">Automatic</option>
+                                  <option value="none">None</option>
+                                  <option value="writethrough">WriteThrough</option>
+                                  <option value="writeback">WriteBack</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ADVANCED TAB -->
+                    <div class="tab-pane fade" id="newcluster-advanced" role="tabpanel" aria-labelledby="newcluster-advanced-tab">
+                        <label for="advanced-features">Enable Features:</label>
+                        <div class="form-check">
+                            <input #newclusterfeaturescertmanager class="form-check-input" type="checkbox" id="newcluster-features-certmanager" name="newcluster-features-certmanager">
+                            <label class="form-check-label">Cert Manager</label>
+                        </div>
+                        <div class="form-check">
+                            <input #newclusterfeaturesdashboard class="form-check-input" type="checkbox" id="newcluster-features-dashboard" name="newcluster-features-dashboard">
+                            <label class="form-check-label">Kubernetes Dashboard</label>
+                        </div>
+                        <div class="form-check">
+                            <input #newclusterfeaturesmetrics class="form-check-input" type="checkbox" id="newcluster-features-metrics" name="newcluster-features-metrics">
+                            <label class="form-check-label">Metrics Server</label>
+                        </div>
+                        <div class="form-check">
+                            <input #newclusterfeatureshaproxyingress class="form-check-input" type="checkbox" id="newcluster-features-haproxyingress" name="newcluster-features-haproxyingress">
+                            <label class="form-check-label">HAProxy Ingress</label>
+                        </div>
+                        <div class="form-check">
+                            <input #newclusterfeaturesnginxingress class="form-check-input" type="checkbox" id="newcluster-features-nginxingress" name="newcluster-features-nginxingress">
+                            <label class="form-check-label">NGINX Ingress</label>
+                        </div>
+                        <div class="form-check">
+                            <input #newclusterfeaturestekton class="form-check-input" type="checkbox" id="newcluster-features-tekton" name="newcluster-features-tekton">
+                            <label class="form-check-label">Tekton + Tekton Dashboard</label>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- /.card -->
+              </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-newcluster")'>Close</button>
+              <button type="button" class="btn btn-primary" (click)='applyNewCluster(newclustername.value, newclusternamespace.value, newclusterlabelkeyone.value, newclusterlabelvalueone.value, newclusterlabelkeytwo.value, newclusterlabelvaluetwo.value, newclusterlabelkeythree.value, newclusterlabelvaluethree.value, newclusterversion.value, newclustercni.value, newclustercniversion.value, newclusterdns.value, newclusterpodcidr.value, newclustersvccidr.value, newclusternetwork.value, newclusternetworktype.value, newclustercontrolplaneeptype.value, newclustercontrolplaneepannotationskeyone.value, newclustercontrolplaneepannotationsvalueone.value, newclustercontrolplaneepannotationskeytwo.value, newclustercontrolplaneepannotationsvaluetwo.value, newclustercontrolplaneosdist.value, newclustercontrolplaneosversion.value, newclustercontrolplanetype.value, newclustercontrolplanecpumemsockets.value, newclustercontrolplanecpumemcores.value, newclustercontrolplanecpumemthreads.value, newclustercontrolplanecpumemmemory.value, newclustercontrolplanepc.value, newclustercontrolplanereplicas.value, newclustercontrolplanedisksize.value, newclustercontrolplanedisksc.value, newclustercontrolplanediskam.value, newclustercontrolplanediskcm.value,  newclusternodepoolname.value, newclusternodepoolosdist.value, newclusternodepoolosversion.value, newclusternodepooltype.value, newclusternodepoolcpumemsockets.value, newclusternodepoolcpumemcores.value, newclusternodepoolcpumemthreads.value, newclusternodepoolcpumemmemory.value, newclusternodepoolpc.value, newclusternodepoolreplicas.value, newclusternodepooldisksize.value, newclusternodepooldisksc.value, newclusternodepooldiskam.value, newclusternodepooldiskcm.value, newclusterfeaturescertmanager.checked, newclusterfeaturesdashboard.checked, newclusterfeaturesmetrics.checked, newclusterfeatureshaproxyingress.checked, newclusterfeaturesnginxingress.checked, newclusterfeaturestekton.checked)'>Create</button>
+            </div>
+          </form>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+
+
+
+
+
+
+
+    <!--                              -->
+    <!-- Modal: New Custom cluster -->
+    <!--                              -->
+    <div class="modal fade" id="modal-newclustercustom" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content">
+          <form name="newclustercustomform" id="newclustercustomform">
+            <div class="modal-header">
+              <h4 class="modal-title" id="newclustercustom-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-newclustercustom")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="newclustercustom-value">
+              <div class="card card-primary card-tabs">
+                <div class="card-header p-0 pt-1">
+                  <!-- TABS Selector-->
+                  <ul class="nav nav-tabs" id="custom-tabs-two-tab" role="tablist">
+                    <li class="nav-item">
+                      <a class="nav-link active" id="newclustercustom-home-tab" data-toggle="pill" href="#newclustercustom-home" role="tab" aria-controls="newclustercustom-home" aria-selected="false">General</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" id="newclustercustom-labels-tab" data-toggle="pill" href="#newclustercustom-details" role="tab" aria-controls="newclustercustom-details" aria-selected="false">Details</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="newclustercustom-net-tab" data-toggle="pill" href="#newclustercustom-net" role="tab" aria-controls="newclustercustom-net" aria-selected="false">Networking</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" id="newclustercustom-controlplane-tab" data-toggle="pill" href="#newclustercustom-controlplane" role="tab" aria-controls="newclustercustom-controlplane" aria-selected="false">Control Plane</a>
+                    </li>
+                    <li class="nav-item">
+                      <a class="nav-link" id="newclustercustom-nodepool-tab" data-toggle="pill" href="#newclustercustom-nodepool" role="tab" aria-controls="newclustercustom-nodepool" aria-selected="false">Worker Pool</a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="card-body">
+                  <div class="tab-content" id="custom-tabs-two-tabContent">
+                    <!-- GENERAL TAB -->
+                    <div class="tab-pane fade show active" id="newclustercustom-home" role="tabpanel" aria-labelledby="newclustercustom-home-tab">
+                      <label for="newclustercustom-name">Cluster Name:</label>
+                      <input #newclustercustomname type="text" class="form-control" id="newclustercustom-name" name="newclustercustom-name" (change)="updateClusterDNSCustom(newclustercustomname.value)">
+                      <label for="newclustercustom-namespace">Namespace:</label>
+                      <select #newclustercustomnamespace class="custom-select rounded-0" name="newclustercustom-namespace" id="newclustercustom-namespace">
+                        <option>Value 1</option>
+                      </select>
+                      <br><br>
+                      <label for="newclustercustom-labels">Labels</label>
+                        <br>
+                        <table class="table table-sm" style="vertical-align: middle !important;">
+                            <thead>
+                                <tr>
+                                <th style="width: 250px">Key</th>
+                                <th style="width: 250px">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                  <td style="line-height: 2.2 !important;"><input #newclustercustomlabelkeyone type="text" class="form-control" id="newclustercustom-labelkey-one" name="newclustercustom-labelkey-one"></td>
+                                  <td style="line-height: 2.2 !important;"><input #newclustercustomlabelvalueone type="text" class="form-control" id="newclustercustom-labelvalue-one" name="newclustercustom-labelvalue-one"></td>
+                                </tr>
+                                <tr>
+                                  <td style="line-height: 2.2 !important;"><input #newclustercustomlabelkeytwo type="text" class="form-control" id="newclustercustom-labelkey-two" name="newclustercustom-labelkey-two"></td>
+                                  <td style="line-height: 2.2 !important;"><input #newclustercustomlabelvaluetwo type="text" class="form-control" id="newclustercustom-labelvalue-two" name="newclustercustom-labelvalue-two"></td>
+                                </tr>
+                                <tr>
+                                  <td style="line-height: 2.2 !important;"><input #newclustercustomlabelkeythree type="text" class="form-control" id="newclustercustom-labelkey-three" name="newclustercustom-labelkey-three"></td>
+                                  <td style="line-height: 2.2 !important;"><input #newclustercustomlabelvaluethree type="text" class="form-control" id="newclustercustom-labelvalue-three" name="newclustercustom-labelvalue-three"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- DETAILS TAB -->
+                    <div class="tab-pane fade" id="newclustercustom-details" role="tabpanel" aria-labelledby="newclustercustom-details-tab">
+                        <label for="newclustercustom-version">Kubernetes Version:</label>
+                        <input #newclustercustomversion type="text" class="form-control" name="newclustercustom-version" id="newclustercustom-version" placeholder="v1.25.10">
+                        <label for="newclustercustom-dns">Cluster DNS:</label>
+                        <input #newclustercustomdns type="text" class="form-control" id="newclustercustom-dns" name="newclustercustom-dns">
+                        <br>
+                        <label for="newclustercustom-cni-details">Kubernetes Networking Details</label>
+                        <br>
+                        <table class="table table-sm" style="vertical-align: middle !important;">
+                            <thead>
+                                <tr>
+                                <th style="width: 250px">Pod CIDR</th>
+                                <th style="width: 250px">Service CIDR</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="line-height: 2.2 !important;"><input #newclustercustompodcidr type="text" class="form-control" id="newclustercustom-podcidr" name="newclustercustom-podcidr" placeholder="10.243.0.0/16"></td>
+                                    <td style="line-height: 2.2 !important;"><input #newclustercustomsvccidr type="text" class="form-control" id="newclustercustom-svccidr" name="newclustercustom-dvccidr" placeholder="10.95.0.0/16"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- NETWORK TAB -->
+                    <div class="tab-pane fade" id="newclustercustom-net" role="tabpanel" aria-labelledby="newclustercustom-net-tab">
+                        <label for="newclustercustom-network">Node Network:</label>
+                        <select #newclustercustomnetwork class="custom-select rounded-0" name="newclustercustom-network" id="newclustercustom-network">
+                          <option value=podNetwork>podNetwork</option>
+                        </select>
+                        <label for="newclustercustom-networktype">Node Network Type:</label>
+                        <select #newclustercustomnetworktype class="custom-select rounded-0" name="newclustercustom-networktype" id="newclustercustom-networktype">
+                          <option value=bridge>bridge</option>
+                          <option value=masquerade>masquerade</option>
+                        </select>
+                        <label for="newclustercustom-controlplane-eptype">Kubernetes API Endpoint Type:</label>
+                      <select #newclustercustomcontrolplaneeptype class="custom-select rounded-0" name="newclustercustom-controlplane-eptype" id="newclustercustom-controlplane-eptype">
+                          <option>LoadBalancer</option>
+                          <option>ClusterIP</option>
+                          <option>NodePort</option>
+                      </select>
+                      <br><br>
+                      <label for="newclustercustom-controlplane-epannotations">Endpoint Service Annotations</label>
+                      <br>
+                      <table class="table table-sm" style="vertical-align: middle !important;">
+                        <thead>
+                            <tr>
+                            <th style="width: 250px">Annotation</th>
+                            <th style="width: 250px">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                              <td style="line-height: 2.2 !important;"><input #newclustercustomcontrolplaneepannotationskeyone type="text" class="form-control" id="newclustercustom-controlplane-epannotationskey-one" name="newclustercustom-controlplane-epannotationskey-one"></td>
+                              <td style="line-height: 2.2 !important;"><input #newclustercustomcontrolplaneepannotationsvalueone type="text" class="form-control" id="newclustercustom-controlplane-epannotationsvalue-one" name="newclustercustom-controlplane-epannotationsvalue-one"></td>
+                            </tr>
+                            <tr>
+                                <td style="line-height: 2.2 !important;"><input #newclustercustomcontrolplaneepannotationskeytwo type="text" class="form-control" id="newclustercustom-controlplane-epannotationskey-two" name="newclustercustom-controlplane-epannotationskey-two"></td>
+                                <td style="line-height: 2.2 !important;"><input #newclustercustomcontrolplaneepannotationsvaluetwo type="text" class="form-control" id="newclustercustom-controlplane-epannotationsvalue-two" name="newclustercustom-controlplane-epannotationsvalue-two"></td>
+                            </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <!-- CONTROL PLANE TAB -->
+                    <div class="tab-pane fade" id="newclustercustom-controlplane" role="tabpanel" aria-labelledby="newclustercustom-controlplane-tab"> 
+                      <label for="newclustercustom-controlplane-type">Virtual Machine Type:</label>
+                      <select #newclustercustomcontrolplanetype class="custom-select rounded-0" name="newclustercustom-controlplane-type" id="newclustercustom-controlplane-type" (change)="onChangeControlPlaneType(newclustercustomcontrolplanetype.value)">
+                          <option>Value 1</option>
+                      </select>
+                      <div class="pane fade" id="controlplane-custom-cpu-memory" name="controlplane-custom-cpu-memory" style="display: none;" aria-hidden="true">
+                          <label for="newclustercustom-controlplane-cpumem-sockets">Sockets:</label>
+                          <input #newclustercustomcontrolplanecpumemsockets type="number" class="form-control" id="newclustercustom-controlplane-cpumem-sockets" name="newclustercustom-controlplane-cpumem-sockets">
+                          <label for="newclustercustom-controlplane-cpumem-cores">Cores:</label>
+                          <input #newclustercustomcontrolplanecpumemcores type="number" class="form-control" id="newclustercustom-controlplane-cpumem-cores" name="newclustercustom-controlplane-cpumem-cores">
+                          <label for="newclustercustom-controlplane-cpumem-threads">Threads:</label>
+                          <input #newclustercustomcontrolplanecpumemthreads type="number" class="form-control" id="newclustercustom-controlplane-cpumem-threads" name="newclustercustom-controlplane-cpumem-threads">
+                          <label for="newclustercustom-controlplane-cpumem-memory">Memory (in GB):</label>
+                          <input #newclustercustomcontrolplanecpumemmemory type="number" class="form-control" id="newclustercustom-controlplane-cpumem-memory" name="newclustercustom-controlplane-cpumem-memory">
+                      </div>
+                      <label for="newclustercustom-controlplane-priorityclass">Priority Class:</label>
+                      <select #newclustercustomcontrolplanepc class="custom-select rounded-0" name="newclustercustom-controlplane-pc" id="newclustercustom-controlplane-pc">
+                          <option>Value 1</option>
+                      </select>
+                      <label for="newclustercustom-controlplane-replicas">Number of Nodes: <i>(odd number)</i></label>
+                      <input #newclustercustomcontrolplanereplicas type="number" class="form-control" id="newclustercustom-controlplane-replicas" name="newclustercustom-controlplane-replicas">
+                      <br>
+                      <label for="newclustercustom-controlplane-disk">Boot Disk</label><br>
+                      <label for="newclustercustom-cpdisk-url">Image URL: <i>(only http/https)</i></label>
+                      <input #newclustercustomcpdiskurl type="text" class="form-control" id="newclustercustom-cpdisk-url" name="newclustercustom-cpdisk-url" placeholder="https://domain.com/image.img">
+                        <div class="row">
+                            <div class="col-3">
+                                <label for="newclustercustom-controlplane-disksize">Size in GB:</label>
+                                <input #newclustercustomcontrolplanedisksize type=number class="form-control" name="newclustercustom-controlplane-disksize" id="newclustercustom-controlplane-disksize" placeholder="100">
+                            </div>
+                            <div class="col-3">
+                                <label for="newclustercustom-controlplane-disksc">Storage Class:</label>
+                                <select #newclustercustomcontrolplanedisksc class="custom-select rounded-0" name="newclustercustom-controlplane-disksc" id="newclustercustom-controlplane-disksc">
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label for="newclustercustom-controlplane-diskam">Access Mode:</label>
+                                <select #newclustercustomcontrolplanediskam class="custom-select rounded-0" name="newclustercustom-controlplane-diskam" id="newclustercustom-controlplane-diskam">
+                                    <option>ReadWriteOnce</option>
+                                    <option>ReadOnlyMany</option>
+                                    <option>ReadWriteMany</option>
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label for="newclustercustom-controlplane-diskcm">Cache Mode:</label>
+                                <select #newclustercustomcontrolplanediskcm class="custom-select rounded-0" name="newclustercustom-controlplane-diskcm" id="nnewclustercustom-controlplane-diskcm">
+                                  <option value="">Automatic</option>
+                                  <option value="none">None</option>
+                                  <option value="writethrough">WriteThrough</option>
+                                  <option value="writeback">WriteBack</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- NODEPOOL TAB -->
+                    <div class="tab-pane fade" id="newclustercustom-nodepool" role="tabpanel" aria-labelledby="newclustercustom-nodepool-tab">
+                        <label for="newclustercustom-nodepool-name">Pool Name:</label>
+                        <input #newclustercustomnodepoolname type="text" class="form-control" id="newclustercustom-nodepool-name" name="newclustercustom-nodepool-name" value="default-pool">
+                      <label for="newclustercustom-nodepool-type">Virtual Machine Type:</label>
+                      <select #newclustercustomnodepooltype class="custom-select rounded-0" name="newclustercustom-nodepool-type" id="newclustercustom-nodepool-type" (change)="onChangeNodePoolType(newclustercustomnodepooltype.value)">
+                          <option>Value 1</option>
+                      </select>
+                      <div class="pane fade" id="nodepool-custom-cpu-memory" name="nodepool-custom-cpu-memory" style="display: none;" aria-hidden="true">
+                          <label for="newclustercustom-nodepool-cpumem-sockets">Sockets:</label>
+                          <input #newclustercustomnodepoolcpumemsockets type="number" class="form-control" id="newclustercustom-nodepool-cpumem-sockets" name="newclustercustom-nodepool-cpumem-sockets">
+                          <label for="newclustercustom-nodepool-cpumem-cores">Cores:</label>
+                          <input #newclustercustomnodepoolcpumemcores type="number" class="form-control" id="newclustercustom-nodepool-cpumem-cores" name="newclustercustom-nodepool-cpumem-cores">
+                          <label for="newclustercustom-nodepool-cpumem-threads">Threads:</label>
+                          <input #newclustercustomnodepoolcpumemthreads type="number" class="form-control" id="newclustercustom-nodepool-cpumem-threads" name="newclustercustom-nodepool-cpumem-threads">
+                          <label for="newclustercustom-nodepool-cpumem-memory">Memory (in GB):</label>
+                          <input #newclustercustomnodepoolcpumemmemory type="number" class="form-control" id="newclustercustom-nodepool-cpumem-memory" name="newclustercustom-nodepool-cpumem-memory">
+                      </div>
+                      <label for="newclustercustom-nodepool-priorityclass">Priority Class:</label>
+                      <select #newclustercustomnodepoolpc class="custom-select rounded-0" name="newclustercustom-nodepool-pc" id="newclustercustom-nodepool-pc">
+                          <option>Value 1</option>
+                      </select>
+                      <label for="newclustercustom-nodepool-replicas">Number of Nodes:</label>
+                      <input #newclustercustomnodepoolreplicas type="number" class="form-control" id="newclustercustom-nodepool-replicas" name="newclustercustom-nodepool-replicas">
+                      <br>
+                      <label for="newclustercustom-nodepool-disk">Boot Disk</label><br>
+                      <label for="newclustercustom-npdisk-url">Image URL: (only http/https)</label>
+                      <input #newclustercustomnpdiskurl type="text" class="form-control" id="newclustercustom-npdisk-url" name="newclustercustom-npdisk-url" placeholder="https://domain.com/image.img">
+                        <div class="row">
+                            <div class="col-3">
+                                <label for="newclustercustom-nodepool-disksize">Size in GB:</label>
+                                <input #newclustercustomnodepooldisksize type=number class="form-control" name="newclustercustom-nodepool-disksize" id="newclustercustom-nodepool-disksize" placeholder="100">
+                            </div>
+                            <div class="col-3">
+                                <label for="newclustercustom-nodepool-disksc">Storage Class:</label>
+                                <select #newclustercustomnodepooldisksc class="custom-select rounded-0" name="newclustercustom-nodepool-disksc" id="newclustercustom-nodepool-disksc">
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label for="newclustercustom-nodepool-diskam">Access Mode:</label>
+                                <select #newclustercustomnodepooldiskam class="custom-select rounded-0" name="newclustercustom-nodepool-diskam" id="newclustercustom-nodepool-diskam">
+                                    <option>ReadWriteOnce</option>
+                                    <option>ReadOnlyMany</option>
+                                    <option>ReadWriteMany</option>
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label for="newclustercustom-nodepool-diskcm">Cache Mode:</label>
+                                <select #newclustercustomnodepooldiskcm class="custom-select rounded-0" name="newclustercustom-nodepool-diskcm" id="nnewclustercustom-nodepool-diskcm">
+                                  <option value="">Automatic</option>
+                                  <option value="none">None</option>
+                                  <option value="writethrough">WriteThrough</option>
+                                  <option value="writeback">WriteBack</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- /.card -->
+              </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-newclustercustom")'>Close</button>
+              <button type="button" class="btn btn-primary" (click)='applyNewClusterCustom(newclustercustomname.value, newclustercustomnamespace.value, newclustercustomlabelkeyone.value, newclustercustomlabelvalueone.value, newclustercustomlabelkeytwo.value, newclustercustomlabelvaluetwo.value, newclustercustomlabelkeythree.value, newclustercustomlabelvaluethree.value, newclustercustomversion.value, newclustercustomdns.value, newclustercustompodcidr.value, newclustercustomsvccidr.value, newclustercustomnetwork.value, newclustercustomnetworktype.value, newclustercustomcontrolplaneeptype.value, newclustercustomcontrolplaneepannotationskeyone.value, newclustercustomcontrolplaneepannotationsvalueone.value, newclustercustomcontrolplaneepannotationskeytwo.value, newclustercustomcontrolplaneepannotationsvaluetwo.value, newclustercustomcontrolplanetype.value, newclustercustomcontrolplanecpumemsockets.value, newclustercustomcontrolplanecpumemcores.value, newclustercustomcontrolplanecpumemthreads.value, newclustercustomcontrolplanecpumemmemory.value, newclustercustomcontrolplanepc.value, newclustercustomcontrolplanereplicas.value, newclustercustomcpdiskurl.value, newclustercustomcontrolplanedisksize.value, newclustercustomcontrolplanedisksc.value, newclustercustomcontrolplanediskam.value, newclustercustomcontrolplanediskcm.value,  newclustercustomnodepoolname.value, newclustercustomnodepooltype.value, newclustercustomnodepoolcpumemsockets.value, newclustercustomnodepoolcpumemcores.value, newclustercustomnodepoolcpumemthreads.value, newclustercustomnodepoolcpumemmemory.value, newclustercustomnodepoolpc.value, newclustercustomnodepoolreplicas.value, newclustercustomnpdiskurl.value, newclustercustomnodepooldisksize.value, newclustercustomnodepooldisksc.value, newclustercustomnodepooldiskam.value, newclustercustomnodepooldiskcm.value)'>Create</button>
+            </div>
+          </form>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+
+
+    </div>
+</div>
