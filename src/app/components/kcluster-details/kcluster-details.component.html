@@ -194,10 +194,10 @@
                                     </span>
                                     <!--- VNC BUTTON -->
                                     <span [ngSwitch]="thisVM.status">
-                                        <a class="btn" routerLink="/vncviewer/{{thisVM.namespace}}/{{thisVM.name}}" title="Open console..." *ngSwitchCase="'Running'">
+                                        <a class="btn" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchCase="'Running'">
                                         <i class="fas fa-desktop"></i>
                                         </a>
-                                        <a class="btn disabled" routerLink="/vncviewer/{{thisVM.namespace}}/{{thisVM.name}}" title="Open console..." *ngSwitchDefault>
+                                        <a class="btn disabled" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchDefault>
                                         <i class="fas fa-desktop disabled"></i>
                                         </a>
                                     </span>

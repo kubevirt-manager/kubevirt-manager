@@ -9,7 +9,6 @@ import { NodelistComponent } from './components/nodelist/nodelist.component';
 import { RefreshComponent } from './components/refresh/refresh.component';
 import { VmlistComponent } from './components/vmlist/vmlist.component';
 import { VMPoolsComponent } from './components/vmpools/vmpools.component';
-import { VNCViewerComponent } from './components/vncviewer/vncviewer.component';
 import { AutoscaleComponent } from './components/autoscale/autoscale.component';
 import { VmdetailsComponent } from './components/vmdetails/vmdetails.component';
 import { VmpooldetailsComponent } from './components/vmpooldetails/vmpooldetails.component';
@@ -32,7 +31,6 @@ const routes: Routes = [
   { path: 'refresh', component: RefreshComponent},
   { path: 'kcluster', component: KClusterComponent},
   { path: 'kclusterdetails/:namespace/:name', component: KClusterDetailsComponent},
-  { path: 'vncviewer/:namespace/:name', component: VNCViewerComponent}
 ];
 
 @NgModule({

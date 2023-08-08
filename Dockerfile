@@ -1,8 +1,9 @@
 # Node/Angular Builder
-FROM node:16.18-bullseye-slim as builder
+FROM node:16.20-bookworm as builder
 WORKDIR /usr/src/app
 COPY . /usr/src/app
-RUN npm run clean && npm install -g @angular/cli@14.2.9 && npm install && npm run build
+RUN cd /usr/src/app/src/assets/ && git clone https://github.com/novnc/noVNC.git
+RUN cd /usr/src/app && npm run clean && npm install -g @angular/cli@14.2.9 && npm install && npm run build
 
 # NGINX Image
 FROM nginx:1.23-alpine

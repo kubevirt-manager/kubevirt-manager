@@ -1,14 +1,13 @@
 {
   "name": "kubevirtmgr-webui",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test --watch=false --browsers=ChromeHeadless",
-    "clean": "rm -rf node_modules && rm -rf .angular && rm -rf dist && rm -rf coverage",
-    "postinstall": "cat novnc.fix > ./node_modules/@novnc/novnc/core/rfb.d.ts"
+    "clean": "rm -rf node_modules && rm -rf .angular && rm -rf dist && rm -rf coverage"
   },
   "private": true,
   "dependencies": {
@@ -20,8 +19,6 @@
     "@angular/platform-browser": "^14.2.0",
     "@angular/platform-browser-dynamic": "^14.2.0",
     "@angular/router": "^14.2.0",
-    "@novnc/novnc": "^1.3.0",
-    "@types/novnc-core": "^0.1.3",
     "buffer": "^6.0.3",
     "chart.js": "^4.2.0",
     "chartjs": "^0.3.24",
