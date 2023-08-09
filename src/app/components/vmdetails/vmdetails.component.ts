@@ -4,11 +4,9 @@ import { lastValueFrom } from 'rxjs';
 import { KubeVirtVM } from 'src/app/models/kube-virt-vm.model';
 import { DataVolumesService } from 'src/app/services/data-volumes.service';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
-import { K8sService } from 'src/app/services/k8s.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
-
-import RFB from '@novnc/novnc/core/rfb';
 import { KubeVirtVMI } from 'src/app/models/kube-virt-vmi.model';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-vmdetails',
@@ -21,6 +19,7 @@ export class VmdetailsComponent implements OnInit {
     vmNamespace: string = "";
     activeVm: KubeVirtVM = new KubeVirtVM;
     customTemplate: boolean = false;
+    urlSafe: SafeResourceUrl = "";
 
     /* 
      * Network Information 
@@ -81,7 +80,7 @@ export class VmdetailsComponent implements OnInit {
     constructor(
         private router: Router,
         private route: ActivatedRoute,
-        private k8sService: K8sService,
+        private sanitizer: DomSanitizer,
         private k8sApisService: K8sApisService,
         private dataVolumesService: DataVolumesService,
         private kubeVirtService: KubeVirtService
@@ -91,7 +90,7 @@ export class VmdetailsComponent implements OnInit {
         this.vmName = this.route.snapshot.params['name'];
         this.vmNamespace = this.route.snapshot.params['namespace'];
         await this.loadVm();
-        this.loadVnc();
+        this.loadNoVNC(this.activeVm.namespace, this.activeVm.name);
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Virtual Machine Details");
@@ -508,34 +507,23 @@ export class VmdetailsComponent implements OnInit {
     }
 
     /*
-     * Load VNC
+     * Open NoVNC
      */
-    loadVnc(): void {
-        const host = window.location.hostname;
-        const port = window.location.port;
-        const rootPath = window.location.pathname.split('/').slice(1,-3).join('/'); // Dropping first `/` and trailing `/vncviewer/<vmNamespace>/<vmName>` from path to get back to "root"
-        const path = rootPath + "/k8s/apis/subresources.kubevirt.io/v1alpha3/namespaces/" + this.vmNamespace + "/virtualmachineinstances/" + this.vmName + "/vnc";
+    openNoVNC(namespace: string, name: string): void {
+        let url = "/assets/noVNC/vnc.html?resize=scale&autoconnect=1&path=";
+        let path = "/k8s/apis/subresources.kubevirt.io/v1alpha3/namespaces/" + namespace + "/virtualmachineinstances/" + name + "/vnc";
+        let fullpath = url + path;
+        let newwindow = window.open(fullpath, "kubevirt-manager.io: CONSOLE", "width=800,height=600,location=no,toolbar=no,menubar=no,resizable=yes");
+    }
 
-        // Build the websocket URL used to connect
-        let url = "ws";
-
-        if (window.location.protocol === "https:") {
-            url = "wss";
-        } else {
-         url = "ws";
-        }
-
-        url += "://" + host;
-        if (port) {
-            url += ":" + port;
-        }
-        url += "/" + path;
-
-        // Creating a new RFB object will start a new connection
-        let screenDiv = document.getElementById("screen");
-        if(screenDiv != null) {
-            let rfb = new RFB(screenDiv, url);
-        }
+    /*
+     * Load NoVNC
+     */
+    loadNoVNC(namespace: string, name: string): void {
+        let url = "/assets/noVNC/vnc.html?resize=scale&autoconnect=1&path=";
+        let path = "/k8s/apis/subresources.kubevirt.io/v1alpha3/namespaces/" + namespace + "/virtualmachineinstances/" + name + "/vnc";
+        let fullpath = url + path;
+        this.urlSafe = this.sanitizer.bypassSecurityTrustResourceUrl(fullpath);
     }
     
     /*

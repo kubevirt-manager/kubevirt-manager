@@ -152,11 +152,9 @@
                     </div>
                     <!-- VM Console -->
                     <div class="tab-pane" id="vmconsole">  
-                        <div id="top_bar">
-                            <div id="status">&nbsp;</div>
-                        </div>
-                        <div id="screen">
-                        </div>
+                        <iframe width="100%" height="100%" frameBorder="0" style="height: 600px" [src]="urlSafe"></iframe>
+                        <br>
+                        <p><a href="#" (click)='openNoVNC(activeVm.namespace, activeVm.name)' title="Open console...">Open Full noVNC Client</a></p>
                     </div>
                   </div>
                 </div>

@@ -135,6 +135,11 @@ docker push your-repo/kubevirt-manager:version
 ```
 
 ## Building & Running Locally
+Please clone noVNC:
+```sh
+cd src/assets/
+git clone https://github.com/novnc/noVNC.git
+```
 To build the tool run:
 ```sh
 npm install
@@ -148,12 +153,12 @@ Access the tool at: http://localhost:8001/
 
 *Note:* Make sure your `kubectl` is pointing to the right cluster.   
 *Note:* Make sure the account your `kubectl` is using has correct RBAC.  
-*Note:* This method doesn't like `websocket` VNC.
-*Note:* This method doesn't support `Prometheus` integration.  
+*Note:* This method doesn't like `websocket` VNC.    
+*Note:* This method doesn't support `Prometheus` integration.   
 *Note:* This method doesn't support `NGINX basic_auth`.  
 
 ## Testing
-The tests implemente are pretty simple so far. To run the tests, simply execure:
+The tests implemented are pretty simple so far. To run the tests, simply execure:
 ```sh
 npm test
 ```

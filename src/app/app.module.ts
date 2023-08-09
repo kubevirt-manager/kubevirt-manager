@@ -9,7 +9,6 @@ import { SideMenuComponent } from './components/side-menu/side-menu.component';
 import { MainFooterComponent } from './components/main-footer/main-footer.component';
 import { NodelistComponent } from './components/nodelist/nodelist.component';
 import { VmlistComponent } from './components/vmlist/vmlist.component';
-import { VNCViewerComponent } from './components/vncviewer/vncviewer.component';
 import { DiskListComponent } from './components/disk-list/disk-list.component';
 import { NetworkListComponent } from './components/network-list/network-list.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
@@ -31,7 +30,6 @@ import { KClusterDetailsComponent } from './components/kcluster-details/kcluster
     MainFooterComponent,
     NodelistComponent,
     VmlistComponent,
-    VNCViewerComponent,
     DiskListComponent,
     NetworkListComponent,
     DashboardComponent,
