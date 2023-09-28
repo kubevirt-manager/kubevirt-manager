@@ -1,10 +1,13 @@
 # kubevirt-manager.io
 
 **Website:** [kubevirt-manager.io](https://kubevirt-manager.io/)  
-**Maintainers:** [feitnomore](https://github.com/feitnomore/)
+**Maintainers:** [feitnomore](https://github.com/feitnomore/)  
+**Feedback/Feature Request:** [form](https://forms.gle/dGMmswVYjNGCk2jNA)
 
 Simple Angular Frontend Web UI Interface to operate [Kubevirt](https://kubevirt.io/). This tools lets you perform basic operations around `Virtual Machines`, `Virtual Machine Instances`, `Virtual Machine Pools` and `Disks`. As the tool grew, other features got added like `Load Balancing`, `Auto Scaling`, `Monitoring` and `Cluster API` support. This tool was built initially based on requirements I had for my own environment at home and started growing as needed.  
-For a Quick Start, go to our website [https://kubevirt-manager.io/](https://kubevirt-manager.io/)
+For a Quick Start, go to our website [https://kubevirt-manager.io/](https://kubevirt-manager.io/)  
+  
+  If you are using the tool, please help us by providing feedback [here](https://forms.gle/dGMmswVYjNGCk2jNA).
 
 *WARNING:* Use it at your own risk.
 
@@ -25,10 +28,14 @@ Kubevirt featureGate `ExpandDisks` is **required**.
     - HonorWaitForFirstConsumer
 ```
 
-StorageClass features `WaitForFirstConsumer` and `allowVolumeExpansion` are **required**:
+StorageClass feature `allowVolumeExpansion` is **required**:
+```
+allowVolumeExpansion: true
+```
+
+If you are using hostpath-provisioner or any other local node storage, you will need to use `WaitForFirstConsumer`:
 ```
 volumeBindingMode: WaitForFirstConsumer
-allowVolumeExpansion: true
 ```
 
 *Note: These settings are required to work with a hostpath csi driver, in order to prevent virtual machine instances from being started in a node different from the node in which the disk/volume resides.*
