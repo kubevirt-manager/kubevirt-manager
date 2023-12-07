@@ -243,7 +243,7 @@ export class LoadBalancersComponent implements OnInit {
         let modalDiv = document.getElementById("modal-new");
         let modalTitle = document.getElementById("new-title");
         let modalBody = document.getElementById("new-value");
-        let nsSelectorOptions = "";
+        let nsSelectorOptions = "<option>&nbsp</option>\n";
 
         let selectorNamespacesField = document.getElementById("newlb-namespace");
 
