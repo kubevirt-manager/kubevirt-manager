@@ -84,9 +84,14 @@ export class DiskListComponent implements OnInit {
                 currentDisk["namespace"] = disks[i].metadata["namespace"];
                 currentDisk["name"] = disks[i].metadata["name"];
                 currentDisk["status"] = disks[i].status["phase"];
-                currentDisk["progress"] = disks[i].status["progress"];;
-                currentDisk["storageclass"] = disks[i].spec.pvc["storageClassName"];
-                currentDisk["accessmode"] = disks[i].spec.pvc.accessModes[0];
+                currentDisk["progress"] = disks[i].status["progress"];
+                try {                
+                    currentDisk["storageclass"] = disks[i].spec.pvc["storageClassName"];
+                    currentDisk["accessmode"] = disks[i].spec.pvc.accessModes[0];
+                } catch (e: any) {
+                    currentDisk["storageclass"] = disks[i].spec.storage["storageClassName"];
+                    currentDisk["accessmode"] = disks[i].spec.storage.accessModes[0];
+                }
                 currentDisk["bound"] = false;
                 if(disks[i].status["phase"].toLowerCase() == "succeeded") {
                     let pvcdata = await lastValueFrom(this.k8sService.getPersistentVolumeClaimsInfo(currentDisk["namespace"], currentDisk["name"]));
@@ -167,8 +172,13 @@ export class DiskListComponent implements OnInit {
         myInnerHTML += "<li class=\"nav-item\">Data Volume: <span class=\"float-right badge bg-primary\">" + volumedata.metadata["name"] + "</span></li>";
         myInnerHTML += "<li class=\"nav-item\">Namespace: <span class=\"float-right badge bg-primary\">" + volumedata.metadata["namespace"] + "</span></li>";
         myInnerHTML += "<li class=\"nav-item\">Creation Time: <span class=\"float-right badge bg-primary\">" + volumedata.metadata["creationTimestamp"] + "</span></li>";
-        myInnerHTML += "<li class=\"nav-item\">Storage Class: <span class=\"float-right badge bg-primary\">" + volumedata.spec.pvc["storageClassName"] + "</span></li>";
-        myInnerHTML += "<li class=\"nav-item\">Access Mode: <span class=\"float-right badge bg-primary\">" + volumedata.spec.pvc.accessModes[0] + "</span></li>";
+        try {
+            myInnerHTML += "<li class=\"nav-item\">Storage Class: <span class=\"float-right badge bg-primary\">" + volumedata.spec.pvc["storageClassName"] + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">Access Mode: <span class=\"float-right badge bg-primary\">" + volumedata.spec.pvc.accessModes[0] + "</span></li>";
+        } catch (e: any) {
+            myInnerHTML += "<li class=\"nav-item\">Storage Class: <span class=\"float-right badge bg-primary\">" + volumedata.spec.storage["storageClassName"] + "</span></li>";
+            myInnerHTML += "<li class=\"nav-item\">Access Mode: <span class=\"float-right badge bg-primary\">" + volumedata.spec.storage.accessModes[0] + "</span></li>";
+        }
         myInnerHTML += "<li class=\"nav-item\">PVC: <span class=\"float-right badge bg-primary\">" + volumedata.status["claimName"] + "</span></li>";
         myInnerHTML += "<li class=\"nav-item\">Phase: <span class=\"float-right badge bg-primary\">" + volumedata.status["phase"] + "</span></li>";
         if(volumedata.status["phase"].toLowerCase() == "succeeded") {

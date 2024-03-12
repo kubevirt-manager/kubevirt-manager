@@ -324,9 +324,15 @@ export class VmdetailsComponent implements OnInit {
                     let dvdata = await lastValueFrom(this.dataVolumesService.getDataVolumeInfo(thisDiskInfo.dataVolumeNamespace, thisDiskInfo.dataVolumeName));
                     thisDiskInfo.namespace = dvdata.metadata.namespace;
                     thisDiskInfo.dataVolumeNamespace = dvdata.metadata.namespace;
-                    thisDiskInfo.accessMode = dvdata.spec.pvc.accessModes[0];
-                    thisDiskInfo.capacity = dvdata.spec.pvc.resources.requests["storage"];
-                    thisDiskInfo.storageClass = dvdata.spec.pvc["storageClassName"];
+                    try {
+                        thisDiskInfo.accessMode = dvdata.spec.pvc.accessModes[0];
+                        thisDiskInfo.capacity = dvdata.spec.pvc.resources.requests["storage"];
+                        thisDiskInfo.storageClass = dvdata.spec.pvc["storageClassName"];
+                    } catch (e: any) {
+                        thisDiskInfo.accessMode = dvdata.spec.storage.accessModes[0];
+                        thisDiskInfo.capacity = dvdata.spec.storage.resources.requests["storage"];
+                        thisDiskInfo.storageClass = dvdata.spec.storage["storageClassName"];
+                    }
                     let this_source_keys = Object.keys(dvdata.spec.source);
                     for(let k = 0; k <  this_source_keys.length; k++) {
                         let this_key = this_source_keys[k];

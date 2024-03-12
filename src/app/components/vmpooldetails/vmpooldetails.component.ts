@@ -407,9 +407,15 @@ export class VmpooldetailsComponent implements OnInit {
                     if (this_dv.metadata.name == thisDiskInfo.dataVolumeName) {
                         thisDiskInfo.namespace = this_dv.metadata.namespace;
                         thisDiskInfo.dataVolumeNamespace = this_dv.metadata.namespace;
-                        thisDiskInfo.accessMode = this_dv.spec.pvc.accessModes[0];
-                        thisDiskInfo.capacity = this_dv.spec.pvc.resources.requests["storage"];
-                        thisDiskInfo.storageClass = this_dv.spec.pvc["storageClassName"];
+                        try {
+                            thisDiskInfo.accessMode = this_dv.spec.pvc.accessModes[0];
+                            thisDiskInfo.capacity = this_dv.spec.pvc.resources.requests["storage"];
+                            thisDiskInfo.storageClass = this_dv.spec.pvc["storageClassName"];
+                        } catch (e: any) {
+                            thisDiskInfo.accessMode = this_dv.spec.storage.accessModes[0];
+                            thisDiskInfo.capacity = this_dv.spec.storage.resources.requests["storage"];
+                            thisDiskInfo.storageClass = this_dv.spec.storage["storageClassName"];                            
+                        }
                         let this_source_keys = Object.keys(this_dv.spec.source);
                         for(let k = 0; k <  this_source_keys.length; k++) {
                             let this_key = this_source_keys[k];
