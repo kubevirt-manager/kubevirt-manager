@@ -231,7 +231,6 @@ export class VmdetailsComponent implements OnInit {
                     actualNetwork.network = networks[i].multus.networkName;
                 } catch (e: any) {
                     actualNetwork.network = "podNetwork";
-                    console.log(e);
                 }
 
                 try {
@@ -242,7 +241,6 @@ export class VmdetailsComponent implements OnInit {
                     }
                 } catch (e: any) {
                     actualNetwork.type = "bridge";
-                    console.log(e);
                 }
                 if(i == 0) {
                     try {
@@ -252,7 +250,6 @@ export class VmdetailsComponent implements OnInit {
                         this.hasNet1 = true;
                     } catch (e: any) {
                         this.hasNet1 = false;
-                        console.log(e);
                     }
                 } else if (i == 1) {
                     try {
@@ -262,7 +259,6 @@ export class VmdetailsComponent implements OnInit {
                         this.hasNet2 = true;
                     } catch (e: any) {
                         this.hasNet2 = false;
-                        console.log(e);
                     }
                 }
             }

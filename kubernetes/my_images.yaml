@@ -1,0 +1,42 @@
+---
+apiVersion: "kubevirt-manager.io/v1"
+kind: "Image"
+metadata: 
+    name: ubuntu-2204
+    namespace: virtualmachines
+    labels: 
+      kubevirt-manager.io/managed: "true"
+spec:
+    type: http
+    readableName: "Ubuntu 22.04 LTS"
+    http:
+        url: http://192.168.77.3/images/ubuntu-22.04-amd64.img
+
+---
+apiVersion: "kubevirt-manager.io/v1"
+kind: "Image"
+metadata: 
+    name: ubuntu-2304
+    namespace: virtualmachines
+    labels: 
+      kubevirt-manager.io/managed: "true"
+spec:
+    type: http
+    readableName: "Ubuntu 23.04 LTS"
+    http:
+        url: http://192.168.77.3/images/ubuntu-23.04-amd64.img
+
+---
+apiVersion: "kubevirt-manager.io/v1"
+kind: "Image"
+metadata: 
+    name: test-pvc
+    namespace: virtualmachines
+    labels: 
+      kubevirt-manager.io/managed: "true"
+spec:
+    type: pvc
+    readableName: "Test PVC"
+    pvc:
+        name: my-pvc;
+        namespace: virtualmachines;

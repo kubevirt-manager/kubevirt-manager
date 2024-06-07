@@ -21,6 +21,9 @@ import { VmpooldetailsComponent } from './components/vmpooldetails/vmpooldetails
 import { VmdetailsComponent } from './components/vmdetails/vmdetails.component';
 import { KClusterComponent } from './components/kcluster/kcluster.component';
 import { KClusterDetailsComponent } from './components/kcluster-details/kcluster-details.component';
+import { KClusterPoolDetailsComponent } from './components/kcluster-pool-details/kcluster-pool-details.component';
+import { ImagesComponent } from './components/images/images.component';
+import { SSHKeysComponent } from './components/sshkeys/sshkeys.component';
 
 @NgModule({
   declarations: [
@@ -42,6 +45,9 @@ import { KClusterDetailsComponent } from './components/kcluster-details/kcluster
     VmdetailsComponent,
     KClusterComponent,
     KClusterDetailsComponent,
+    KClusterPoolDetailsComponent,
+    ImagesComponent,
+    SSHKeysComponent,
   ],
   imports: [
     BrowserModule,

@@ -1,7 +1,7 @@
 export class KClusterKubevirtMachineTemplate {
     name:               string  = "";
     namespace:          string  = "";
-    labels:                  {} =  {};
+    labels:                 {}  =  {};
     clusterName:        string  = "";
     cores:              number  = 0;
     sockets:            number  = 0;

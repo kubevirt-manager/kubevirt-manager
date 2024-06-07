@@ -9,7 +9,7 @@
             &nbsp;&nbsp;{{thisNode.name}} 
           </h3>
           <div class="card-tools">
-            <button type="button" class="btn btn-tool" (click)="showNewVm(thisNode.name)" title="New VM...">
+            <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="Tooltip on bottom" class="btn btn-tool" (click)="showNewVm(thisNode.name)">
                 <i class="fas fa-plus-square"></i>
             </button>
           </div>
@@ -273,11 +273,8 @@
                         <select #newvmdiskonetype class="custom-select rounded-0" name="newvm-diskonetype" id="newvm-diskonetype" (change)="onChangeDiskOne(newvmdiskonetype.value,newvmnamespace.value)">
                           <option value="none">None</option>
                           <option value="blank">Blank Disk</option>
-                          <option value="http">Import (HTTP)</option>
-                          <option value="s3">Import (S3)</option>
-                          <option value="registry">Import (Registry)</option>
-                          <option value="pvc">Import (PVC)</option>
-                          <option value="dv">Existing Disk</option>
+                          <option value="image">Image</option>
+                          <option value="dv">DataVolume</option>
                         </select>
                       </div>
                       <div class="col-2">
@@ -293,21 +290,16 @@
                             <option>ReadWriteMany</option>
                         </select>
                       </div>
-                      <div class="col-4">
+                      <div class="col-3">
                         <label for="newvm-diskonevalue">Value:</label>
                         <select #newvmdiskonevalue class="custom-select rounded-0" name="newvm-diskonevalue" id="newvm-diskonevalue" disabled>
                         </select>
                       </div>
-                      <div class="col-2">
+                      <div class="col-1">
                         <label for="newvm-diskonesize">Size in GB:</label>
                         <input #newvmdiskonesize type=number class="form-control" id="newvm-diskonesize" disabled>
                       </div>
-                      <br><br>
-                      <div class="col-9">
-                          <label for="newvm-disk1-url">URL:</label>
-                          <input #newvmdiskoneurl type="text" class="form-control" id="newvm-disk1-url" name="newvm-disk1-url" disabled>
-                      </div>
-                      <div class="col-3">
+                      <div class="col-2">
                           <label for="newvm-diskonecm">Cache Mode:</label>
                           <select #newvmdiskonecm class="custom-select rounded-0" name="newvm-diskonecm" id="newvm-diskonecm">
                             <option value="">Automatic</option>
@@ -325,11 +317,8 @@
                           <select #newvmdisktwotype class="custom-select rounded-0" name="newvm-disktwotype" id="newvm-disktwotype" (change)="onChangeDiskTwo(newvmdisktwotype.value,newvmnamespace.value)">
                             <option value="none">None</option>
                             <option value="blank">Blank Disk</option>
-                            <option value="http">Import (HTTP)</option>
-                            <option value="s3">Import (S3)</option>
-                            <option value="registry">Import (Registry)</option>
-                            <option value="pvc">Import (PVC)</option>
-                            <option value="dv">Existing Disk</option>
+                            <option value="image">Image</option>
+                            <option value="dv">DataVolume</option>
                           </select>
                         </div>
                         <div class="col-2">
@@ -345,20 +334,16 @@
                                 <option>ReadWriteMany</option>
                             </select>
                         </div>
-                        <div class="col-4">
+                        <div class="col-3">
                             <label for="newvm-disktwovalue">Value:</label>
                             <select #newvmdisktwovalue class="custom-select rounded-0" name="newvm-disktwovalue" id="newvm-disktwovalue" disabled>
                             </select>
                         </div>
-                        <div class="col-2">
+                        <div class="col-1">
                           <label for="newvm-disktwosize">Size in GB:</label>
                           <input #newvmdisktwosize type=number class="form-control" id="newvm-disktwosize" disabled>
                         </div>
-                        <div class="col-9">
-                          <label for="newvm-disk2-url">URL:</label>
-                          <input #newvmdisktwourl type="text" class="form-control" id="newvm-disk2-url" name="newvm-disk2-url" disabled>
-                        </div>
-                        <div class="col-3">
+                        <div class="col-2">
                           <label for="newvm-disktwocm">Cache Mode:</label>
                           <select #newvmdisktwocm class="custom-select rounded-0" name="newvm-disktwocm" id="newvm-disktwocm">
                             <option value="">Automatic</option>
@@ -399,7 +384,7 @@
                     <label for="newvm-userdata-username">Username:</label>
                     <input #newvmuserdatausername type="text" class="form-control" id="newvm-userdata-username" name="newvm-userdata-username">
                     <label for="newvm-userdata-auth">Authentication:</label>
-                    <select #newvmuserdataauth class="custom-select rounded-0" name="newvm-userdata-auth" id="newvm-userdata-auth" (change)="onChangeAuthType(newvmuserdataauth.value)">
+                    <select #newvmuserdataauth class="custom-select rounded-0" name="newvm-userdata-auth" id="newvm-userdata-auth" (change)="onChangeAuthType(newvmuserdataauth.value, newvmnamespace.value)">
                       <option value="password">User/Password</option>
                       <option value="ssh">SSH Private Key</option>
                     </select>
@@ -409,7 +394,9 @@
                     </div>
                     <div class="pane fade" id="newvm-userdata-ssh-panel" name="newvm-userdata-ssh-panel" style="display: none;" aria-hidden="true">
                         <label for="newvm-userdata-ssh">SSH Key:</label>
-                        <textarea #newvmuserdatassh class="form-control" rows="3" cols="10" id="newvm-userdata-ssh" name="newvm-userdata-ssh"></textarea>
+                        <select #newvmuserdatassh class="custom-select rounded-0" name="newvm-userdata-ssh" id="newvm-userdata-ssh">
+                            <option>Loading...</option>
+                        </select>
                     </div>
                   </div>
                   <!-- NETWORK DATA TAB -->
@@ -436,7 +423,7 @@
           </div>
           <div class="modal-footer justify-content-between">
             <button type="button" class="btn btn-default" (click)='hideComponent("modal-newvm")'>Close</button>
-            <button type="button" class="btn btn-primary" (click)="applyNewVm(newvmname.value, newvmnamespace.value, newvmnode.value, newvmlabelkeyone.value, newvmlabelvalueone.value, newvmlabelkeytwo.value, newvmlabelvaluetwo.value, newvmlabelkeythree.value, newvmlabelvaluethree.value, newvmlabelkeyfour.value, newvmlabelvaluefour.value, newvmlabelkeyfive.value, newvmlabelvaluefive.value, newvmtype.value, newvmcpumemsockets.value, newvmcpumemcores.value, newvmcpumemthreads.value, newvmcpumemmemory.value, newvmpc.value, newvmdiskonetype.value, newvmdiskonevalue.value, newvmdiskonesize.value, newvmdiskonesc.value, newvmdiskoneam.value, newvmdiskoneurl.value, newvmdiskonecm.value, newvmdisktwotype.value, newvmdisktwovalue.value, newvmdisktwosize.value, newvmdisktwosc.value, newvmdisktwoam.value, newvmdisktwourl.value, newvmdisktwocm.value, newvmnetworkone.value, newvmnetworktypeone.value, newvmnetworktwo.value, newvmnetworktypetwo.value, newvmuserdatausername.value, newvmuserdataauth.value, newvmuserdatapassword.value, newvmuserdatassh.value, newvmnetdataip.value, newvmnetdatanetmask.value, newvmnetdatagw.value, newvmnetdatadns1.value, newvmnetdatadns2.value, newpoolinitscript.value)">Create</button>
+            <button type="button" class="btn btn-primary" (click)="applyNewVm(newvmname.value, newvmnamespace.value, newvmnode.value, newvmlabelkeyone.value, newvmlabelvalueone.value, newvmlabelkeytwo.value, newvmlabelvaluetwo.value, newvmlabelkeythree.value, newvmlabelvaluethree.value, newvmlabelkeyfour.value, newvmlabelvaluefour.value, newvmlabelkeyfive.value, newvmlabelvaluefive.value, newvmtype.value, newvmcpumemsockets.value, newvmcpumemcores.value, newvmcpumemthreads.value, newvmcpumemmemory.value, newvmpc.value, newvmdiskonetype.value, newvmdiskonevalue.value, newvmdiskonesize.value, newvmdiskonesc.value, newvmdiskoneam.value, newvmdiskonecm.value, newvmdisktwotype.value, newvmdisktwovalue.value, newvmdisktwosize.value, newvmdisktwosc.value, newvmdisktwoam.value, newvmdisktwocm.value, newvmnetworkone.value, newvmnetworktypeone.value, newvmnetworktwo.value, newvmnetworktypetwo.value, newvmuserdatausername.value, newvmuserdataauth.value, newvmuserdatapassword.value, newvmuserdatassh.value, newvmnetdataip.value, newvmnetdatanetmask.value, newvmnetdatagw.value, newvmnetdatadns1.value, newvmnetdatadns2.value, newpoolinitscript.value)">Create</button>
           </div>
         </form>
         </div>

@@ -1,0 +1,304 @@
+<div class="content">
+    <div class="container-fluid">
+      <div class="content-wrapper">
+        &nbsp;<br>
+        <div class="card card-outline">
+          <div class="card-header">
+            <h3 class="card-title">
+                <b> &nbsp; {{activePool.name}} &nbsp; </b>
+            </h3>
+          </div>
+          <div class="card-body">
+            <div class="card">
+                <div class="card-header p-2">
+                  <ul class="nav nav-pills">
+                    <li class="nav-item"><a class="nav-link active" href="#overview" data-toggle="tab">Overview</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#template" data-toggle="tab">Pool Template</a></li>
+                    <li *ngIf="hasClusterAutoscaler" class="nav-item"><a class="nav-link" href="#autoscaling" data-toggle="tab">Autoscaling</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#virtualmachines" data-toggle="tab">Instances</a></li>
+                  </ul>
+                </div>
+                <div class="card-body">
+                  <div class="tab-content">
+                    <!-- Overview -->
+                    <div class="active tab-pane" id="overview">
+                       <dt>Metadata</dt>
+                       <br>
+                       <dd>Name: {{activePool.name}} </dd>
+                       <dd>Namespace: {{activePool.name}} </dd>
+                       <dd>Labels:</dd>
+                       <ul *ngFor="let thisLabel of activePool.labels | keyvalue">
+                           <li>{{thisLabel.key}} : {{thisLabel.value}}</li>
+                       </ul>
+                       <hr>
+                       <dt>
+                        Spec
+                        <a class="btn float-right" title="Edit...">
+                            <i class="fas fa-pen" ></i>
+                        </a>
+                      </dt>
+                      <br>
+                       <dd>Desired Replicas: {{activePool.replicas}} </dd>
+                       <dd>Cluster Name: {{activePool.clusterName}} </dd>
+                       <dd>Kubernetes Version: {{activePool.version}} </dd>
+                       <hr>
+                       <dt>Status</dt>
+                       <br>
+                       <dd>Phase: {{activePool.phase}} </dd>
+                       <dd>Ready Replicas: {{activePool.readyReplicas}} </dd>
+                       <dd>Created At: {{activePool.creationTimestamp}} </dd>
+                    </div>
+                    <!-- Template -->
+                    <div class="tab-pane" id="template">
+                        <!-- Custom VM -->
+                        <div *ngIf="customTemplate; else vmTemplated">
+                          <dt>
+                            General Hardware
+                            <a class="btn float-right" title="Edit...">
+                                <i class="fas fa-pen" ></i>
+                            </a>
+                          </dt>
+                          <br>
+                          <dd>Instance Type: {{activePool.machineTemplate.instType}} </dd>
+                          <dd>CPU Sockets: {{activePool.machineTemplate.sockets}} </dd>
+                          <dd>CPU Cores: {{activePool.machineTemplate.cores}} </dd>
+                          <dd>CPU Threads: {{activePool.machineTemplate.threads}} </dd>
+                          <dd>Total VM Memory: {{activePool.machineTemplate.memory}} </dd>
+                       </div>
+                       <!-- Templated VM -->
+                       <ng-template #vmTemplated>
+                          <dt>
+                            General Hardware
+                            <a class="btn float-right" title="Edit...">
+                                <i class="fas fa-pen" ></i>
+                            </a>
+                          </dt>
+                          <br>
+                          <dd>Instance Type: {{activePool.machineTemplate.instType}} </dd>
+                          <dd>Total vCPU: {{activePool.machineTemplate.cores}} </dd>
+                          <dd>Total VM Memory: {{activePool.machineTemplate.memory}} </dd>
+                       </ng-template>
+                       <hr>
+                       <dt>
+                        Execution
+                        <a class="btn float-right" title="Edit...">
+                            <i class="fas fa-pen" ></i>
+                        </a>
+                       </dt>
+                       <br>
+                       <dd>Priority Class: {{activePool.machineTemplate.priorityClass}} </dd>
+                       <hr>
+                       <dt>
+                        Networking
+                        <!-- <a class="btn float-right" title="Edit...">
+                            <i class="fas fa-pen"></i>
+                        </a> -->
+                       </dt>
+                       <br>
+                       <dd>NIC: {{poolNetwork.name}}</dd>
+                       <dd>NIC Type: {{poolNetwork.type}}</dd>
+                       <dd>Network: {{poolNetwork.network}}</dd>
+                       <hr>
+                       <dt>Disks</dt>
+                       <br>
+                       <div *ngIf="hasDisk1">
+                            <dd>Disk 1:</dd>
+                            <ul>
+                                <li>Name: {{disk1Info.name}} </li>
+                                <li>Namespace: {{disk1Info.namespace}} </li>
+                                <li>Type: {{disk1Info.type}} </li>
+                                <li>Backend: {{disk1Info.backend}} </li>
+                                <li>Data Volume Name: {{disk1Info.dataVolumeName}} </li>
+                                <li>Data Volume Namespace: {{disk1Info.dataVolumeNamespace}} </li>
+                                <li>Source Type: {{disk1Info.dataVolumeSource}} </li>
+                                <li>Source Value: {{disk1Info.dataVolumeSourceValue}} </li>
+                                <li>Access Mode: {{disk1Info.accessMode}}</li>
+                                <li>Cache Mode: {{disk1Info.cacheMode || ""}} </li>
+                                <li>Capacity: {{disk1Info.capacity}} </li>
+                                <li>Storage Class: {{disk1Info.storageClass}}</li>
+                            </ul>
+                       </div>
+                       <div *ngIf="hasDisk2">
+                            <dd>Disk 2:</dd>
+                            <ul>
+                                <li>Name: {{disk2Info.name}} </li>
+                                <li>Namespace: {{disk2Info.namespace}} </li>
+                                <li>Type: {{disk2Info.type}} </li>
+                                <li>Backend: {{disk2Info.backend}} </li>
+                                <li>Data Volume Name: {{disk2Info.dataVolumeName}} </li>
+                                <li>Data Volume Namespace: {{disk2Info.dataVolumeNamespace}} </li>
+                                <li>Source Type: {{disk2Info.dataVolumeSource}} </li>
+                                <li>Source Value: {{disk2Info.dataVolumeSourceValue}} </li>
+                                <li>Access Mode: {{disk2Info.accessMode}}</li>
+                                <li>Cache Mode: {{disk2Info.cacheMode || ""}} </li>
+                                <li>Capacity: {{disk2Info.capacity}} </li>
+                                <li>Storage Class: {{disk2Info.storageClass}}</li>
+                            </ul>
+                       </div>
+                    </div>
+                    <!-- Autoscaling -->
+                    <div class="tab-pane" id="autoscaling">
+                       <div>
+                          <dt>
+                            General Config
+                            <a class="btn float-right" title="Edit...">
+                                <i class="fas fa-pen" ></i>
+                            </a>
+                          </dt>
+                          <br>
+                          <dd>Minimum Nodes: {{activePool.minReplicas}}</dd>
+                          <dd>Maximum Nodes: {{activePool.maxReplicas}}</dd>
+                       </div>
+                    </div>
+                    <!-- Virtual Mahcines -->
+                    <div class="tab-pane" id="virtualmachines">  
+                        <table class="table table-sm" style="vertical-align: middle !important;">
+                            <thead>
+                                <tr>
+                                <th style="width: 10px">&nbsp;</th>
+                                <th style="width: 140px">Virtual Machine</th>
+                                <th style="width: 60px">Node</th>
+                                <th style="width: 50px">Status</th>
+                                <th style="width: 50px">IP Address</th>
+                                <th style="width: 50px">Ready</th>
+                                <th style="width: 180px">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let thisVM of allWorkers">
+                                    <td style="line-height: 2.2 !important; align-content: center;">
+                                    <span>
+                                        <span>
+                                        <span class="badge"><i class="fas fa-hdd"></i></span>
+                                        </span>
+                                    </span>
+                                    </td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.name}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.nodeSel}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.status}}</a></td>
+                                    <td style="line-height: 2.2 !important;">
+                                    <span [ngSwitch]="thisVM.status">
+                                        <span *ngSwitchCase="'Running'">
+                                            <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.vmi.ifAddr}}</a>
+                                        </span>
+                                        <span *ngSwitchDefault>
+                                            <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">&nbsp;</a>
+                                        </span>
+                                    </span>
+                                    </td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.ready}}</a></td>
+                                    <td style="line-height: 0 !important;">
+                                    <!--- INFO BUTTON -->
+                                    <span>
+                                        <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="Show info...">
+                                        <i class="fas fa-info"></i>
+                                        </a>
+                                    </span>
+                                    <!--- VNC BUTTON -->
+                                    <span [ngSwitch]="thisVM.status">
+                                        <a class="btn" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchCase="'Running'">
+                                        <i class="fas fa-desktop"></i>
+                                        </a>
+                                        <a class="btn disabled" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchDefault>
+                                        <i class="fas fa-desktop disabled"></i>
+                                        </a>
+                                    </span>
+                                    <!--- POWER ON BUTTON -->
+                                    <span [ngSwitch]="thisVM.running">
+                                        <a class="btn disabled" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchCase="true">
+                                          <i class="fas fa-plug disabled"></i>
+                                        </a>
+                                        <a class="btn" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchDefault>
+                                          <i class="fas fa-plug"></i>
+                                        </a>
+                                    </span>
+                                    <!--- POWER OFF BUTTON -->
+                                    <span [ngSwitch]="thisVM.running">
+                                        <a class="btn" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchCase="true">
+                                          <i class="fas fa-power-off"></i>
+                                        </a>
+                                        <a class="btn disabled" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchDefault>
+                                          <i class="fas fa-power-off disabled"></i>
+                                        </a>
+                                    </span>
+                                    <!--- RESTART BUTTON -->
+                                    <span [ngSwitch]="thisVM.running">
+                                        <a class="btn" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchCase="true">
+                                          <i class="fas fa-redo"></i>
+                                        </a>
+                                        <a class="btn disabled" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchDefault>
+                                          <i class="fas fa-redo disabled"></i>
+                                        </a>
+                                    </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            
+          </div>
+          <!-- /.card-body -->
+        </div>
+      </div>
+
+
+      <!--                 -->
+      <!-- Modal: Replicas -->
+      <!--                 -->
+      <div class="modal fade" id="modal-replicas" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="replicas-title">Scale: pool-namespace - pool-name</h4>
+              <button type="button" class="close">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="replicas-value">
+              <div class="form-group">
+                <label for="replicasInput">New number of replicas</label>
+                <input #replicasinput type="number" class="form-control" id="replicas-input" name="replicas-input" placeholder="0">
+              </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default">Close</button>
+              <button type="button" class="btn btn-primary" >Resize</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div> 
+
+
+    <!--                  -->
+    <!-- Modal: Autoscaling  -->
+    <!--                  -->
+    <div class="modal fade" id="modal-autoscaling" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="type-title">Liveness: pool-namespace - pool-name</h4>
+              <button type="button" class="close">
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="type-value">
+              <div>
+                <label for="pooldetails-liveness-enable">Liveness Probe:</label>
+                
+                <label for="pooldetails-liveness-type">Probe Type:</label>
+                
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+
+    </div>
+</div>

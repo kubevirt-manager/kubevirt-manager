@@ -5,7 +5,8 @@ import { LoadBalancerPort } from 'src/app/models/load-balancer-port.model';
 import { LoadBalancer } from 'src/app/models/load-balancer.model';
 import { K8sService } from 'src/app/services/k8s.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
-import { Services } from 'src/app/templates/services.apitemplate';
+import { Services } from 'src/app/interfaces/services';
+import { ServicesPort } from 'src/app/interfaces/services-port';
 
 @Component({
   selector: 'app-load-balancers',
@@ -303,22 +304,13 @@ export class LoadBalancersComponent implements OnInit {
         } else if (newlbtargetresourcetype == "" || newlbtargetresource == "" || newlbtargettype == "" || newlbport == "" || newlbtargetport == "" || newlbtargetproto == "") {
             alert("Please select all the target properties!");
         } else {
-            let myServiceDescriptor = new Services();
 
             /* Port and Proto settings */
-            myServiceDescriptor.servicePortTemplate.port = Number(newlbport);
-            myServiceDescriptor.servicePortTemplate.targetPort = Number(newlbtargetport);
-            myServiceDescriptor.servicePortTemplate.protocol = newlbtargetproto;
-
-            myServiceDescriptor.serviceTemplate.spec.ports.pop();
-            myServiceDescriptor.serviceTemplate.spec.ports.push(myServiceDescriptor.servicePortTemplate);
-
-            /* Metadata */
-            myServiceDescriptor.serviceTemplate.metadata.name = newlbname;
-            myServiceDescriptor.serviceTemplate.metadata.namespace = newlbnamespace;
-
-            /* Service Type */
-            myServiceDescriptor.serviceTemplate.spec.type = newlbtargettype;
+            let servicePort: ServicesPort = {
+                port: Number(newlbport),
+                targetPort: Number(newlbtargetport),
+                protocol: newlbtargetproto
+            };
 
             /* Load Custom Labels */
             let tmpLabels = {};
@@ -336,22 +328,20 @@ export class LoadBalancersComponent implements OnInit {
             }
 
 
+            /* Selector and Labels */            
+            let thisSelector = {};
             if(newlbtargetresourcetype == "vmpool") {
-                let thisSelector = {};
                 let vmPoolLabel = {
                     ["kubevirt.io/vmpool"]: newlbtargetresource
                 };
                 Object.assign(tmpLabels, vmPoolLabel);
                 Object.assign(thisSelector, tmpLabels);
-                myServiceDescriptor.serviceTemplate.spec.selector = thisSelector;
             } else if(newlbtargetresourcetype == "vminstance") {
-                let thisSelector = {};
                 let vmInstanceLabel = {
                     ["kubevirt.io/domain"]: newlbtargetresource
                 };
                 Object.assign(tmpLabels, vmInstanceLabel);
                 Object.assign(thisSelector, tmpLabels);
-                myServiceDescriptor.serviceTemplate.spec.selector = thisSelector;
             } else if(newlbtargetresourcetype == "capk") {
                 let thisSelector = {};
                 let vmInstanceLabel = {
@@ -359,7 +349,6 @@ export class LoadBalancersComponent implements OnInit {
                 };
                 Object.assign(tmpLabels, vmInstanceLabel);
                 Object.assign(thisSelector, tmpLabels);
-                myServiceDescriptor.serviceTemplate.spec.selector = thisSelector;
             }
 
             let kubevirtManagerLabel = {
@@ -367,7 +356,6 @@ export class LoadBalancersComponent implements OnInit {
             };
             Object.assign(tmpLabels, kubevirtManagerLabel);
 
-            myServiceDescriptor.serviceTemplate.metadata.labels = tmpLabels;
 
             /* Load Annotations */
             let tmpAnnotations = {};
@@ -384,13 +372,25 @@ export class LoadBalancersComponent implements OnInit {
                 Object.assign(tmpAnnotations, thisAnnotation);
             }
 
-            myServiceDescriptor.serviceTemplate.metadata.annotations = tmpAnnotations;
-
-
-            let myNewService = myServiceDescriptor.serviceTemplate;
+            /* Build Service Payload */
+            let myService: Services = {
+                apiVersion: "v1",
+                kind: "Service",
+                metadata: {
+                    name: newlbname,
+                    namespace: newlbnamespace,
+                    labels: tmpLabels,
+                    annotations: tmpAnnotations
+                },
+                spec: {
+                    type: newlbtargettype,
+                    ports: [ servicePort ],
+                    selector: thisSelector,
+                }
+            };
 
             try {
-                let newLbData = await lastValueFrom(this.k8sService.createService(newlbnamespace, myNewService));
+                let newLbData = await lastValueFrom(this.k8sService.createService(myService));
                 this.hideComponent("modal-new");
                 this.reloadComponent();
             } catch (e: any) {
