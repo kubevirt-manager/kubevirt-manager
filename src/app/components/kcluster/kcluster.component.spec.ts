@@ -1,9 +1,10 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { DebugElement } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
 import { KClusterComponent } from './kcluster.component';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('KClusterComponent', () => {
   let component: KClusterComponent;
@@ -11,9 +12,10 @@ describe('KClusterComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-        imports: [HttpClientTestingModule],
-        declarations: [ KClusterComponent ]
-    })
+    declarations: [KClusterComponent],
+    imports: [],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(KClusterComponent);

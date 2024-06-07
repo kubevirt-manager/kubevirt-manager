@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { MainHeaderComponent } from './components/main-header/main-header.component';
 import { SideMenuComponent } from './components/side-menu/side-menu.component';
@@ -25,37 +25,30 @@ import { KClusterPoolDetailsComponent } from './components/kcluster-pool-details
 import { ImagesComponent } from './components/images/images.component';
 import { SSHKeysComponent } from './components/sshkeys/sshkeys.component';
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    MainHeaderComponent,
-    SideMenuComponent,
-    MainFooterComponent,
-    NodelistComponent,
-    VmlistComponent,
-    DiskListComponent,
-    NetworkListComponent,
-    DashboardComponent,
-    ClusterInstanceTypeListComponent,
-    VMPoolsComponent,
-    LoadBalancersComponent,
-    RefreshComponent,
-    AutoscaleComponent,
-    VmpooldetailsComponent,
-    VmdetailsComponent,
-    KClusterComponent,
-    KClusterDetailsComponent,
-    KClusterPoolDetailsComponent,
-    ImagesComponent,
-    SSHKeysComponent,
-  ],
-  imports: [
-    BrowserModule,
-    AppRoutingModule,
-    HttpClientModule,
-    FormsModule
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
-})
+@NgModule({ declarations: [
+        AppComponent,
+        MainHeaderComponent,
+        SideMenuComponent,
+        MainFooterComponent,
+        NodelistComponent,
+        VmlistComponent,
+        DiskListComponent,
+        NetworkListComponent,
+        DashboardComponent,
+        ClusterInstanceTypeListComponent,
+        VMPoolsComponent,
+        LoadBalancersComponent,
+        RefreshComponent,
+        AutoscaleComponent,
+        VmpooldetailsComponent,
+        VmdetailsComponent,
+        KClusterComponent,
+        KClusterDetailsComponent,
+        KClusterPoolDetailsComponent,
+        ImagesComponent,
+        SSHKeysComponent,
+    ],
+    bootstrap: [AppComponent], imports: [BrowserModule,
+        AppRoutingModule,
+        FormsModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
 export class AppModule { }
