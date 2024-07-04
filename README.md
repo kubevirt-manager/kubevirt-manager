@@ -46,6 +46,10 @@ volumeBindingMode: WaitForFirstConsumer
 ```sh
 $ kubectl apply -f kubernetes/ns.yaml
 ```
+### Create the Custom Resource Definition
+```sh
+$ kubectl apply -f kubernetes/crd.yaml
+```
 ### Create the Service Account and RBAC
 ```sh
 $ kubectl apply -f kubernetes/rbac.yaml
