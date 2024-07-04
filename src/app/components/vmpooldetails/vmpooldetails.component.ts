@@ -8,7 +8,7 @@ import { LivenessProbe } from 'src/app/models/liveness-probe.model';
 import { ReadinessProbe } from 'src/app/models/readiness-probe.model';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
-import { Probe } from 'src/app/templates/probe.apitemplate';
+import { Probe } from 'src/app/interfaces/probe';
 
 @Component({
   selector: 'app-vmpooldetails',
@@ -30,8 +30,6 @@ export class VmpooldetailsComponent implements OnInit {
     customTemplate: boolean = false;
     thisLivenessType: string = "";
     thisReadinessType: string = "";
-    myVmPoolReadinessProbe = new Probe().readinessProbe;
-    myVmPoolLivenessProbe = new Probe().livenessProbe;
 
     /* Liveness form */
     selectedLivenessType: any;
@@ -268,7 +266,7 @@ export class VmpooldetailsComponent implements OnInit {
             }
             currentVm.creationTimestamp = new Date(vms[i].metadata["creationTimestamp"]);
             currentVm.running = vms[i].spec["running"];
-            currentVm.status = vms[i].status["printableStatus"];
+            currentVm.status = vms[i].status["printableStatus"].toLowerCase();
             if (currentVm.status.toLowerCase() == "running") {
                 currentVm.running = true;
             }
@@ -763,6 +761,7 @@ export class VmpooldetailsComponent implements OnInit {
      * Apply Liveness Probe Changes
      */
     async applyLiveness(namespace: string, name: string, enable: string): Promise<void> {
+
         this.inputLivenessSuccess = Number(1);
         if(enable.toLowerCase() == "disabled") {
             try {
@@ -774,31 +773,30 @@ export class VmpooldetailsComponent implements OnInit {
                 console.log(e);
             }
         } else {
+            let livenessProbe: Probe = {
+                initialDelaySeconds: Number(this.inputLivenessDelay),
+                periodSeconds: Number(this.inputLivenessInterval),
+                timeoutSeconds: Number(this.inputLivenessTimeout),
+                failureThreshold: Number(this.inputLivenessFailure),
+                successThreshold: Number(this.inputLivenessSuccess)                
+            };
             if(this.selectedLivenessType.toLowerCase() == "http") {
-                let myHttpProbe = new Probe().httpProbe;
-                myHttpProbe.initialDelaySeconds = Number(this.inputLivenessDelay);
-                myHttpProbe.periodSeconds  = Number(this.inputLivenessInterval);
-                myHttpProbe.timeoutSeconds = Number(this.inputLivenessTimeout);
-                myHttpProbe.failureThreshold = Number(this.inputLivenessFailure);
-                myHttpProbe.successThreshold = Number(this.inputLivenessSuccess);
-                myHttpProbe.httpGet.path = this.inputLivenessPath;
-                myHttpProbe.httpGet.port = Number(this.inputLivenessPort);
-                this.myVmPoolLivenessProbe = myHttpProbe;
+                let httpProbe = {
+                    path: this.inputLivenessPath,
+                    port: Number(this.inputLivenessPort)
+                };
+                livenessProbe.httpGet = httpProbe;
             } else {
-                let myTcpProbe = new Probe().tcpProbe;
-                myTcpProbe.initialDelaySeconds = Number(this.inputLivenessDelay);
-                myTcpProbe.periodSeconds  = Number(this.inputLivenessInterval);
-                myTcpProbe.timeoutSeconds = Number(this.inputLivenessTimeout);
-                myTcpProbe.failureThreshold = Number(this.inputLivenessFailure);
-                myTcpProbe.successThreshold = Number(this.inputLivenessSuccess);
-                myTcpProbe.tcpSocket.port = Number(this.inputLivenessPort);
-                this.myVmPoolLivenessProbe = myTcpProbe;
+                let tcpProbe = {
+                    port: Number(this.inputLivenessPort)
+                };
+                livenessProbe.tcpSocket = tcpProbe;
             }
             try {
                 if(this.activePool.hasLiveness) {
                     const removedata = await lastValueFrom(this.kubeVirtService.removePoolLiveness(namespace, name));
                 }
-                const data = await lastValueFrom(this.kubeVirtService.updatePoolLiveness(namespace, name, JSON.stringify(this.myVmPoolLivenessProbe)));
+                const data = await lastValueFrom(this.kubeVirtService.updatePoolLiveness(namespace, name, JSON.stringify(livenessProbe)));
                 this.hideComponent("modal-liveness");
                 this.reloadComponent();
             } catch (e: any) {
@@ -896,31 +894,30 @@ export class VmpooldetailsComponent implements OnInit {
                 console.log(e);
             }
         } else {
+            let readinessProbe: Probe = {
+                initialDelaySeconds: Number(this.inputReadinessDelay),
+                periodSeconds: Number(this.inputReadinessInterval),
+                timeoutSeconds: Number(this.inputReadinessTimeout),
+                failureThreshold: Number(this.inputReadinessFailure),
+                successThreshold: Number(this.inputReadinessSuccess)                
+            };
             if(this.selectedReadinessType.toLowerCase() == "http") {
-                let myHttpProbe = new Probe().httpProbe;
-                myHttpProbe.initialDelaySeconds = Number(this.inputReadinessDelay);
-                myHttpProbe.periodSeconds  = Number(this.inputReadinessInterval);
-                myHttpProbe.timeoutSeconds = Number(this.inputReadinessTimeout);
-                myHttpProbe.failureThreshold = Number(this.inputReadinessFailure);
-                myHttpProbe.successThreshold = Number(this.inputReadinessSuccess);
-                myHttpProbe.httpGet.path = this.inputReadinessPath;
-                myHttpProbe.httpGet.port = Number(this.inputReadinessPort);
-                this.myVmPoolReadinessProbe = myHttpProbe;
+                let httpProbe = {
+                    path: this.inputReadinessPath,
+                    port: Number(this.inputReadinessPort)
+                };
+                readinessProbe.httpGet = httpProbe;
             } else {
-                let myTcpProbe = new Probe().tcpProbe;
-                myTcpProbe.initialDelaySeconds = Number(this.inputReadinessDelay);
-                myTcpProbe.periodSeconds  = Number(this.inputReadinessInterval);
-                myTcpProbe.timeoutSeconds = Number(this.inputReadinessTimeout);
-                myTcpProbe.failureThreshold = Number(this.inputReadinessFailure);
-                myTcpProbe.successThreshold = Number(this.inputReadinessSuccess);
-                myTcpProbe.tcpSocket.port = Number(this.inputReadinessPort);
-                this.myVmPoolReadinessProbe = myTcpProbe;
+                let tcpProbe = {
+                    port: this.inputReadinessPort
+                };
+                readinessProbe.tcpSocket = tcpProbe;
             }
             try {
                 if(this.activePool.hasReadiness) {
                     const removedata = await lastValueFrom(this.kubeVirtService.removePoolReadiness(namespace, name));
                 }
-                const data = await lastValueFrom(this.kubeVirtService.updatePoolReadiness(namespace, name, JSON.stringify(this.myVmPoolReadinessProbe)));
+                const data = await lastValueFrom(this.kubeVirtService.updatePoolReadiness(namespace, name, JSON.stringify(readinessProbe)));
                 this.hideComponent("modal-readiness");
                 this.reloadComponent();
             } catch (e: any) {

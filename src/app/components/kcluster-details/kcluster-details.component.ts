@@ -11,11 +11,14 @@ import { KubeVirtService } from 'src/app/services/kube-virt.service';
 import { KubevirtMgrCapk } from 'src/app/services/kubevirt-mgr-capk.service';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { XK8sService } from 'src/app/services/x-k8s.service';
-import { DataVolume } from 'src/app/templates/data-volume.apitemplate';
-import { KClusterTemplate } from 'src/app/templates/k-cluster.apitemplate';
 import { LoadBalancer } from 'src/app/models/load-balancer.model';
 import { LoadBalancerPort } from 'src/app/models/load-balancer-port.model';
-
+import { K8sService } from 'src/app/services/k8s.service';
+import { KubeadmConfigTemplate } from 'src/app/interfaces/kubeadm-config-template';
+import { MachineDeployment } from 'src/app/interfaces/machine-deployment';
+import { DataVolume } from 'src/app/interfaces/data-volume';
+import { KubevirtMachineTemplate } from 'src/app/interfaces/kubevirt-machine-template';
+ 
 @Component({
   selector: 'app-kcluster-details',
   templateUrl: './kcluster-details.component.html',
@@ -27,7 +30,6 @@ export class KClusterDetailsComponent implements OnInit {
     clusterNamespace: string = "";
     clusterImageList: any;
     activeCluster: KCluster = new KCluster;
-    allWorkers: KubeVirtVM[] = [];
 
     vmNetwork1 = {
         name: "",
@@ -41,6 +43,7 @@ export class KClusterDetailsComponent implements OnInit {
         private route: ActivatedRoute,
         private kubevirtMgrCapk: KubevirtMgrCapk,
         private k8sApisService: K8sApisService,
+        private k8sService: K8sService,
         private xK8sService: XK8sService,
         private kubeVirtService: KubeVirtService
     ) { }
@@ -51,7 +54,6 @@ export class KClusterDetailsComponent implements OnInit {
         let navTitle = document.getElementById("nav-title");
         await this.loadCluster();
         await this.loadControlPlaneVMs();
-        await this.loadWorkerPoolsVMs();
         await this.loadClusterFeatures();
         await this.loadLoadBalancers();
         await this.loadClusterImages();
@@ -117,7 +119,7 @@ export class KClusterDetailsComponent implements OnInit {
      */
     async loadClusterFeatures(): Promise<void> {
         try {
-            const data = await lastValueFrom(this.xK8sService.getConfigSecret(this.clusterNamespace, this.clusterName + "-config"));
+            const data = await lastValueFrom(this.k8sService.getSecret(this.clusterNamespace, this.clusterName + "-config"));
             if(data.data["cert-manager.yaml"] != null) {
                 this.activeCluster.features.certManager = true;
             }
@@ -181,6 +183,22 @@ export class KClusterDetailsComponent implements OnInit {
                 
             } catch (e: any) {
                 thisCluster.cniVXLANPort = "manual";
+                console.log(e);
+            }
+            try {
+                if(cluster.metadata.labels["capk.kubevirt-manager.io/autoscaler"] != null) {
+                    if(cluster.metadata.labels["capk.kubevirt-manager.io/autoscaler"] == "true") {
+                        thisCluster.clusterAutoscaler = true;
+                        this.enableNewPoolAutoscaling();
+                    } else {
+                        thisCluster.clusterAutoscaler = false;
+                    }
+                } else {
+                    thisCluster.clusterAutoscaler = false;
+                }
+                
+            } catch (e: any) {
+                thisCluster.clusterAutoscaler = false;
                 console.log(e);
             }
         }
@@ -416,7 +434,7 @@ export class KClusterDetailsComponent implements OnInit {
             currentVm.namespace = vms[i].metadata["namespace"];
             currentVm.creationTimestamp = new Date(vms[i].metadata["creationTimestamp"]);
             try {
-                currentVm.status = vms[i].status["printableStatus"];
+                currentVm.status = vms[i].status["printableStatus"].toLowerCase();
                 /* Working around a bug when scaling down and VM stuck in terminating */
                 if(currentVm.status.toLowerCase() == "terminating") {
                     currentVm.running = false;
@@ -546,141 +564,11 @@ export class KClusterDetailsComponent implements OnInit {
     }
 
     /*
-     * Load Worker VM List
-     */
-    async loadWorkerPoolsVMs(): Promise<void> {
-        for(let z = 0; z < this.activeCluster.machineDeployments.length; z++) {
-            let nodePoolName = this.activeCluster.machineDeployments[z].name;
-            let nodePoolNamespace = this.activeCluster.machineDeployments[z].namespace;
-            let currentVm = new KubeVirtVM;
-            try {
-                const data = await lastValueFrom(this.xK8sService.getClusterMachineDeploymentNodes(nodePoolNamespace, nodePoolName));
-                let vms = data.items;
-                for (let i = 0; i < vms.length; i++) {
-                    currentVm = new KubeVirtVM();
-                    currentVm.name = vms[i].metadata["name"];
-                    currentVm.namespace = vms[i].metadata["namespace"];
-                    currentVm.creationTimestamp = new Date(vms[i].metadata["creationTimestamp"]);
-                    try {
-                        currentVm.status = vms[i].status["printableStatus"];
-                        /* Working around a bug when scaling down and VM stuck in terminating */
-                        if(currentVm.status.toLowerCase() == "terminating") {
-                            currentVm.running = false;
-                        } else if (currentVm.status.toLowerCase() == "running") {
-                            currentVm.running = true;
-                        } else {
-                            currentVm.running = vms[i].spec["running"];
-                        }
-                    } catch (e: any) {
-                        currentVm.status = "";
-                        currentVm.running = false;
-                        console.log(e);
-                    }
-                    try {
-                        currentVm.nodeSel = vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"];
-                    } catch (e: any) {
-                        currentVm.nodeSel = "auto-select";
-                        console.log(e);
-                    }
-
-                    /* Getting VM Type */
-                    try {
-                        currentVm.instType = vms[i].spec.instancetype.name;
-                    } catch(e: any) {
-                        currentVm.instType = "custom";
-                        console.log(e);
-                    }
-
-                    if(currentVm.instType == "custom") {
-                        try {
-                            /* Custom VM has cpu / mem parameters */
-                            currentVm.cores = vms[i].spec.template.spec.domain.cpu["cores"];
-                            currentVm.sockets = vms[i].spec.template.spec.domain.cpu["sockets"];
-                            currentVm.threads = vms[i].spec.template.spec.domain.cpu["threads"];
-                            currentVm.memory = vms[i].spec.template.spec.domain.resources.requests["memory"];
-                        } catch (e: any) {
-                            currentVm.cores = currentVm.cores || 0;
-                            currentVm.sockets = currentVm.sockets || 0;
-                            currentVm.threads = currentVm.threads || 0;
-                            currentVm.memory = currentVm.memory || "N/A";
-                            console.log(e);
-                        }
-
-                    } else {
-                        /* load vCPU / Mem from type */
-                        try {
-                            const data = await lastValueFrom(this.kubeVirtService.getClusterInstanceType(currentVm.instType));
-                            currentVm.cores = data.spec.cpu["guest"];
-                            currentVm.memory = data.spec.memory["guest"];
-                            currentVm.sockets = 1;
-                            currentVm.threads = 1;
-                        } catch (e: any) {
-                            currentVm.sockets = 0;
-                            currentVm.threads = 0;
-                            currentVm.cores = 0;
-                            currentVm.memory = "";
-                            console.log(e);
-                        }
-                    }
-
-                    if(vms[i].status["ready"] != null) {
-                        currentVm.ready = vms[i].status["ready"];
-                    }
-
-                    if(currentVm.running && currentVm.status && vms[i].status["printableStatus"].toLowerCase() == "running") {
-                        let currentVmi = new KubeVirtVMI;
-                        try {
-                            const datavmi = await lastValueFrom(this.kubeVirtService.getVMi(currentVm.namespace, currentVm.name));
-                            currentVmi = new KubeVirtVMI();
-                            currentVmi.name = datavmi.metadata["name"];
-                            currentVmi.namespace = datavmi.metadata["namespace"];
-                            currentVmi.creationTimestamp = new Date(datavmi.metadata["creationTimestamp"]);
-                            currentVmi.osId = datavmi.status.guestOSInfo["id"]
-                            currentVmi.osKernRel = datavmi.status.guestOSInfo["kernelRelease"]
-                            currentVmi.osKernVer = datavmi.status.guestOSInfo["kernelVersion"]
-                            currentVmi.osName = datavmi.status.guestOSInfo["name"]
-                            currentVmi.osPrettyName = datavmi.status.guestOSInfo["prettyName"];
-                            currentVmi.osVersion = datavmi.status.guestOSInfo["version"]
-
-                            /* Only works with guest-agent installed if not on podNetwork */
-                            try {
-                                currentVm.nodeSel = datavmi.status["nodeName"];
-                                /* In case of dual NIC, test which one is providing IP */
-                                if(datavmi.status.interfaces[0]["ipAddress"] != null) {                        
-                                    currentVmi.ifAddr = datavmi.status.interfaces[0]["ipAddress"];
-                                    currentVmi.ifName = datavmi.status.interfaces[0]["name"];
-                                } else {
-                                    currentVmi.ifAddr = datavmi.status.interfaces[1]["ipAddress"];
-                                    currentVmi.ifName = datavmi.status.interfaces[1]["name"];
-                                }
-                            } catch(e: any) {
-                                currentVmi.ifAddr = "";
-                                currentVmi.ifName = "";
-                                console.log(e);
-                            }
-
-                            currentVmi.nodeName = datavmi.status["nodeName"];
-                            currentVm.vmi = currentVmi;
-                        } catch (e: any) {
-                            console.log(e);
-                            console.log("ERROR Retrieving VMI: " + currentVm.name + "-" + currentVm.namespace + ":" + currentVm.status);
-                        }
-                    }
-                    this.activeCluster.machineDeployments[z].vmlist.push(currentVm);
-                    this.allWorkers.push(currentVm);
-                }
-            } catch (e: any) {
-                console.log(e);
-            }
-        }
-    }
-
-    /*
      * Generate Kubeconfig
      */
     async getKubeconfig(namespace: string, name: string): Promise<void> {
         try {
-            const data = await lastValueFrom(this.xK8sService.getClusterKubeconfig(namespace, name));
+            const data = await lastValueFrom(this.k8sService.getSecret(namespace, name + "-kubeconfig"));
             let base64data = data.data.value;
             const src = `data:text/yaml;base64,${base64data}`;
             const link = document.createElement("a");
@@ -698,7 +586,7 @@ export class KClusterDetailsComponent implements OnInit {
      */
     async getSSHKey(namespace: string, name: string): Promise<void> {
         try {
-            let data = await lastValueFrom(this.xK8sService.getClusterSSHKey(namespace, name));
+            let data = await lastValueFrom(this.k8sService.getSecret(namespace, name + "-ssh-keys"));
             let base64data = data.data.key;
             const src = `data:application/x-pem-file;base64,${base64data}`;
             const link = document.createElement("a");
@@ -727,6 +615,20 @@ export class KClusterDetailsComponent implements OnInit {
         } else if (vmOperation == "delete") {
             const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
             this.reloadComponent();
+        }
+    }
+
+    /*
+     * Enable New Pool Autoscaling
+     */
+    enableNewPoolAutoscaling(): void {
+        let inputAs = document.getElementById("newnodepool-autoscaling");
+        let inputMin = document.getElementById("newnodepool-minreplicas")
+        let inputMax = document.getElementById("newnodepool-maxreplicas");
+        if(inputAs != null && inputMin != null && inputMax != null) {
+            inputAs.setAttribute("value", "true");
+            inputMin.removeAttribute("disabled");
+            inputMax.removeAttribute("disabled");
         }
     }
 
@@ -902,204 +804,160 @@ export class KClusterDetailsComponent implements OnInit {
                 console.log(e);
             }
 
-            /* Creating our local objects */
-            let thisKubevirtMachineTemplateTyped = new KClusterTemplate().KubevirtMachineTemplateType;
-            let thisKubevirtMachineTemplateCustom = new KClusterTemplate().KubevirtMachineTemplateCustom;
-
             /* Custom Labels */
             let machineTemplateLabels = this.activeCluster.controlPlane.machineTemplate.labels;
 
             /* 
             * Kubevirt Machine Template
             */
-
+            let kubevirtMachineTemplate: KubevirtMachineTemplate = {
+                apiVersion: "infrastructure.cluster.x-k8s.io/v1alpha1",
+                kind: "KubevirtMachineTemplate",
+                metadata: {
+                    name: this.activeCluster.name + "-control-plane",
+                    namespace: this.activeCluster.namespace,
+                    labels: machineTemplateLabels
+                },
+                spec: {
+                    template: {
+                        spec: {
+                            virtualMachineTemplate: {
+                                metadata: {
+                                    namespace: this.activeCluster.namespace,
+                                    labels: machineTemplateLabels
+                                },
+                                spec: {
+                                    dataVolumeTemplates: {},
+                                    runStrategy: "Once",
+                                    template: {
+                                        metadata: {
+                                            labels: machineTemplateLabels
+                                        },
+                                        spec: {
+                                            priorityClassName: controlplanepc,
+                                            domain: {
+                                                devices: {
+                                                    disks: {},
+                                                    interfaces: {},
+                                                    networkInterfaceMultiqueue: true,
+                                                },
+                                            },
+                                            networks: {},
+                                            volumes: {},
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
             /* Check Control Plane VM Type */
             if(controlplanetype.toLowerCase() == "custom") {
                 /* Custom VM */
-                thisKubevirtMachineTemplateCustom.metadata.name = this.activeCluster.name + "-control-plane";
-                thisKubevirtMachineTemplateCustom.metadata.namespace = this.activeCluster.namespace;
-                thisKubevirtMachineTemplateCustom.metadata.labels = machineTemplateLabels;
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.metadata.namespace = this.activeCluster.namespace;
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.metadata.labels = machineTemplateLabels;
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.metadata.labels = machineTemplateLabels;
-
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.priorityClassName = controlplanepc;
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.cpu.cores = Number(controlplanecpumemcores);
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.cpu.threads = Number(controlplanecpumemthreads);
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.cpu.sockets = Number(controlplanecpumemsockets);
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.resources.requests.memory = controlplanecpumemmemory + "Gi";
-
-                /* Clean up devices */
-                while(thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.length > 0) {
-                    thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.pop();
-                }
-                while(thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.volumes.length > 0){
-                    thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.volumes.pop();
-                }
-                
-                /* Clean up networks */
-                while(thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.networks.length > 0){
-                    thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.networks.pop();
-                }
-                while(thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.length > 0) {
-                    thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.pop();
-                }
-
+                kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.cpu = {
+                    cores: Number(controlplanecpumemcores),
+                    threads: Number(controlplanecpumemthreads),
+                    sockets: Number(controlplanecpumemsockets)                                
+                };
+                kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.resources = {
+                    requests: {
+                        memory: controlplanecpumemmemory + "Gi"
+                    }
+                };
             } else {
                 /* Typed VM */
-                thisKubevirtMachineTemplateTyped.metadata.name = this.activeCluster.name + "-control-plane";
-                thisKubevirtMachineTemplateTyped.metadata.namespace = this.activeCluster.namespace;
-                thisKubevirtMachineTemplateTyped.metadata.labels = machineTemplateLabels;
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.metadata.namespace = this.activeCluster.namespace;
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.metadata.labels = machineTemplateLabels;
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.metadata.labels = machineTemplateLabels;
-
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.instancetype.name = controlplanetype;
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.priorityClassName = controlplanepc;
-
-                /* Clean up devices */
-                while(thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.length > 0) {
-                    thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.pop();
-                }
-                while(thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.volumes.length > 0){
-                    thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.volumes.pop();
-                }
-            
-                /* Clean up networks */
-                while(thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.networks.length > 0){
-                    thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.networks.pop();
-                }
-                while(thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.length > 0) {
-                    thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.pop();
-                }
-
+                kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.instancetype = {
+                    kind: "VirtualMachineClusterInstancetype",
+                    name: controlplanetype
+                };
             }
+
+            /* Placeholders */
+            let devices = [];
+            let disks = [];
+            let dvtemplates = [];
+            let networks = [];
+            let interfaces = [];
 
             /* Create Disk From Image */
             let disk1 = {};
             let device1 = {};
-            let disk1dv = new DataVolume().httpDisk;
             let disk1name = "disk1";
-            disk1dv.metadata.name = disk1name;
-            disk1dv.metadata.namespace = this.activeCluster.namespace;
-            disk1dv.spec.pvc.storageClassName = controlplanedisksc;
-            disk1dv.spec.pvc.accessModes[0] = controlplanediskam;
-            disk1dv.spec.pvc.resources.requests.storage = controlplanedisksize + "Gi";
-            disk1dv.spec.source.http.url = thisimageurl;
+            let disk1dv: DataVolume = {
+                apiVersion: "cdi.kubevirt.io/v1beta1",
+                kind: "DataVolume",
+                metadata: {
+                    name: disk1name,
+                    namespace: this.activeCluster.namespace,
+                    annotations: {
+                        "cdi.kubevirt.io/storage.deleteAfterCompletion": "false"
+                    },
+                },
+                spec: {
+                    pvc: {
+                        storageClassName: controlplanedisksc,
+                        accessModes: [ controlplanediskam ],
+                        resources: {
+                            requests: {
+                                storage: controlplanedisksize + "Gi"
+                            }
+                        }
+                    },
+                    source: {
+                        http: {
+                            url: thisimageurl
+                        }
+                    }
+                }
+            };
+            
+
             if(controlplanediskcm != "") {
-                disk1 = { 'name': "disk1", 'cache': controlplanediskcm, 'disk': {}};
+                disk1 = { 'name': "disk1", 'cache': controlplanediskcm, 'disk': {} };
             } else {
-                disk1 = { 'name': "disk1", 'disk': {}};
+                disk1 = { 'name': "disk1", 'disk': {} };
             }
-            device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
+            device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name } };
+
+            dvtemplates.push(disk1dv);
+            devices.push(device1);
+            disks.push(disk1);
 
             /* Network Setup */
             let net1 = {};
             let iface1 = {};
             if(this.vmNetwork1.network != "podNetwork") {
-                net1 = {'name': "net1", 'multus': {'networkName': this.vmNetwork1.network}};
+                net1 = { 'name': "net1", 'multus': {'networkName': this.vmNetwork1.network } };
             } else {
-                net1 = {'name': "net1", 'pod': {}};
+                net1 = { 'name': "net1", 'pod': {} };
             }
             if(this.vmNetwork1.type == "bridge") {
-                iface1 = {'name': "net1", 'bridge': {}};
+                iface1 = { 'name': "net1", 'bridge': {} };
             } else {
-                iface1 = {'name': "net1", 'masquerade': {}};
+                iface1 = { 'name': "net1", 'masquerade': {} };
             }
+            networks.push(net1);
+            interfaces.push(iface1);
 
-            if(controlplanetype.toLowerCase() == "custom") {
-                /* Disk Setup */
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.push(disk1);
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.volumes.push(device1);
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.dataVolumeTemplates[0] = disk1dv;
+            /* Disk Setup */
+            if(disks.length > 0) { kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks = disks; }
+            if(devices.length > 0) { kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.volumes = devices; }
+            if(dvtemplates.length > 0) { kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.dataVolumeTemplates = dvtemplates; }
 
-                /* Net Setup */
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.push(iface1);
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.networks.push(net1);
+            /* Net Setup */
+            if(interfaces.length > 0) { kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces = interfaces; }
+            if(networks.length > 0) { kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.networks = networks; }
 
-                try {
-                    let data = await lastValueFrom(this.xK8sService.deleteKubevirtMachineTemplate(thisKubevirtMachineTemplateCustom.metadata.namespace, thisKubevirtMachineTemplateCustom.metadata.name));
-                    data = await lastValueFrom(this.xK8sService.createKubevirtMachineTemplate(thisKubevirtMachineTemplateCustom.metadata.namespace, thisKubevirtMachineTemplateCustom));
-                    data = await lastValueFrom(this.xK8sService.getKubevirtMachineTemplate(thisKubevirtMachineTemplateCustom.metadata.namespace, thisKubevirtMachineTemplateCustom.metadata.name));
-                    let cts = data.metadata["creationTimestamp"].toString();
-                    data = await lastValueFrom(this.xK8sService.rolloutKubeadmControlPlane(thisKubevirtMachineTemplateCustom.metadata.namespace, thisKubevirtMachineTemplateCustom.metadata.name, cts));
-                    this.hideComponent("modal-config-cp");
-                    this.reloadComponent();
-                } catch (e: any) {
-                    console.log(e);
-                    alert(e.error.message);
-                }
-            } else {
-                /* Disk Setup */
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.push(disk1);
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.volumes.push(device1);
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.dataVolumeTemplates[0] = disk1dv;
-
-                /* Net Setup */
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.push(iface1);
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.networks.push(net1);
-
-                try {
-                    let data = await lastValueFrom(this.xK8sService.deleteKubevirtMachineTemplate(thisKubevirtMachineTemplateTyped.metadata.namespace, thisKubevirtMachineTemplateTyped.metadata.name));
-                    data = await lastValueFrom(this.xK8sService.createKubevirtMachineTemplate(thisKubevirtMachineTemplateTyped.metadata.namespace, thisKubevirtMachineTemplateTyped));
-                    data = await lastValueFrom(this.xK8sService.getKubevirtMachineTemplate(thisKubevirtMachineTemplateTyped.metadata.namespace, thisKubevirtMachineTemplateTyped.metadata.name));
-                    let cts = data.metadata["creationTimestamp"].toString();
-                    data = await lastValueFrom(this.xK8sService.rolloutKubeadmControlPlane(thisKubevirtMachineTemplateTyped.metadata.namespace, thisKubevirtMachineTemplateTyped.metadata.name, cts));
-                    this.hideComponent("modal-config-cp");
-                    this.reloadComponent();
-                } catch (e: any) {
-                    console.log(e);
-                    alert(e.error.message);
-                }
-            }
-        }
-    }
-
-    /*
-     * Show Worker Pool Replicas Window
-     */
-    showReplicasWp(wpNamespace: string, wpName: string, wpReplicas: number): void {
-        let modalDiv = document.getElementById("modal-replicas-wp");
-        let modalTitle = document.getElementById("replicas-wp-title");
-        let nameField = document.getElementById("replicas-wp-name");
-        let namespaceField = document.getElementById("replicas-wp-namespace");
-        let replicasField = document.getElementById("replicas-wp-input");
-        if(modalTitle != null) {
-            modalTitle.replaceChildren("Scale: " + wpName);
-        }
-        if(nameField != null && namespaceField != null && replicasField != null) {
-            nameField.setAttribute("value", wpName);
-            namespaceField.setAttribute("value", wpNamespace);
-            replicasField.setAttribute("placeholder", wpReplicas.toString());
-            replicasField.setAttribute("value", wpReplicas.toString());
-        }
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade show");
-            modalDiv.setAttribute("aria-modal", "true");
-            modalDiv.setAttribute("role", "dialog");
-            modalDiv.setAttribute("aria-hidden", "false");
-            modalDiv.setAttribute("style","display: block;");
-        }
-    }
-
-    /*
-     * Perform Resize of Worker Pool
-     */
-    async applyReplicasWp(replicasSize: string): Promise<void> {
-        let nameField = document.getElementById("replicas-wp-name");
-        let namespaceField = document.getElementById("replicas-wp-namespace");
-        if(replicasSize != null && nameField != null && namespaceField != null) {
-            let wpNamespace = namespaceField.getAttribute("value");
-            let wpName = nameField.getAttribute("value");
-            if(replicasSize != null && wpName != null && wpNamespace != null) {
-                try {
-                    const data = await lastValueFrom(this.xK8sService.scaleMachineDeployment(wpNamespace, wpName, replicasSize));
-                    this.hideComponent("modal-replicas-wp");
-                    this.reloadComponent();
-                } catch (e: any) {
-                    alert(e.error.message);
-                    console.log(e);
-                }
+            try {
+                let data = await lastValueFrom(this.xK8sService.deleteKubevirtMachineTemplate(kubevirtMachineTemplate.metadata.namespace, kubevirtMachineTemplate.metadata.name));
+                data = await lastValueFrom(this.xK8sService.createKubevirtMachineTemplate(kubevirtMachineTemplate));
+                data = await lastValueFrom(this.xK8sService.getKubevirtMachineTemplate(kubevirtMachineTemplate.metadata.namespace, kubevirtMachineTemplate.metadata.name));
+                let cts = data.metadata["creationTimestamp"].toString();
+                data = await lastValueFrom(this.xK8sService.rolloutKubeadmControlPlane(kubevirtMachineTemplate.metadata.namespace, kubevirtMachineTemplate.metadata.name, cts));
+            } catch (e: any) {
+                alert(e.error.message);
+                console.log(e);
             }
         }
     }
@@ -1160,6 +1018,7 @@ export class KClusterDetailsComponent implements OnInit {
      * Create Node Pool Objects
      */
     async createNodePoolRelatedObjects(
+        nodepoolautoscaling: string,
         nodepoolname: string,
         nodepoolosdist: string,
         nodepoolosversion: string,
@@ -1170,6 +1029,8 @@ export class KClusterDetailsComponent implements OnInit {
         nodepoolcpumemmemory: string,
         nodepoolpc: string,
         nodepoolreplicas: string,
+        nodepoolminreplicas: string,
+        nodepoolmaxreplicas: string,
         nodepooldisksize: string,
         nodepooldisksc: string,
         nodepooldiskam: string,
@@ -1197,23 +1058,19 @@ export class KClusterDetailsComponent implements OnInit {
             let version = this.activeCluster.controlPlane.version;
             let nodepoolosimageurl = this.getImageUrl(version, nodepoolosdist, nodepoolosversion).toString();
 
-            /* Creating our local objects */
-            let thisKubeadmConfigTemplateObj = new KClusterTemplate().KubeadmConfigTemplate;
-            let thisMachineDeploymentObj = new KClusterTemplate().MachineDeployment;
-            let thisKubevirtMachineTemplateTyped = new KClusterTemplate().KubevirtMachineTemplateType;
-            let thisKubevirtMachineTemplateCustom = new KClusterTemplate().KubevirtMachineTemplateCustom;
-
             /* Custom Labels */
             let tmpLabels = {};
             let machineTemplateLabels = {};
+            let machineDeploymentAnnotations = {};
 
             /* Load other labels */
-            let thisLabel = {'kubevirt-manager.io/cluster-name': name};
+            let thisLabel = { 'kubevirt-manager.io/cluster-name': name };
             Object.assign(tmpLabels, thisLabel);
             Object.assign(machineTemplateLabels, thisLabel)
 
-            let kubevirtManagerLabel = {'kubevirt-manager.io/managed': "true"};
+            let kubevirtManagerLabel = { 'kubevirt-manager.io/managed': "true" };
             Object.assign(tmpLabels, kubevirtManagerLabel);
+            Object.assign(tmpLabels, { 'capk.kubevirt-manager.io/autoscaler': nodepoolautoscaling });
 
             
             /* Machine Labels */
@@ -1224,160 +1081,227 @@ export class KClusterDetailsComponent implements OnInit {
             Object.assign(machineTemplateLabels, { 'capk.kubevirt-manager.io/kube-version' : version });
             Object.assign(machineTemplateLabels, { 'kubevirt.io/domain': name + "-" + nodepoolname });
 
+            /* MachineDeployment Annotations */
+            if(nodepoolautoscaling == "true") {
+                Object.assign(machineDeploymentAnnotations, { 'cluster.x-k8s.io/cluster-api-autoscaler-node-group-min-size': nodepoolminreplicas });
+                Object.assign(machineDeploymentAnnotations, { 'cluster.x-k8s.io/cluster-api-autoscaler-node-group-max-size': nodepoolmaxreplicas });
+            }
+
             /* KubeadmConfig */
-            thisKubeadmConfigTemplateObj.metadata.name = name + "-" + nodepoolname;
-            thisKubeadmConfigTemplateObj.metadata.namespace = namespace;
-            thisKubeadmConfigTemplateObj.metadata.labels = tmpLabels;
-            thisKubeadmConfigTemplateObj.spec.template.metadata.labels = tmpLabels;
+            let kubeadmConfigTemplate: KubeadmConfigTemplate = {
+                apiVersion: "bootstrap.cluster.x-k8s.io/v1beta1",
+                kind: "KubeadmConfigTemplate",
+                metadata: {
+                    name: name + "-" + nodepoolname,
+                    namespace: namespace,
+                    labels: tmpLabels
+                },
+                spec: {
+                    template: {
+                        metadata: {
+                            labels: tmpLabels
+                        },
+                        spec: {
+                            joinConfiguration: {
+                                nodeRegistration: {
+                                    kubeletExtraArgs: {}
+                                }
+                            },
+                            useExperimentalRetryJoin: true
+                        }
+                    }
+                }
+            };
 
             /* MachineDeployment */
-            thisMachineDeploymentObj.metadata.name = name + "-" + nodepoolname;
-            thisMachineDeploymentObj.metadata.namespace = namespace;
-            thisMachineDeploymentObj.metadata.labels = tmpLabels;
-            thisMachineDeploymentObj.spec.clusterName = name;
-            thisMachineDeploymentObj.spec.replicas = Number(nodepoolreplicas);
-            thisMachineDeploymentObj.spec.template.metadata.labels = tmpLabels;
-            thisMachineDeploymentObj.spec.template.spec.clusterName = name;
-            thisMachineDeploymentObj.spec.template.spec.version = version;
-            thisMachineDeploymentObj.spec.template.spec.bootstrap.configRef.name = name + "-" + nodepoolname;
-            thisMachineDeploymentObj.spec.template.spec.bootstrap.configRef.namespace = namespace;
-            thisMachineDeploymentObj.spec.template.spec.infrastructureRef.name = name + "-" + nodepoolname;
-            thisMachineDeploymentObj.spec.template.spec.infrastructureRef.namespace = namespace;
+            let machineDeployment: MachineDeployment = {
+                apiVersion: "cluster.x-k8s.io/v1beta1",
+                kind: "MachineDeployment",
+                metadata: {
+                    name: name + "-" + nodepoolname,
+                    namespace: namespace,
+                    labels: tmpLabels,
+                    annotations: machineDeploymentAnnotations
+                },
+                spec: {
+                    clusterName: name,
+                    replicas: Number(nodepoolreplicas),
+                    selector: {},
+                    template: {
+                        metadata: {
+                            labels: tmpLabels
+                        },
+                        spec: {
+                            bootstrap: {
+                                configRef: {
+                                    apiVersion: "bootstrap.cluster.x-k8s.io/v1beta1",
+                                    kind: "KubeadmConfigTemplate",
+                                    name: name + "-" + nodepoolname,
+                                    namespace: namespace
+                                }
+                            },
+                            clusterName: name,
+                            infrastructureRef: {
+                                apiVersion: "infrastructure.cluster.x-k8s.io/v1alpha1",
+                                kind: "KubevirtMachineTemplate",
+                                name: name + "-" + nodepoolname,
+                                namespace: namespace
+                            },
+                            version: version
+                        }
+                    }
+                }
+            };
 
             /* 
             * Kubevirt Machine Template
             */
 
+            let kubevirtMachineTemplate: KubevirtMachineTemplate = {
+                apiVersion: "infrastructure.cluster.x-k8s.io/v1alpha1",
+                kind: "KubevirtMachineTemplate",
+                metadata: {
+                    name: name + "-" + nodepoolname,
+                    namespace: namespace,
+                    labels: machineTemplateLabels
+                },
+                spec: {
+                    template: {
+                        spec: {
+                            virtualMachineTemplate: {
+                                metadata: {
+                                    namespace: namespace,
+                                    labels: machineTemplateLabels
+                                },
+                                spec: {
+                                    dataVolumeTemplates: {},
+                                    runStrategy: "Once",
+                                    template: {
+                                        metadata: {
+                                            labels: machineTemplateLabels
+                                        },
+                                        spec: {
+                                            priorityClassName: nodepoolpc,
+                                            domain: {
+                                                devices: {
+                                                    disks: {},
+                                                    interfaces: {},
+                                                    networkInterfaceMultiqueue: true
+                                                }
+                                            },
+                                            networks: {},
+                                            volumes: {}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
             /* Check Node Pool VM Type */
             if(nodepooltype.toLowerCase() == "custom") {
                 /* Custom VM */
-                thisKubevirtMachineTemplateCustom.metadata.name = name + "-" + nodepoolname;
-                thisKubevirtMachineTemplateCustom.metadata.namespace = namespace;
-                thisKubevirtMachineTemplateCustom.metadata.labels = machineTemplateLabels;
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.metadata.namespace = namespace;
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.metadata.labels = machineTemplateLabels;
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.metadata.labels = machineTemplateLabels;
-
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.priorityClassName = nodepoolpc;
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.cpu.cores = Number(nodepoolcpumemcores);
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.cpu.threads = Number(nodepoolcpumemthreads);
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.cpu.sockets = Number(nodepoolcpumemsockets);
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.resources.requests.memory = nodepoolcpumemmemory + "Gi";
-
-                /* Clean up devices */
-                while(thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.length > 0) {
-                    thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.pop();
-                }
-                while(thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.volumes.length > 0){
-                    thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.volumes.pop();
-                }
-                
-                /* Clean up networks */
-                while(thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.networks.length > 0){
-                    thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.networks.pop();
-                }
-                while(thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.length > 0) {
-                    thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.pop();
-                }
-
+                kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.cpu = {
+                    cores: Number(nodepoolcpumemcores),
+                    threads: Number(nodepoolcpumemthreads),
+                    sockets: Number(nodepoolcpumemsockets)
+                };
+                kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.resources = {
+                    requests: {
+                        memory: nodepoolcpumemmemory + "Gi"
+                    }
+                };
             } else {
                 /* Typed VM */
-                thisKubevirtMachineTemplateTyped.metadata.name = name + "-" + nodepoolname;
-                thisKubevirtMachineTemplateTyped.metadata.namespace = namespace;
-                thisKubevirtMachineTemplateTyped.metadata.labels = machineTemplateLabels;
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.metadata.namespace = namespace;
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.metadata.labels = machineTemplateLabels;
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.metadata.labels = machineTemplateLabels;
-
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.instancetype.name = nodepooltype;
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.priorityClassName = nodepoolpc;
-
-                /* Clean up devices */
-                while(thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.length > 0) {
-                    thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.pop();
-                }
-                while(thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.volumes.length > 0){
-                    thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.volumes.pop();
-                }
-            
-                /* Clean up networks */
-                while(thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.networks.length > 0){
-                    thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.networks.pop();
-                }
-                while(thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.length > 0) {
-                    thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.pop();
-                }
-
+                kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.instancetype = {
+                    kind: "VirtualMachineClusterInstancetype",
+                    name: nodepooltype
+                };
             }
+
+            /* Placeholders */
+            let devices = [];
+            let disks = [];
+            let dvtemplates = [];
+            let networks = [];
+            let interfaces = [];
 
             /* Create Disk From Image */
             let disk1 = {};
             let device1 = {};
-            let disk1dv = new DataVolume().httpDisk;
             let disk1name = "disk1";
-            disk1dv.metadata.name = disk1name;
-            disk1dv.metadata.namespace = namespace;
-            disk1dv.spec.pvc.storageClassName = nodepooldisksc;
-            disk1dv.spec.pvc.accessModes[0] = nodepooldiskam;
-            disk1dv.spec.pvc.resources.requests.storage = nodepooldisksize + "Gi";
-            disk1dv.spec.source.http.url = nodepoolosimageurl;
+            let disk1dv: DataVolume = {
+                apiVersion: "cdi.kubevirt.io/v1beta1",
+                kind: "DataVolume",
+                metadata: {
+                    name: disk1name,
+                    namespace: namespace,
+                    annotations: {
+                        "cdi.kubevirt.io/storage.deleteAfterCompletion": "false"
+                    }
+                },
+                spec: {
+                    pvc: {
+                        storageClassName: nodepooldisksc,
+                        accessModes: [ nodepooldiskam ],
+                        resources: {
+                            requests: {
+                                storage: nodepooldisksize + "Gi"
+                            }
+                        }
+                    },
+                    source: {
+                        http: {
+                            url: nodepoolosimageurl
+                        }
+                    }
+                }
+            }
+            dvtemplates.push(disk1dv);
             if(nodepooldiskcm != "") {
-                disk1 = { 'name': "disk1", 'cache': nodepooldiskcm, 'disk': {}};
+                disk1 = { 'name': "disk1", 'cache': nodepooldiskcm, 'disk': {} };
             } else {
                 disk1 = { 'name': "disk1", 'disk': {}};
             }
-            device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
-
+            device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name } }
+            devices.push(device1);
+            disks.push(disk1);
+    
             /* Network Setup */
             let net1 = {};
             let iface1 = {};
             if(this.vmNetwork1.network != "podNetwork") {
-                net1 = {'name': "net1", 'multus': {'networkName': this.vmNetwork1.network}};
+                net1 = { 'name': "net1", 'multus': {'networkName': this.vmNetwork1.network }};
             } else {
-                net1 = {'name': "net1", 'pod': {}};
+                net1 = { 'name': "net1", 'pod': {} };
             }
             if(this.vmNetwork1.type == "bridge") {
-                iface1 = {'name': "net1", 'bridge': {}};
+                iface1 = { 'name': "net1", 'bridge': {} };
             } else {
-                iface1 = {'name': "net1", 'masquerade': {}};
+                iface1 = { 'name': "net1", 'masquerade': {} };
             }
-
-            if(nodepooltype.toLowerCase() == "custom") {
-                /* Disk Setup */
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.push(disk1);
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.volumes.push(device1);
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.dataVolumeTemplates[0] = disk1dv;
-
-                /* Net Setup */
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.push(iface1);
-                thisKubevirtMachineTemplateCustom.spec.template.spec.virtualMachineTemplate.spec.template.spec.networks.push(net1);
-
-                try {
-                    let data = await lastValueFrom(this.xK8sService.createKubevirtMachineTemplate(namespace, thisKubevirtMachineTemplateCustom));
-                    data = await lastValueFrom(this.xK8sService.createKubeadmConfigTemplate(namespace, thisKubeadmConfigTemplateObj));
-                    data = await lastValueFrom(this.xK8sService.createMachineDeployment(namespace, thisMachineDeploymentObj));
-                } catch (e: any) {
-                    console.log(e);
-                    alert(e.error.message);
-                }
-            } else {
-                /* Disk Setup */
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.push(disk1);
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.volumes.push(device1);
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.dataVolumeTemplates[0] = disk1dv;
-
-                /* Net Setup */
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.push(iface1);
-                thisKubevirtMachineTemplateTyped.spec.template.spec.virtualMachineTemplate.spec.template.spec.networks.push(net1);
-
-                try {
-                    let data = await lastValueFrom(this.xK8sService.createKubevirtMachineTemplate(namespace, thisKubevirtMachineTemplateTyped));
-                    data = await lastValueFrom(this.xK8sService.createKubeadmConfigTemplate(namespace, thisKubeadmConfigTemplateObj));
-                    data = await lastValueFrom(this.xK8sService.createMachineDeployment(namespace, thisMachineDeploymentObj));
-                } catch (e: any) {
-                    console.log(e);
-                    alert(e.error.message);
-                }
+            networks.push(net1);
+            interfaces.push(iface1);
+    
+            /* Disk Setup */
+            if(disks.length > 0) { kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks = disks; }
+            if(devices.length > 0) { kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.volumes = devices; }
+            if(dvtemplates.length > 0) { kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.dataVolumeTemplates = dvtemplates; }
+    
+            /* Net Setup */
+            if(interfaces.length > 0) { kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces = interfaces; }
+            if(networks.length > 0) { kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.networks = networks; }
+    
+    
+            try {
+                let data = await lastValueFrom(this.xK8sService.createKubevirtMachineTemplate(kubevirtMachineTemplate));
+                data = await lastValueFrom(this.xK8sService.createKubeadmConfigTemplate(kubeadmConfigTemplate));
+                data = await lastValueFrom(this.xK8sService.createMachineDeployment(machineDeployment));
+            } catch (e: any) {
+                console.log(e);
+                alert(e.error.message);
             }
             this.hideComponent('modal-new-wp');
             this.reloadComponent();
@@ -1385,7 +1309,7 @@ export class KClusterDetailsComponent implements OnInit {
     }
 
     /*
-     * UPDATE: Fill Distro Versions fro Node Pool
+     * UPDATE: Fill Distro Versions from Node Pool
      */
     async onChangeNodePoolOS(os: string): Promise<void> {
         let nodePoolOSVersionField = document.getElementById("newnodepool-osversion");
@@ -1579,7 +1503,7 @@ export class KClusterDetailsComponent implements OnInit {
     randomClusterHash(): string {
         var randomChars = 'abcdefghijklmnopqrstuvwxyz';
         var result = '';
-        for ( var i = 0; i < 6; i++ ) {
+        for ( var i = 0; i < 8; i++ ) {
             result += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
         }
         return result;

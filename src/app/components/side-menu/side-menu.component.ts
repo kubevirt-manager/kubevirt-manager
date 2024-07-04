@@ -12,6 +12,7 @@ export class SideMenuComponent implements OnInit {
     crdList: any;
     networkCheck: boolean = false;
     capkCheck: boolean = false;
+    imgCheck: boolean = false;
 
     constructor(
         private k8sApisService: K8sApisService
@@ -19,8 +20,9 @@ export class SideMenuComponent implements OnInit {
 
     async ngOnInit(): Promise<void> {
         await this.loadCrds();
-        await this.checkNetwork();
-        await this.checkCapk();
+        this.checkNetwork();
+        this.checkCapk();
+        this.checkImage();
     }
 
     /*
@@ -73,6 +75,17 @@ export class SideMenuComponent implements OnInit {
         for (let i = 0; i < this.crdList.length; i++) {
             if(this.crdList[i].metadata["name"] == "network-attachment-definitions.k8s.cni.cncf.io") {
                 this.networkCheck = true;
+            }
+        }
+    }
+
+    /*
+     * Check Images Support
+     */
+    async checkImage(): Promise<void> {
+        for (let i = 0; i < this.crdList.length; i++) {
+            if(this.crdList[i].metadata["name"] == "images.kubevirt-manager.io") {
+                this.imgCheck = true;
             }
         }
     }

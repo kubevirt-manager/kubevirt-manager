@@ -223,10 +223,7 @@
                           <select #newpooldiskonetype class="custom-select rounded-0" name="newpool-diskonetype" id="newpool-diskonetype" (change)="onChangeDiskOne(newpooldiskonetype.value,newpoolnamespace.value)">
                             <option value="none">None</option>
                             <option value="blank">Blank Disk</option>
-                            <option value="http">Import (HTTP)</option>
-                            <option value="s3">Import (S3)</option>
-                            <option value="registry">Import (Registry)</option>
-                            <option value="pvc">Import (PVC)</option>
+                            <option value="image">Image</option>
                             <option value="dv">Existing Disk</option>
                           </select>
                         </div>
@@ -243,21 +240,16 @@
                                 <option>ReadWriteMany</option>
                             </select>
                         </div>
-                        <div class="col-4">
+                        <div class="col-3">
                           <label for="newpool-diskonevalue">Value:</label>
                           <select #newpooldiskonevalue class="custom-select rounded-0" name="newpool-diskonevalue" id="newpool-diskonevalue" disabled>
                           </select>
                         </div>
-                        <div class="col-2">
+                        <div class="col-1">
                           <label for="newpool-diskonesize">Size in GB:</label>
                           <input #newpooldiskonesize type=number class="form-control" id="newpool-diskonesize" disabled>
                         </div>
-                        <br><br>
-                        <div class="col-9">
-                          <label for="newpool-disk1-url">URL:</label>
-                          <input #newpooldiskoneurl type="text" class="form-control" id="newpool-disk1-url" name="newpool-disk1-url" disabled>
-                        </div>
-                        <div class="col-3">
+                        <div class="col-2">
                           <label for="newpool-diskonecm">Cache Mode:</label>
                           <select #newpooldiskonecm class="custom-select rounded-0" name="newpool-diskonecm" id="newpool-diskonecm">
                             <option value="">Automatic</option>
@@ -275,10 +267,7 @@
                             <select #newpooldisktwotype class="custom-select rounded-0" name="newpool-disktwotype" id="newpool-disktwotype" (change)="onChangeDiskTwo(newpooldisktwotype.value,newpoolnamespace.value)">
                               <option value="none">None</option>
                               <option value="blank">Blank Disk</option>
-                              <option value="http">Import (HTTP)</option>
-                              <option value="s3">Import (S3)</option>
-                              <option value="registry">Import (Registry)</option>
-                              <option value="pvc">Import (PVC)</option>
+                              <option value="image">Image</option>
                               <option value="dv">Existing Disk</option>
                             </select>
                           </div>
@@ -295,21 +284,16 @@
                                 <option>ReadWriteMany</option>
                             </select>
                           </div>
-                          <div class="col-4">
+                          <div class="col-3">
                               <label for="newpool-disktwovalue">Value:</label>
                               <select #newpooldisktwovalue class="custom-select rounded-0" name="newpool-disktwovalue" id="newpool-disktwovalue" disabled>
                               </select>
                           </div>
-                          <div class="col-2">
+                          <div class="col-1">
                             <label for="newpool-disktwosize">Size in GB:</label>
                             <input #newpooldisktwosize type=number class="form-control" id="newpool-disktwosize" disabled>
                           </div>
-                          <br><br>
-                          <div class="col-9">
-                            <label for="newpool-disk2-url">URL:</label>
-                            <input #newpooldisktwourl type="text" class="form-control" id="newpool-disk2-url" name="newpool-disk2-url" disabled>
-                          </div>
-                          <div class="col-3">
+                          <div class="col-2">
                             <label for="newpool-disktwocm">Cache Mode:</label>
                             <select #newpooldisktwocm class="custom-select rounded-0" name="newpool-disktwocm" id="newpool-disktwocm">
                               <option value="">Automatic</option>
@@ -393,7 +377,7 @@
                         <label for="newpool-userdata-username">Username:</label>
                         <input #newpooluserdatausername type="text" class="form-control" id="newpool-userdata-username" name="newpool-userdata-username">
                         <label for="newpool-userdata-auth">Authentication:</label>
-                        <select #newpooluserdataauth class="custom-select rounded-0" name="newpool-userdata-auth" id="newpool-userdata-auth" (change)="onChangeAuthType(newpooluserdataauth.value)">
+                        <select #newpooluserdataauth class="custom-select rounded-0" name="newpool-userdata-auth" id="newpool-userdata-auth" (change)="onChangeAuthType(newpooluserdataauth.value, newpoolnamespace.value)">
                           <option value="password">User/Password</option>
                           <option value="ssh">SSH Private Key</option>
                         </select>
@@ -403,7 +387,9 @@
                         </div>
                         <div class="pane fade" id="newpool-userdata-ssh-panel" name="newpool-userdata-ssh-panel" style="display: none;" aria-hidden="true">
                           <label for="newpool-userdata-ssh">SSH Key:</label>
-                          <textarea #newpooluserdatassh class="form-control" rows="3" cols="10" id="newpool-userdata-ssh" name="newpool-userdata-ssh"></textarea>
+                          <select #newpooluserdatassh class="custom-select rounded-0" name="newpool-userdata-ssh" id="newpool-userdata-ssh">
+                            <option>Loading...</option>
+                          </select>
                         </div>
                       </div>
                     <!-- INIT SCRIPT -->
@@ -417,7 +403,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-newpool")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)="applyNewPool(newpoolname.value, newpoolnamespace.value, newpoolreplicas.value, newpoollabelkeyone.value, newpoollabelvalueone.value, newpoollabelkeytwo.value, newpoollabelvaluetwo.value, newpoollabelkeythree.value, newpoollabelvaluethree.value, newpoollabelkeyfour.value, newpoollabelvaluefour.value, newpoollabelkeyfive.value, newpoollabelvaluefive.value, newpooltype.value, newpoolcpumemsockets.value, newpoolcpumemcores.value, newpoolcpumemthreads.value, newpoolcpumemmemory.value, newpoolpc.value, newpooldiskonetype.value, newpooldiskonevalue.value, newpooldiskonesize.value, newpooldiskonesc.value, newpooldiskoneam.value, newpooldiskoneurl.value, newpooldiskonecm.value, newpooldisktwotype.value, newpooldisktwovalue.value, newpooldisktwosize.value, newpooldisktwosc.value, newpooldisktwoam.value, newpooldisktwourl.value, newpooldisktwocm.value, newpoolnetwork.value, newpoolnetworktype.value, newpoollivenessenable.value, newpoollivenesstype.value, newpoollivenesspath.value, newpoollivenessport.value, newpoollivenessinitialdelay.value, newpoollivenessinterval.value, newpoollivenesstimeout.value, newpoollivenessfailure.value, newpoollivenesssuccess.value, newpoolreadinessenable.value, newpoolreadinesstype.value, newpoolreadinesspath.value, newpoolreadinessport.value, newpoolreadinessinitialdelay.value, newpoolreadinessinterval.value, newpoolreadinesstimeout.value, newpoolreadinessfailure.value, newpoolreadinesssuccess.value, newpooluserdatausername.value, newpooluserdataauth.value, newpooluserdatapassword.value, newpooluserdatassh.value, newpoolinitscript.value)">Create</button>
+              <button type="button" class="btn btn-primary" (click)="applyNewPool(newpoolname.value, newpoolnamespace.value, newpoolreplicas.value, newpoollabelkeyone.value, newpoollabelvalueone.value, newpoollabelkeytwo.value, newpoollabelvaluetwo.value, newpoollabelkeythree.value, newpoollabelvaluethree.value, newpoollabelkeyfour.value, newpoollabelvaluefour.value, newpoollabelkeyfive.value, newpoollabelvaluefive.value, newpooltype.value, newpoolcpumemsockets.value, newpoolcpumemcores.value, newpoolcpumemthreads.value, newpoolcpumemmemory.value, newpoolpc.value, newpooldiskonetype.value, newpooldiskonevalue.value, newpooldiskonesize.value, newpooldiskonesc.value, newpooldiskoneam.value, newpooldiskonecm.value, newpooldisktwotype.value, newpooldisktwovalue.value, newpooldisktwosize.value, newpooldisktwosc.value, newpooldisktwoam.value, newpooldisktwocm.value, newpoolnetwork.value, newpoolnetworktype.value, newpoollivenessenable.value, newpoollivenesstype.value, newpoollivenesspath.value, newpoollivenessport.value, newpoollivenessinitialdelay.value, newpoollivenessinterval.value, newpoollivenesstimeout.value, newpoollivenessfailure.value, newpoollivenesssuccess.value, newpoolreadinessenable.value, newpoolreadinesstype.value, newpoolreadinesspath.value, newpoolreadinessport.value, newpoolreadinessinitialdelay.value, newpoolreadinessinterval.value, newpoolreadinesstimeout.value, newpoolreadinessfailure.value, newpoolreadinesssuccess.value, newpooluserdatausername.value, newpooluserdataauth.value, newpooluserdatapassword.value, newpooluserdatassh.value, newpoolinitscript.value)">Create</button>
             </div>
           </form>
           </div>

@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { VirtualMachineClusterInstanceType } from '../interfaces/virtual-machine-cluster-instance-type';
+import { VirtualMachine } from '../interfaces/virtual-machine';
+import { VirtualMachinePool } from '../interfaces/virtual-machine-pool';
 
 
 @Injectable({
@@ -143,13 +146,15 @@ export class KubeVirtService {
         return this.http.delete(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`);
     }
 
-    createVm(namespace: string, name: string, vmvalue: Object): Observable<any> {
-        var baseUrl ='./k8s/apis/kubevirt.io/v1alpha3';
+    createVm(virtualMachine: VirtualMachine): Observable<any> {
+        var baseUrl ='./k8s/apis/' + virtualMachine.apiVersion;
+        let name = virtualMachine.metadata.name;
+        let namespace = virtualMachine.metadata.namespace;
         const headers = {
             'content-type': 'application/json',
             'accept': 'application/json'
         };
-        return this.http.post(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`, vmvalue, { 'headers': headers } );
+        return this.http.post(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`, virtualMachine, { 'headers': headers } );
     }
 
     getClusterInstanceTypes(): Observable<any> {
@@ -167,13 +172,14 @@ export class KubeVirtService {
         return this.http.delete(`${baseUrl}/virtualmachineclusterinstancetypes/${typeName}`);
     }
 
-    createClusterInstanceType(typeName: string, typeValue: Object): Observable<any> {
-        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1alpha1';
+    createClusterInstanceType(clusterInstanceType: VirtualMachineClusterInstanceType): Observable<any> {
+        var baseUrl ='./k8s/apis/' + clusterInstanceType.apiVersion;
+        var name = clusterInstanceType.metadata.name;
         const headers = {
             'content-type': 'application/json',
             'accept': 'application/json'
         };
-        return this.http.post(`${baseUrl}/virtualmachineclusterinstancetypes/${typeName}`, typeValue, { 'headers': headers } );
+        return this.http.post(`${baseUrl}/virtualmachineclusterinstancetypes/${name}`, clusterInstanceType, { 'headers': headers } );
     }
 
     editClusterInstanceType(typeName: string, typeCPU: string, typeMemory: string): Observable<any> {
@@ -226,13 +232,15 @@ export class KubeVirtService {
         return this.http.patch(`${baseUrl}/namespaces/${namespace}/virtualmachinepools/${name}`, '{"spec":{"virtualMachineTemplate":{"spec":{"template":{"spec":{"domain":{"cpu":{"sockets": '+sockets+',"cores": '+cores+',"threads": '+threads+'},"resources":{"requests":{"memory": "'+memory+'Gi"}}}}}}}}}', { 'headers': headers } );
     }
 
-    createPool(namespace: string, name: string, poolvalue: Object): Observable<any> {
-        var baseUrl ='./k8s/apis/pool.kubevirt.io/v1alpha1';
+    createPool(virtualMachinePool: VirtualMachinePool): Observable<any> {
+        var baseUrl ='./k8s/apis/' + virtualMachinePool.apiVersion;
+        var name = virtualMachinePool.metadata.name;
+        var namespace = virtualMachinePool.metadata.namespace;
         const headers = {
             'content-type': 'application/json',
             'accept': 'application/json'
         };
-        return this.http.post(`${baseUrl}/namespaces/${namespace}/virtualmachinepools/${name}`, poolvalue, { 'headers': headers } );
+        return this.http.post(`${baseUrl}/namespaces/${namespace}/virtualmachinepools/${name}`, virtualMachinePool, { 'headers': headers } );
     }
 
     changePoolType(namespace: string, name: string, type: string): Observable<any> {

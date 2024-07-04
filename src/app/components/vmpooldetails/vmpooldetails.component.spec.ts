@@ -1,9 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { VmpooldetailsComponent } from './vmpooldetails.component';
 import { DebugElement } from '@angular/core';
 import { RouterTestingModule } from "@angular/router/testing";
 import { FormsModule } from '@angular/forms';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('VmpooldetailsComponent', () => {
   let component: VmpooldetailsComponent;
@@ -11,9 +12,10 @@ describe('VmpooldetailsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, RouterTestingModule, FormsModule],
-      declarations: [ VmpooldetailsComponent ]
-    })
+    declarations: [VmpooldetailsComponent],
+    imports: [RouterTestingModule, FormsModule],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(VmpooldetailsComponent);

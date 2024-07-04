@@ -1,0 +1,78 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: images.kubevirt-manager.io
+spec:
+  group: kubevirt-manager.io
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              x-kubernetes-validations:
+                - rule: "self.type.matches('^(http)|(gcs)|(s3)|(registry)|(pvc)$')"
+                  message: "spec.type should be: http, registry, s3, gcs, pvc"
+              required:
+                - type
+                - readableName
+              oneOf:
+                - required: ["http"]
+                - required: ["registry"]
+                - required: ["s3"]
+                - required: ["gcs"]
+                - required: ["pvc"]
+              properties:
+                type:
+                  type: string
+                credentials:
+                  type: string
+                readableName:
+                  type: string
+                readableDescription:
+                  type: string
+                http:
+                  type: object
+                  properties:
+                    url: 
+                      type: string
+                registry:
+                  type: object
+                  properties:
+                    url:
+                      type: string
+                s3:
+                  type: object
+                  properties:
+                    url:
+                      type: string
+                gcs:
+                  type: object
+                  properties:
+                    url:
+                      type: string
+                pvc:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+      additionalPrinterColumns:
+        - name: "Type"
+          type: "string"
+          jsonPath: ".spec.type"
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+  scope: Namespaced
+  names:
+    plural: images
+    singular: image
+    kind: Image
+    shortNames:
+    - img

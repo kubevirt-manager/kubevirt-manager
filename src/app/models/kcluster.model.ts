@@ -19,6 +19,7 @@ export class KCluster {
     cniPlugin:                                 string  = "";
     cniPluginVersion:                          string  = "";
     cniVXLANPort:                              string  = "";
+    clusterAutoscaler:                        boolean  = false;
     workerPools:                               number  = 0;
     totalWorkers:                              number  = 0;
     controlPlaneReady:                        boolean  = false;

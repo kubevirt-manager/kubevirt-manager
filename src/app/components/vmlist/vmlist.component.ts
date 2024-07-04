@@ -10,7 +10,10 @@ import { VMDisk } from 'src/app/models/vmdisk.model';
 import { NetworkAttach } from 'src/app/models/network-attach.model';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { DataVolumesService } from 'src/app/services/data-volumes.service';
-import { VirtualMachine } from 'src/app/templates/virtual-machine.apitemplate';
+import { DataVolume } from 'src/app/interfaces/data-volume';
+import { VirtualMachine } from 'src/app/interfaces/virtual-machine';
+import { KubevirtMgrService } from 'src/app/services/kubevirt-mgr.service';
+import { Images } from 'src/app/models/images.model';
 
 
 @Component({
@@ -28,8 +31,6 @@ export class VmlistComponent implements OnInit {
     netAttachList: NetworkAttach[] = []
     networkCheck: boolean = false;
 
-    myVmTemplateTyped = new VirtualMachine().typedVM;
-    myVmTemplateCustom = new VirtualMachine().customVM;
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
@@ -37,7 +38,8 @@ export class VmlistComponent implements OnInit {
         private router: Router,
         private dataVolumesService: DataVolumesService,
         private k8sApisService: K8sApisService,
-        private kubeVirtService: KubeVirtService
+        private kubeVirtService: KubeVirtService,
+        private kubevirtMgrService: KubevirtMgrService
     ) { }
 
     async ngOnInit(): Promise<void> {
@@ -80,7 +82,7 @@ export class VmlistComponent implements OnInit {
             }
             this.nodeList.push(currentNode);
         } catch (e: any) {
-            console.log(e);
+            console.log(e.error.message);
         }
     }
 
@@ -97,7 +99,7 @@ export class VmlistComponent implements OnInit {
             currentVm.namespace = vms[i].metadata["namespace"];
             currentVm.creationTimestamp = new Date(vms[i].metadata["creationTimestamp"]);
             try {
-                currentVm.status = vms[i].status["printableStatus"];
+                currentVm.status = vms[i].status["printableStatus"].toLowerCase();
                 /* Working around a bug when scaling down and VM stuck in terminating */
                 if(currentVm.status.toLowerCase() == "terminating") {
                     currentVm.running = false;
@@ -109,13 +111,13 @@ export class VmlistComponent implements OnInit {
             } catch (e: any) {
                 currentVm.status = "";
                 currentVm.running = false;
-                console.log(e);
+                console.log("Error loading VM status");
             }
             try {
                 currentVm.nodeSel = vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"];
             } catch (e: any) {
                 currentVm.nodeSel = "auto-select";
-                console.log(e);
+                console.log("No nodeSelector, using auto-select");
             }
 
             /* Getting VM Type */
@@ -123,7 +125,7 @@ export class VmlistComponent implements OnInit {
                 currentVm.instType = vms[i].spec.instancetype.name;
             } catch(e: any) {
                 currentVm.instType = "custom";
-                console.log(e);
+                console.log("custom vm");
             }
 
             if(currentVm.instType == "custom") {
@@ -138,7 +140,7 @@ export class VmlistComponent implements OnInit {
                     currentVm.sockets = currentVm.sockets || 0;
                     currentVm.threads = currentVm.threads || 0;
                     currentVm.memory = currentVm.memory || "N/A";
-                    console.log(e);
+                    console.log("error getting custom vm cpu/memory");
                 }
 
             } else {
@@ -154,7 +156,7 @@ export class VmlistComponent implements OnInit {
                     currentVm.threads = 0;
                     currentVm.cores = 0;
                     currentVm.memory = "";
-                    console.log(e);
+                    console.log("error loading instance type");
                 }
             }
 
@@ -162,7 +164,7 @@ export class VmlistComponent implements OnInit {
                 currentVm.ready = vms[i].status["ready"];
             }
 
-            if(currentVm.running && currentVm.status && vms[i].status["printableStatus"].toLowerCase() == "running") {
+            if(currentVm.running && currentVm.status && currentVm.status == "running") {
                 let currentVmi = new KubeVirtVMI;
                 try {
                     const datavmi = await lastValueFrom(this.kubeVirtService.getVMi(currentVm.namespace, currentVm.name));
@@ -191,13 +193,12 @@ export class VmlistComponent implements OnInit {
                     } catch(e: any) {
                         currentVmi.ifAddr = "";
                         currentVmi.ifName = "";
-                        console.log(e);
+                        console.log("error getting interface data");
                     }
 
                     currentVmi.nodeName = datavmi.status["nodeName"];
                     currentVm.vmi = currentVmi;
                 } catch (e: any) {
-                    console.log(e);
                     console.log("ERROR Retrieving VMI: " + currentVm.name + "-" + currentVm.namespace + ":" + currentVm.status);
                 }
             }
@@ -238,7 +239,7 @@ export class VmlistComponent implements OnInit {
                 nsSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
             }
         } catch (e: any) {
-            console.log(e);
+            console.log(e.error.message);
         }
 
         /* Show new window
@@ -265,7 +266,7 @@ export class VmlistComponent implements OnInit {
                 typeSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
             }
         } catch (e: any) {
-            console.log(e);
+            console.log(e.error.message);
         }
 
         /* Load Priority Class List and Set Selector */
@@ -276,7 +277,7 @@ export class VmlistComponent implements OnInit {
                 storageSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
             }
         } catch (e: any) {
-            console.log(e);
+            console.log(e.error.message);
         }
 
         /* Load Storage Class List and Set Selector */
@@ -291,7 +292,7 @@ export class VmlistComponent implements OnInit {
                 }
             }
         } catch (e: any) {
-            console.log(e);
+            console.log(e.error.message);
         }
 
         if (selectorNamespacesField != null) {
@@ -312,33 +313,6 @@ export class VmlistComponent implements OnInit {
             selectorPCField.innerHTML = prioritySelectorOptions;
         }
 
-        /* Clean up devices */
-        while(this.myVmTemplateCustom.spec.template.spec.domain.devices.disks.length > 0) {
-            this.myVmTemplateCustom.spec.template.spec.domain.devices.disks.pop();
-        }
-        while(this.myVmTemplateCustom.spec.template.spec.volumes.length > 0){
-            this.myVmTemplateCustom.spec.template.spec.volumes.pop();
-        }
-        while(this.myVmTemplateTyped.spec.template.spec.domain.devices.disks.length > 0) {
-            this.myVmTemplateTyped.spec.template.spec.domain.devices.disks.pop();
-        }
-        while(this.myVmTemplateTyped.spec.template.spec.volumes.length > 0){
-            this.myVmTemplateTyped.spec.template.spec.volumes.pop();
-        }
-
-        /* Clean up networks */
-        while(this.myVmTemplateCustom.spec.template.spec.networks.length > 0){
-            this.myVmTemplateCustom.spec.template.spec.networks.pop();
-        }
-        while(this.myVmTemplateCustom.spec.template.spec.domain.devices.interfaces.length > 0) {
-            this.myVmTemplateCustom.spec.template.spec.domain.devices.interfaces.pop();
-        }
-        while(this.myVmTemplateTyped.spec.template.spec.networks.length > 0){
-            this.myVmTemplateTyped.spec.template.spec.networks.pop();
-        }
-        while(this.myVmTemplateTyped.spec.template.spec.domain.devices.interfaces.length > 0) {
-            this.myVmTemplateTyped.spec.template.spec.domain.devices.interfaces.pop();
-        }
     }
 
     /*
@@ -369,14 +343,12 @@ export class VmlistComponent implements OnInit {
         newvmdiskonesize: string,
         newvmdiskonesc: string,
         newvmdiskoneam: string,        
-        newvmdiskoneurl: string,
         newvmdiskonecm: string,
         newvmdisktwotype: string,
         newvmdisktwovalue: string,
         newvmdisktwosize: string,
         newvmdisktwosc: string,
         newvmdisktwoam: string,
-        newvmdisktwourl: string,
         newvmdisktwocm: string,
         newvmnetworkone: string,
         newvmnetworktypeone: string,
@@ -398,25 +370,53 @@ export class VmlistComponent implements OnInit {
             alert("You need to fill in the name and namespace fields!");
         } else if (newvmdiskonetype == "none") {
             alert("Your virtual machine needs at least the first disk!");
-        } else if ((newvmdiskonetype == "blank" || newvmdiskonetype == "http" || newvmdiskonetype == "s3" || newvmdiskonetype == "gcs" || newvmdiskonetype == "registry") && newvmdiskonesize == "") {
-            alert("You need to set a size for your disk!");
-        } else if ((newvmdiskonetype == "http" || newvmdiskonetype == "s3" || newvmdiskonetype == "gcs" || newvmdiskonetype == "registry") && ((newvmdiskoneurl == "") || (!newvmdiskoneurl.startsWith("http") && !newvmdiskoneurl.startsWith("s3://") && !newvmdiskoneurl.startsWith("gcs://") && !newvmdiskoneurl.startsWith("docker://")))) {
-            alert("You need to enter import URL your Disk 1!\nUse protocol://");
-        } else if (newvmdiskonetype == "disk" && newvmdiskonevalue == "") {
-            alert("You need to select the disk!");
-        } else if ((newvmdisktwotype == "blank" || newvmdisktwotype == "http" || newvmdisktwotype == "s3" || newvmdisktwotype == "gcs" || newvmdisktwotype == "registry") && newvmdisktwosize == "") {
-            alert("You need to set a size for your disk!");
-        } else if ((newvmdisktwotype == "http" || newvmdisktwotype == "s3" || newvmdisktwotype == "gcs" || newvmdisktwotype == "registry") && ((newvmdisktwourl == "") || (!newvmdisktwourl.startsWith("http") && !newvmdisktwourl.startsWith("s3://") && !newvmdisktwourl.startsWith("gcs://") && !newvmdisktwourl.startsWith("docker://")))) {
-            alert("You need to enter import URL your Disk 2!\nUse protocol://");
-        } else if (newvmdisktwotype == "disk" && newvmdisktwovalue == "") {
-            alert("You need to select the disk!");
+        } else if ((newvmdiskonetype == "blank" || newvmdiskonetype == "image") && newvmdiskonesize == "") {
+            alert("You need to set a size for your Disk 1!");
+        } else if ((newvmdiskonetype == "image" || newvmdiskonetype == "dv") && newvmdiskonevalue == "") {
+            alert("You need to select the Disk 1!");
+        } else if ((newvmdisktwotype == "blank" || newvmdisktwotype == "image") && newvmdisktwosize == "") {
+            alert("You need to set a size for your Disk 2!");
+        } else if ((newvmdisktwotype == "image" || newvmdisktwotype == "dv") && newvmdisktwovalue == "") {
+            alert("You need to select the Disk 2!");
         } else if(this.checkVmExists(newvmname, newvmnamespace)) {
             alert("VM with name/namespace combination already exists!");
         } else if(newvmtype.toLowerCase() == "none" || newvmtype.toLowerCase() == "") {
             alert("Please select a valid VM type!");
         } else {
 
-            /* Load Custom Labels */
+            let thisVirtualMachine: VirtualMachine = {
+                apiVersion: "kubevirt.io/v1alpha3",
+                kind: "VirtualMachine",
+                metadata: {
+                    name: newvmname,
+                    namespace: newvmnamespace,
+                },
+                spec: {
+                    running: false,
+                    template: {
+                        metadata: {},
+                        spec: {
+                            domain: {
+                                devices: {
+                                    disks: {},
+                                    interfaces: {},
+                                    networkInterfaceMultiqueue: true
+                                }
+                            },
+                            networks: {},
+                            volumes: {}
+                        }
+                    }
+                }
+            }
+
+            /* Our Arrays */
+            let networks = [];
+            let disks = [];
+            let interfaces = [];
+            let volumes = [];
+
+            /* Load Custom Labels  OPTIONAL */
             let tmpLabels = {};
             if(newvmlabelkeyone != "") {
                 let thisLabel = {
@@ -449,91 +449,21 @@ export class VmlistComponent implements OnInit {
                 Object.assign(tmpLabels, thisLabel);
             }
 
-            /* Load other labels */
+            /* Load other labels OPTIONAL */
             let thisLabel = {'kubevirt.io/domain': newvmname};
             Object.assign(tmpLabels, thisLabel);
 
             let kubevirtManagerLabel = {'kubevirt-manager.io/managed': "true"};
             Object.assign(tmpLabels, kubevirtManagerLabel);
 
-            /* Check VM Type */
-            if(newvmtype.toLowerCase() == "custom") {
-                if(newvmcpumemsockets == "" || newvmcpumemcores == "" || newvmcpumemthreads == "" || newvmcpumemmemory == "") {
-                    alert("For custom VM you need to set cpu and memory parameters!");
-                    throw new Error("For custom VM you need to set cpu and memory parameters!");
-                } else {
-                    /* Custom VM */
-                    this.myVmTemplateCustom.metadata.name = newvmname;
-                    this.myVmTemplateCustom.metadata.namespace = newvmnamespace;
-                    this.myVmTemplateCustom.metadata.labels = tmpLabels;
-                    this.myVmTemplateCustom.spec.template.metadata.labels = tmpLabels;
-                    if (newvmnode != "auto-select") {
-                        this.myVmTemplateCustom.spec.template.spec.nodeSelector = {"kubernetes.io/hostname": newvmnode};
-                    }
-                    this.myVmTemplateCustom.spec.template.spec.priorityClassName = newvmpriorityclass;
-                    this.myVmTemplateCustom.spec.template.spec.domain.cpu.cores = Number(newvmcpumemcores);
-                    this.myVmTemplateCustom.spec.template.spec.domain.cpu.threads = Number(newvmcpumemthreads);
-                    this.myVmTemplateCustom.spec.template.spec.domain.cpu.sockets = Number(newvmcpumemsockets);
-                    this.myVmTemplateCustom.spec.template.spec.domain.resources.requests.memory = newvmcpumemmemory + "Gi";
+            /* Populate our VM with our Labels */
+            thisVirtualMachine.metadata.labels = tmpLabels;
 
-                    /* Clean up devices */
-                    while(this.myVmTemplateCustom.spec.template.spec.domain.devices.disks.length > 0) {
-                        this.myVmTemplateCustom.spec.template.spec.domain.devices.disks.pop();
-                    }
-                    while(this.myVmTemplateCustom.spec.template.spec.volumes.length > 0){
-                        this.myVmTemplateCustom.spec.template.spec.volumes.pop();
-                    }
-                
-                    /* Clean up networks */
-                    while(this.myVmTemplateCustom.spec.template.spec.networks.length > 0){
-                        this.myVmTemplateCustom.spec.template.spec.networks.pop();
-                    }
-                    while(this.myVmTemplateCustom.spec.template.spec.domain.devices.interfaces.length > 0) {
-                        this.myVmTemplateCustom.spec.template.spec.domain.devices.interfaces.pop();
-                    }
-                }
-            } else {
-                /* Clean up devices */
-                while(this.myVmTemplateTyped.spec.template.spec.domain.devices.disks.length > 0) {
-                    this.myVmTemplateTyped.spec.template.spec.domain.devices.disks.pop();
-                }
-                while(this.myVmTemplateTyped.spec.template.spec.volumes.length > 0){
-                    this.myVmTemplateTyped.spec.template.spec.volumes.pop();
-                }
-            
-                /* Clean up networks */
-                while(this.myVmTemplateTyped.spec.template.spec.networks.length > 0){
-                    this.myVmTemplateTyped.spec.template.spec.networks.pop();
-                }
-                while(this.myVmTemplateTyped.spec.template.spec.domain.devices.interfaces.length > 0) {
-                    this.myVmTemplateTyped.spec.template.spec.domain.devices.interfaces.pop();
-                }
-
-                this.myVmTemplateTyped.apiVersion = "kubevirt.io/v1alpha3";
-                this.myVmTemplateTyped.kind = "VirtualMachine";
-                this.myVmTemplateTyped.metadata.name = newvmname;
-                this.myVmTemplateTyped.metadata.namespace = newvmnamespace;
-                this.myVmTemplateTyped.metadata.labels = tmpLabels;
-                this.myVmTemplateTyped.spec.template.metadata.labels = tmpLabels;
-                if(newvmnode != "auto-select") {
-                    this.myVmTemplateTyped.spec.template.spec.nodeSelector = {"kubernetes.io/hostname": newvmnode};
-                }
-                this.myVmTemplateTyped.spec.template.spec.priorityClassName = newvmpriorityclass;
-                this.myVmTemplateTyped.spec.instancetype.name = newvmtype;
+            /* Node Selector */
+            if(newvmnode != "auto-select") {
+                thisVirtualMachine.spec.template.spec.nodeSelector = {"kubernetes.io/hostname": newvmnode};
             }
 
-            /* Placeholders */
-            let data = "";
-            let disk1 = {};
-            let disk2 = {};
-            let disk3 = {};
-            let device1 = {};
-            let device2 = {};
-            let device3 = {};
-            let net1 = {};
-            let net2 = {};
-            let iface1 = {};
-            let iface2 = {};
 
             let cloudconfig  = "#cloud-config\n";
                 cloudconfig += "manage_etc_hosts: true\n";
@@ -545,227 +475,269 @@ export class VmlistComponent implements OnInit {
                 netconfig += "      subnets:\n";
 
             /* Disk1 setup */
-            if(newvmdiskonetype == "http") {
-                /* Create Disk From HTTP Image */
-                let disk1name = newvmnamespace + "-"+ newvmname + "-disk1";
-                try {
-                    let disk1data = await lastValueFrom(this.dataVolumesService.createHTTPDataVolume(newvmnamespace, disk1name, newvmdiskonesize, newvmdiskonesc, newvmdiskoneam, newvmdiskoneurl));
-                    if(newvmdiskonecm != "") {
-                        disk1 = { 'name': "disk1", 'cache': newvmdiskonecm, 'disk': {}};
-                    } else {
-                        disk1 = { 'name': "disk1", 'disk': {}};
+            let disk1name = newvmnamespace + "-"+ newvmname + "-disk1";
+            let disk1 = {};
+            let device1 = {};
+            let dataVolumeOne: DataVolume = {
+                apiVersion: "cdi.kubevirt.io/v1beta1",
+                kind: "DataVolume",
+                metadata: {
+                    name: disk1name,
+                    namespace: newvmnamespace,
+                    annotations: {
+                        "cdi.kubevirt.io/storage.deleteAfterCompletion": "false",
                     }
-                    device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
-                } catch (e: any) {
-                    alert(e.error.message);
-                    console.log(e);
-                    throw new Error("Error creating Disk1 from Image!");
+                },
+                spec: {
+                    pvc: {
+                        storageClassName: newvmdiskonesc,
+                        accessModes:[
+                            newvmdiskoneam
+                        ],
+                        resources: {
+                            requests: {
+                                storage: newvmdiskonesize + "Gi",
+                            }
+                        }
+                    },
+                    source: {}
                 }
-            } else if(newvmdiskonetype == "s3") {
-                /* Create Disk From S3 Image */
-                let disk1name = newvmnamespace + "-"+ newvmname + "-disk1";
+            }
+            if(newvmdiskonetype == "image") {
                 try {
-                    let disk1data = await lastValueFrom(this.dataVolumesService.createS3DataVolume(newvmnamespace, disk1name, newvmdiskonesize, newvmdiskonesc, newvmdiskoneam, newvmdiskoneurl));
-                    if(newvmdiskonecm != "") {
-                        disk1 = { 'name': "disk1", 'cache': newvmdiskonecm, 'disk': {}};
-                    } else {
-                        disk1 = { 'name': "disk1", 'disk': {}};
+                    let imageData = await lastValueFrom(await this.kubevirtMgrService.getImage(newvmnamespace, newvmdiskonevalue));
+                    switch(imageData.spec.type) {
+                        case "http":
+                            dataVolumeOne.spec.source = {
+                                http: {
+                                    url: imageData.spec.http.url
+                                }
+                            }
+                            break;
+                        case "gcs":
+                            dataVolumeOne.spec.source = {
+                                gcs: {
+                                    url: imageData.spec.gcs.url
+                                }
+                            }
+                            break;
+                        case "s3":
+                            dataVolumeOne.spec.source = {
+                                s3: {
+                                    url: imageData.spec.s3.url
+                                }
+                            }
+                            break;
+                        case "registry":
+                            dataVolumeOne.spec.source = {
+                                registry: {
+                                    url: imageData.spec.registry.url
+                                }
+                            }
+                            break;
+                        case "pvc":
+                            dataVolumeOne.spec.source = {
+                                pvc: {
+                                    name: imageData.spec.pvc.name,
+                                    namespace: imageData.spec.pvc.namespace
+                                }
+                            }
+                            break;
                     }
-                    device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
                 } catch (e: any) {
                     alert(e.error.message);
-                    console.log(e);
-                    throw new Error("Error creating Disk1 from Image!");
+                    console.log(e.error.message);
+                    throw new Error("Error loading Disk1 image data!");
                 }
-            } else if(newvmdiskonetype == "gcs") {
-                /* Create Disk From GCS Image */
-                let disk1name = newvmnamespace + "-"+ newvmname + "-disk1";
                 try {
-                    let disk1data = await lastValueFrom(this.dataVolumesService.createGCSDataVolume(newvmnamespace, disk1name, newvmdiskonesize, newvmdiskonesc, newvmdiskoneam, newvmdiskoneurl));
+                    let disk1data = await lastValueFrom(this.dataVolumesService.createDataVolume(dataVolumeOne));
                     if(newvmdiskonecm != "") {
                         disk1 = { 'name': "disk1", 'cache': newvmdiskonecm, 'disk': {}};
                     } else {
                         disk1 = { 'name': "disk1", 'disk': {}};
                     }
-                    device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
+                    device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}};
+                    volumes.push(device1);
+                    disks.push(disk1);
                 } catch (e: any) {
                     alert(e.error.message);
-                    console.log(e);
-                    throw new Error("Error creating Disk1 from Image!");
-                }
-            } else if(newvmdiskonetype == "registry") {
-                /* Create Disk From Container Registry Image */
-                let disk1name = newvmnamespace + "-"+ newvmname + "-disk1";
-                try {
-                    let disk1data = await lastValueFrom(this.dataVolumesService.createRegistryDataVolume(newvmnamespace, disk1name, newvmdiskonesize, newvmdiskonesc, newvmdiskoneam, newvmdiskoneurl));
-                    if(newvmdiskonecm != "") {
-                        disk1 = { 'name': "disk1", 'cache': newvmdiskonecm, 'disk': {}};
-                    } else {
-                        disk1 = { 'name': "disk1", 'disk': {}};
-                    }
-                    device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
-                } catch (e: any) {
-                    alert(e.error.message);
-                    console.log(e);
+                    console.log(e.error.message);
                     throw new Error("Error creating Disk1 from Image!");
                 }
             } else if (newvmdiskonetype == "blank") {
-                /* Create Blank Disk */
-                let disk1name = newvmnamespace + "-"+ newvmname + "-disk1";
+                dataVolumeOne.spec.source = {
+                    blank: {}
+                }
                 try {
-                    let disk1data = await lastValueFrom(this.dataVolumesService.createBlankDataVolume(newvmnamespace, disk1name, newvmdiskonesize, newvmdiskonesc, newvmdiskoneam));
+                    let disk1data = await lastValueFrom(this.dataVolumesService.createDataVolume(dataVolumeOne));
                     if(newvmdiskonecm != "") {
                         disk1 = { 'name': "disk1", 'cache': newvmdiskonecm, 'disk': {}};
                     } else {
                         disk1 = { 'name': "disk1", 'disk': {}};
                     }
-                    device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
+                    device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}};
+                    volumes.push(device1);
+                    disks.push(disk1);
                 } catch (e: any) {
                     alert(e.error.message);
-                    console.log(e);
+                    console.log(e.error.message);
                     throw new Error("Error creating Disk1 from Blank!");
                 }
-            } else if (newvmdiskonetype == "pvc") {
-                /* Copy Existing PVC */
-                let disk1name = newvmnamespace + "-"+ newvmname + "-disk1";
-                try {
-                    let disk1data = await lastValueFrom(this.dataVolumesService.createPVCDataVolume(newvmnamespace, disk1name, newvmdiskonesize, newvmdiskonesc, newvmdiskoneam, newvmdiskonevalue));
-                    if(newvmdiskonecm != "") {
-                        disk1 = { 'name': "disk1", 'cache': newvmdiskonecm, 'disk': {}};
-                    } else {
-                        disk1 = { 'name': "disk1", 'disk': {}};
-                    }
-                    device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
-                } catch (e: any) {
-                    alert(e.error.message);
-                    console.log(e);
-                    throw new Error("Error creating Disk1 from PVC!");
-                }
             } else if (newvmdiskonetype == "dv") {
-                /* Use Existing Disk */
+                /* Use Existing DataVolume */
                 if(newvmdiskonecm != "") {
                     disk1 = { 'name': "disk1", 'cache': newvmdiskonecm, 'disk': {}};
                 } else {
                     disk1 = { 'name': "disk1", 'disk': {}};
                 }
-                device1 = { 'name': "disk1", 'dataVolume': { 'name': newvmdiskonevalue}}
+                device1 = { 'name': "disk1", 'dataVolume': { 'name': newvmdiskonevalue}};
+                volumes.push(device1);
+                disks.push(disk1);
             }
 
             /* Disk2 setup */
-            if(newvmdisktwotype == "http") {
-                /* Create Disk From HTTP Image */
+            if(newvmdisktwotype != "none") {
                 let disk2name = newvmnamespace + "-"+ newvmname + "-disk2";
-                try {
-                    let disk2data = await lastValueFrom(this.dataVolumesService.createHTTPDataVolume(newvmnamespace, disk2name, newvmdisktwosize, newvmdisktwosc, newvmdisktwoam, newvmdisktwourl));
+                let disk2 = {};
+                let device2 = {};
+                let dataVolumeTwo: DataVolume = {
+                    apiVersion: "cdi.kubevirt.io/v1beta1",
+                    kind: "DataVolume",
+                    metadata: {
+                        name: disk2name,
+                        namespace: newvmnamespace,
+                        annotations: {
+                            "cdi.kubevirt.io/storage.deleteAfterCompletion": "false",
+                        }
+                    },
+                    spec: {
+                        pvc: {
+                            storageClassName: newvmdisktwosc,
+                            accessModes:[
+                                newvmdisktwoam
+                            ],
+                            resources: {
+                                requests: {
+                                    storage: newvmdisktwosize + "Gi",
+                                }
+                            }
+                        },
+                        source: {}
+                    }
+                }
+                if(newvmdisktwotype == "image") {
+                    try {
+                        let imageData = await lastValueFrom(await this.kubevirtMgrService.getImage(newvmnamespace, newvmdisktwovalue));
+                        switch(imageData.spec.type) {
+                            case "http":
+                                dataVolumeTwo.spec.source = {
+                                    http: {
+                                        url: imageData.spec.http.url
+                                    }
+                                }
+                                break;
+                            case "gcs":
+                                dataVolumeTwo.spec.source = {
+                                    gcs: {
+                                        url: imageData.spec.gcs.url
+                                    }
+                                }
+                                break;
+                            case "s3":
+                                dataVolumeTwo.spec.source = {
+                                    s3: {
+                                        url: imageData.spec.s3.url
+                                    }
+                                }
+                                break;
+                            case "registry":
+                                dataVolumeTwo.spec.source = {
+                                    registry: {
+                                        url: imageData.spec.registry.url
+                                    }
+                                }
+                                break;
+                            case "pvc":
+                                dataVolumeTwo.spec.source = {
+                                    pvc: {
+                                        name: imageData.spec.pvc.name,
+                                        namespace: imageData.spec.pvc.namespace
+                                    }
+                                }
+                                break;
+                        }
+                    } catch (e: any) {
+                        alert(e.error.message);
+                        console.log(e.error.message);
+                        throw new Error("Error loading Disk2 image data!");
+                    }
+                    try {
+                        let disk2data = await lastValueFrom(this.dataVolumesService.createDataVolume(dataVolumeTwo));
+                        if(newvmdisktwocm != "") {
+                            disk2 = { 'name': "disk2", 'cache': newvmdisktwocm, 'disk': {}};
+                        } else {
+                            disk2 = { 'name': "disk2", 'disk': {}};
+                        }
+                        device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}};
+                        volumes.push(device2);
+                        disks.push(disk2);
+                    } catch (e: any) {
+                        alert(e.error.message);
+                        console.log(e.error.message);
+                        throw new Error("Error creating Disk2 from Image!");
+                    }
+                } else if (newvmdisktwotype == "blank") {
+                    dataVolumeTwo.spec.source = {
+                        blank: {}
+                    }
+                    try {
+                        let disk2data = await lastValueFrom(this.dataVolumesService.createDataVolume(dataVolumeTwo));
+                        if(newvmdisktwocm != "") {
+                            disk2 = { 'name': "disk2", 'cache': newvmdisktwocm, 'disk': {}};
+                        } else {
+                            disk2 = { 'name': "disk2", 'disk': {}};
+                        }
+                        device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}};
+                        volumes.push(device2);
+                        disks.push(disk2);
+                    } catch (e: any) {
+                        alert(e.error.message);
+                        console.log(e.error.message);
+                        throw new Error("Error creating Disk2 from Blank!");
+                    }
+                } else if (newvmdisktwotype == "dv") {
+                    /* Use Existing DataVolume */
                     if(newvmdisktwocm != "") {
                         disk2 = { 'name': "disk2", 'cache': newvmdisktwocm, 'disk': {}};
                     } else {
                         disk2 = { 'name': "disk2", 'disk': {}};
                     }
-                    device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                } catch (e: any) {
-                    alert(e.error.message);
-                    console.log(e);
-                    throw new Error("Error creating Disk2 from Image!");
+                    device2 = { 'name': "disk2", 'dataVolume': { 'name': newvmdisktwovalue}};
+                    volumes.push(device2);
+                    disks.push(disk2);
                 }
-            } else if(newvmdisktwotype == "s3") {
-                /* Create Disk From S3 Image */
-                let disk2name = newvmnamespace + "-"+ newvmname + "-disk2";
-                try {
-                    let disk2data = await lastValueFrom(this.dataVolumesService.createS3DataVolume(newvmnamespace, disk2name, newvmdisktwosize, newvmdisktwosc, newvmdisktwoam, newvmdisktwourl));
-                    if(newvmdisktwocm != "") {
-                        disk2 = { 'name': "disk2", 'cache': newvmdisktwocm, 'disk': {}};
-                    } else {
-                        disk2 = { 'name': "disk2", 'disk': {}};
-                    }
-                    device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                } catch (e: any) {
-                    alert(e.error.message);
-                    console.log(e);
-                    throw new Error("Error creating Disk2 from Image!");
-                }
-            } else if(newvmdisktwotype == "gcs") {
-                /* Create Disk From GCS Image */
-                let disk2name = newvmnamespace + "-"+ newvmname + "-disk2";
-                try {
-                    let disk2data = await lastValueFrom(this.dataVolumesService.createGCSDataVolume(newvmnamespace, disk2name, newvmdisktwosize, newvmdisktwosc, newvmdisktwoam, newvmdisktwourl));
-                    if(newvmdisktwocm != "") {
-                        disk2 = { 'name': "disk2", 'cache': newvmdisktwocm, 'disk': {}};
-                    } else {
-                        disk2 = { 'name': "disk2", 'disk': {}};
-                    }
-                    device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                } catch (e: any) {
-                    alert(e.error.message);
-                    console.log(e);
-                    throw new Error("Error creating Disk2 from Image!");
-                }
-            } else if(newvmdisktwotype == "registry") {
-                /* Create Disk From Container Registry Image */
-                let disk2name = newvmnamespace + "-"+ newvmname + "-disk2";
-                try {
-                    let disk2data = await lastValueFrom(this.dataVolumesService.createRegistryDataVolume(newvmnamespace, disk2name, newvmdisktwosize, newvmdisktwosc, newvmdisktwoam, newvmdisktwourl));
-                    if(newvmdisktwocm != "") {
-                        disk2 = { 'name': "disk2", 'cache': newvmdisktwocm, 'disk': {}};
-                    } else {
-                        disk2 = { 'name': "disk2", 'disk': {}};
-                    }
-                    device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                } catch (e: any) {
-                    alert(e.error.message);
-                    console.log(e);
-                    throw new Error("Error creating Disk2 from Image!");
-                }
-            } else if (newvmdisktwotype == "blank") {
-                /* Create Blank Disk */
-                let disk2name = newvmnamespace + "-"+ newvmname + "-disk2";
-                try {
-                    let disk2data = await lastValueFrom(this.dataVolumesService.createBlankDataVolume(newvmnamespace, disk2name, newvmdisktwosize, newvmdisktwosc, newvmdisktwoam));
-                    if(newvmdisktwocm != "") {
-                        disk2 = { 'name': "disk2", 'cache': newvmdisktwocm, 'disk': {}};
-                    } else {
-                        disk2 = { 'name': "disk2", 'disk': {}};
-                    }
-                    device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                } catch (e: any) {
-                    alert(e.error.message);
-                    console.log(e);
-                    throw new Error("Error creating Disk2 from Blank!");
-                }
-            } else if (newvmdisktwotype == "pvc") {
-                /* Copy Existing PVC */
-                try {
-                let disk2name = newvmnamespace + "-"+ newvmname + "-disk2";
-                    let disk2data = await lastValueFrom(this.dataVolumesService.createPVCDataVolume(newvmnamespace, disk2name, newvmdisktwosize, newvmdisktwosc, newvmdisktwoam, newvmdisktwovalue));
-                    if(newvmdisktwocm != "") {
-                        disk2 = { 'name': "disk2", 'cache': newvmdisktwocm, 'disk': {}};
-                    } else {
-                        disk2 = { 'name': "disk2", 'disk': {}};
-                    }
-                    device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                } catch (e: any) {
-                    alert(e.error.message);
-                    console.log(e);
-                    throw new Error("Error creating Disk2 from PVC!");
-                }
-            } else if (newvmdisktwotype == "dv") {
-                /* Use Existing Disk */
-                if(newvmdisktwocm != "") {
-                    disk2 = { 'name': "disk2", 'cache': newvmdisktwocm, 'disk': {}};
-                } else {
-                    disk2 = { 'name': "disk2", 'disk': {}};
-                }
-                device2 = { 'name': "disk2", 'dataVolume': { 'name': newvmdisktwovalue}}
             }
 
             /* UserData Setup */
             if(newvmuserdatausername != "") {
                 cloudconfig += "user: " + newvmuserdatausername + "\n";
+                Object.assign(thisVirtualMachine.metadata.labels, { "cloud-init.kubevirt-manager.io/username" : newvmuserdatausername });
             }
             if(newvmuserdataauth.toLowerCase() == "ssh") {
                 if (newvmuserdatassh != "") {
-                    cloudconfig += "ssh_authorized_keys:\n";
-                    cloudconfig += "  - " + newvmuserdatassh + "\n";
+                    let sshLabels = {};
+                    Object.assign(sshLabels, { "kubevirt-manager.io/ssh" : "true" });
+                    Object.assign(sshLabels, { "cloud-init.kubevirt-manager.io/ssh" : newvmuserdatassh});
+                    Object.assign(thisVirtualMachine.metadata.labels, sshLabels);
+                    try {
+                        let sshSecret = await lastValueFrom(this.k8sService.getSecret(newvmnamespace, newvmuserdatassh));
+                        let sshKey = sshSecret.data["ssh-privatekey"];
+                        cloudconfig += "ssh_authorized_keys:\n";
+                        cloudconfig += "  - " + atob(sshKey) + "\n";
+                    } catch (e: any) {
+                        alert(e.error.message);
+                        console.log(e.error.message);
+                    }
                 }
             } else {
                 if (newvmuserdatapassword != "") {
@@ -807,84 +779,79 @@ export class VmlistComponent implements OnInit {
             }
 
             /* Adding UserData/NetworkData device */
-            disk3 = {'name': "disk3", 'disk': {'bus': "virtio"}};
-            device3 = {'name': "disk3", 'cloudInitNoCloud': {'userData': cloudconfig, 'networkData': netconfig}};
+            let disk3 = {'name': "disk3", 'disk': {'bus': "virtio"}};
+            let device3 = {'name': "disk3", 'cloudInitNoCloud': {'userData': cloudconfig, 'networkData': netconfig}};
+            volumes.push(device3);
+            disks.push(disk3);
         
 
             /* NIC01 Setup */
+            let net1 = {};
+            let iface1 = {};
             if(newvmnetworkone != "podNetwork") {
-                net1 = {'name': "net1", 'multus': {'networkName': newvmnetworkone}};
+                net1 = {'name': "net1", 'multus': {'networkName': newvmnetworkone}};    
             } else {
                 net1 = {'name': "net1", 'pod': {}};
             }
+            networks.push(net1);
             if(newvmnetworktypeone == "bridge") {
-                iface1 = {'name': "net1", 'bridge': {}};
+                iface1 = {'name': "net1", 'bridge': {}};    
             } else {
-                iface1 = {'name': "net1", 'masquerade': {}};                
+                iface1 = {'name': "net1", 'masquerade': {}};
             }
+            interfaces.push(iface1);
+
 
             /* NIC02 Setup */
             if(newvmnetworktwo != "none") {
+                let net2 = {};
+                let iface2 = {};
                 if(newvmnetworktwo != "podNetwork") {
-                    net2 = {'name': "net2", 'multus': {'networkName': newvmnetworktwo}};
+                    net2 = {'name': "net2", 'multus': {'networkName': newvmnetworktwo}}; 
                 } else {
                     net2 = {'name': "net2", 'pod': {}};
                 }
+                networks.push(net2);
                 if(newvmnetworktypetwo == "bridge") {
-                    iface2 = {'name': "net2", 'bridge': {}};
+                    let iface2 = {'name': "net2", 'bridge': {}};
                 } else {
-                    iface2 = {'name': "net2", 'masquerade': {}};                
+                    let iface2 = {'name': "net2", 'masquerade': {}};
                 }
+                interfaces.push(iface2);
             }
+
+            /* Assigning Arrays */
+            if(networks.length > 0) { thisVirtualMachine.spec.template.spec.networks = networks; }
+            if(disks.length > 0) { thisVirtualMachine.spec.template.spec.domain.devices.disks = disks; }
+            if(interfaces.length > 0) { thisVirtualMachine.spec.template.spec.domain.devices.interfaces = interfaces; }
+            if(volumes.length > 0) { thisVirtualMachine.spec.template.spec.volumes = volumes; }
 
             /* Create the VM */
             if(newvmtype.toLowerCase() == "custom") {
-                /* Create a custom CPU/Mem VM */
-                this.myVmTemplateCustom.spec.template.spec.domain.devices.disks.push(disk1);
-                this.myVmTemplateCustom.spec.template.spec.volumes.push(device1);
-                if(newvmdisktwotype != "none") {
-                    this.myVmTemplateCustom.spec.template.spec.domain.devices.disks.push(disk2);
-                    this.myVmTemplateCustom.spec.template.spec.volumes.push(device2);
-                }
-                this.myVmTemplateCustom.spec.template.spec.domain.devices.disks.push(disk3);
-                this.myVmTemplateCustom.spec.template.spec.volumes.push(device3);
-                this.myVmTemplateCustom.spec.template.spec.networks.push(net1);
-                this.myVmTemplateCustom.spec.template.spec.domain.devices.interfaces.push(iface1);
-                if(newvmnetworktwo != "none") {
-                    this.myVmTemplateTyped.spec.template.spec.networks.push(net2);
-                    this.myVmTemplateTyped.spec.template.spec.domain.devices.interfaces.push(iface2);
-                }
-                try {
-                    data = await lastValueFrom(this.kubeVirtService.createVm(newvmnamespace,newvmname, this.myVmTemplateCustom));
-                    this.hideComponent("modal-newvm");
-                    this.reloadComponent();
-                } catch (e: any) {
-                    alert(e.error.message);
-                    console.log(e);
-                }
+                thisVirtualMachine.spec.template.spec.domain.cpu = {
+                    cores: Number(newvmcpumemcores),
+                    threads: Number(newvmcpumemthreads),
+                    sockets: Number(newvmcpumemsockets)
+                };
+                thisVirtualMachine.spec.template.spec.domain.resources = {
+                    requests: {
+                        memory: newvmcpumemmemory + "Gi"
+                    }
+                };
             } else {
-                this.myVmTemplateTyped.spec.template.spec.domain.devices.disks.push(disk1);
-                this.myVmTemplateTyped.spec.template.spec.volumes.push(device1);
-                if(newvmdisktwotype != "none") {
-                    this.myVmTemplateTyped.spec.template.spec.domain.devices.disks.push(disk2);
-                    this.myVmTemplateTyped.spec.template.spec.volumes.push(device2);
-                }
-                this.myVmTemplateTyped.spec.template.spec.domain.devices.disks.push(disk3);
-                this.myVmTemplateTyped.spec.template.spec.volumes.push(device3);
-                this.myVmTemplateTyped.spec.template.spec.networks.push(net1);
-                this.myVmTemplateTyped.spec.template.spec.domain.devices.interfaces.push(iface1);
-                if(newvmnetworktwo != "none") {
-                    this.myVmTemplateTyped.spec.template.spec.networks.push(net2);
-                    this.myVmTemplateTyped.spec.template.spec.domain.devices.interfaces.push(iface2);
-                }
-                try {
-                    data = await lastValueFrom(this.kubeVirtService.createVm(newvmnamespace,newvmname, this.myVmTemplateTyped));
-                    this.hideComponent("modal-newvm");
-                    this.reloadComponent();
-                } catch (e: any) {
-                    alert(e.error.message);
-                    console.log(e);
-                }
+                thisVirtualMachine.spec.template.spec.priorityClassName = newvmpriorityclass;
+                thisVirtualMachine.spec.instancetype = {  
+                    kind: "VirtualMachineClusterInstancetype",
+                    name: newvmtype
+                };
+            }
+            try {
+                let data = await lastValueFrom(this.kubeVirtService.createVm(thisVirtualMachine));
+                this.hideComponent("modal-newvm");
+                this.reloadComponent();
+            } catch (e: any) {
+                alert(e.error.message);
+                console.log(e.error.message);
             }
         }
     }
@@ -945,7 +912,7 @@ export class VmlistComponent implements OnInit {
                     this.reloadComponent();
                 } catch (e: any) {
                     alert(e.error.message);
-                    console.log(e);
+                    console.log(e.error.message);
                 }
             }
         }
@@ -996,7 +963,7 @@ export class VmlistComponent implements OnInit {
                     this.reloadComponent();
                 } catch (e: any) {
                     alert(e.error.message);
-                    console.log(e);
+                    console.log(e.error.message);
                 }
             }
         }
@@ -1057,7 +1024,7 @@ export class VmlistComponent implements OnInit {
                     this.reloadComponent();
                 } catch (e: any) {
                     alert(e.error.message);
-                    console.log(e);
+                    console.log(e.error.message);
                 }
             }
         }
@@ -1095,38 +1062,27 @@ export class VmlistComponent implements OnInit {
     async onChangeDiskOne(diskType: string, diskNamespace: string) {
         let diskOneValueField = document.getElementById("newvm-diskonevalue");
         let diskOneSizeField = document.getElementById("newvm-diskonesize");
-        let diskOneURLField = document.getElementById("newvm-disk1-url");
         if(diskType == "none") {
-            if (diskOneValueField != null && diskOneSizeField != null && diskOneURLField != null) {
+            if (diskOneValueField != null && diskOneSizeField != null) {
                 diskOneValueField.setAttribute("disabled", "disabled");
                 diskOneSizeField.setAttribute("disabled", "disabled");
-                diskOneURLField.setAttribute("disabled", "disabled");
             }
         } else if (diskType == "blank") {
-            if (diskOneValueField != null && diskOneSizeField != null  && diskOneURLField != null) {
+            if (diskOneValueField != null && diskOneSizeField != null) {
                 diskOneValueField.setAttribute("disabled", "disabled");
                 diskOneSizeField.removeAttribute("disabled");
-                diskOneURLField.setAttribute("disabled", "disabled");
             }
-        } else if (diskType == "http" || diskType == "s3" || diskType == "registry") {
-            if(diskOneValueField != null && diskOneSizeField != null  && diskOneURLField != null) {
-                diskOneValueField.setAttribute("disabled", "disabled");
-                diskOneSizeField.removeAttribute("disabled");
-                diskOneURLField.removeAttribute("disabled");
-            }
-        } else if (diskType == "pvc") {
-            if (diskOneValueField != null && diskOneSizeField != null  && diskOneURLField != null) {
-                diskOneValueField.innerHTML = await this.loadPVCOptions(diskNamespace);
+        } else if (diskType == "image") {
+            if(diskOneValueField != null && diskOneSizeField != null) {
+                diskOneValueField.innerHTML = await this.loadImageOptions(diskNamespace);
                 diskOneValueField.removeAttribute("disabled");
                 diskOneSizeField.removeAttribute("disabled");
-                diskOneURLField.setAttribute("disabled", "disabled");
             }
         } else if (diskType == "dv") {
-            if (diskOneValueField != null && diskOneSizeField != null  && diskOneURLField != null) {
+            if (diskOneValueField != null && diskOneSizeField != null) {
                 diskOneValueField.innerHTML = await this.loadDiskOptions(diskNamespace);
                 diskOneValueField.removeAttribute("disabled");
                 diskOneSizeField.setAttribute("disabled", "disabled");
-                diskOneURLField.setAttribute("disabled", "disabled");
             }
         }
     }
@@ -1137,38 +1093,27 @@ export class VmlistComponent implements OnInit {
     async onChangeDiskTwo(diskType: string, diskNamespace: string) {
         let diskTwoValueField = document.getElementById("newvm-disktwovalue");
         let diskTwoSizeField = document.getElementById("newvm-disktwosize");
-        let diskTwoURLField = document.getElementById("newvm-disk2-url");
         if(diskType == "none") {
-            if (diskTwoValueField != null && diskTwoSizeField != null && diskTwoURLField != null) {
+            if (diskTwoValueField != null && diskTwoSizeField != null) {
                 diskTwoValueField.setAttribute("disabled", "disabled");
                 diskTwoSizeField.setAttribute("disabled", "disabled");
-                diskTwoURLField.setAttribute("disabled", "disabled");
             }
         } else if (diskType == "blank") {
-            if (diskTwoValueField != null && diskTwoSizeField != null && diskTwoURLField != null) {
+            if (diskTwoValueField != null && diskTwoSizeField != null) {
                 diskTwoValueField.setAttribute("disabled", "disabled");
                 diskTwoSizeField.removeAttribute("disabled");
-                diskTwoURLField.setAttribute("disabled", "disabled");
             }
-        } else if (diskType == "http" || diskType == "s3" || diskType == "registry") {
-            if (diskTwoValueField != null && diskTwoSizeField != null && diskTwoURLField != null) {
-                diskTwoValueField.setAttribute("disabled", "disabled");
-                diskTwoSizeField.removeAttribute("disabled");
-                diskTwoURLField.removeAttribute("disabled");
-            }
-        } else if (diskType == "pvc") {
-            if (diskTwoValueField != null && diskTwoSizeField != null && diskTwoURLField != null) {
-                diskTwoValueField.innerHTML = await this.loadPVCOptions(diskNamespace);
+        } else if (diskType == "image") {
+            if (diskTwoValueField != null && diskTwoSizeField != null) {
+                diskTwoValueField.innerHTML = await this.loadImageOptions(diskNamespace);
                 diskTwoValueField.removeAttribute("disabled");
                 diskTwoSizeField.removeAttribute("disabled");
-                diskTwoURLField.setAttribute("disabled", "disabled");
             }
         } else if (diskType == "dv") {
-            if (diskTwoValueField != null && diskTwoSizeField != null && diskTwoURLField != null) {
+            if (diskTwoValueField != null && diskTwoSizeField != null) {
                 diskTwoValueField.innerHTML = await this.loadDiskOptions(diskNamespace);
                 diskTwoValueField.removeAttribute("disabled");
                 diskTwoSizeField.setAttribute("disabled", "disabled");
-                diskTwoURLField.setAttribute("disabled", "disabled");
             }
         }
     }
@@ -1185,7 +1130,7 @@ export class VmlistComponent implements OnInit {
                 pvcSelectorOptions += "<option value=" + pvcs[i].metadata["name"] +">" + pvcs[i].metadata["name"] + "</option>\n";
             }
         } catch (e: any) {
-            console.log(e);
+            console.log(e.error.message);
         }
         return pvcSelectorOptions;
     }
@@ -1203,9 +1148,27 @@ export class VmlistComponent implements OnInit {
                 diskSelectorOptions += "<option value=" + disks[i].metadata["name"] +">" + disks[i].metadata["name"] + "</option>\n";
             }
         } catch (e: any) {
-            console.log(e);
+            console.log(e.error.message);
         }
         return diskSelectorOptions;
+    }
+
+    /*
+     * New VM: Load Image Options
+     */
+    async loadImageOptions(imgNamespace: string) {
+        let imgSelectorOptions = "";
+        try {
+            let data = await lastValueFrom(await this.kubevirtMgrService.getNamespacedImages(imgNamespace));
+            let images = data.items;
+            for (let i = 0; i < images.length; i++) {
+
+                imgSelectorOptions += "<option value=" + images[i].metadata["name"] +">" + images[i].metadata["name"] + "</option>\n";
+            }
+        } catch (e: any) {
+            console.log(e.error.message);
+        }
+        return imgSelectorOptions;
     }
 
     /*
@@ -1214,8 +1177,18 @@ export class VmlistComponent implements OnInit {
     async onChangeNamespace(namespace: string) {
         let selectorNetworkFieldOne = document.getElementById("newvm-networkone");
         let selectorNetworkFieldTwo = document.getElementById("newvm-networktwo");
+        let selectorDiskOneType = document.getElementById("newvm-diskonetype");
+        let selectorDiskTwoType = document.getElementById("newvm-disktwotype");
+        let selectorDiskOneValue = document.getElementById("newvm-diskonevalue");
+        let fieldDiskOneSize = document.getElementById("newvm-diskonesize");
+        let selectorDiskTwoValue = document.getElementById("newvm-disktwovalue");
+        let fieldDiskTwoSize = document.getElementById("newvm-disktwosize");
+        let selectorAuthType = document.getElementById("newvm-userdata-auth");
+        let selectorSSHKey = document.getElementById("newvm-userdata-ssh");
         let netData = document.getElementById("newvm-netdata-tab");
         let networkSelectorOptions = "<option value=podNetwork>podNetwork</option>\n";
+
+        /* Set Networking options */
         if(this.networkCheck) {
             let data = await lastValueFrom(this.k8sApisService.getNetworkAttachs());
             let netAttach = data.items;
@@ -1236,6 +1209,31 @@ export class VmlistComponent implements OnInit {
         }
         if (netData != null) {
             netData.setAttribute("style","display: none;");
+        }
+
+        /* Reset disk options */
+        if(selectorDiskOneType != null && selectorDiskTwoType != null && selectorDiskOneValue != null && selectorDiskTwoValue) {
+            let diskOptions = "<option value=none>None</option>\n<option value=blank>Blank Disk</option>\n<option value=image>Image</option>\n<option value=dv>DataVolume</option>";
+            selectorDiskOneType.innerHTML = diskOptions;
+            selectorDiskTwoType.innerHTML = diskOptions;
+            selectorDiskOneValue.innerHTML = "";
+            selectorDiskTwoValue.innerHTML = "";
+            selectorDiskOneValue.setAttribute("disabled", "disabled");
+            selectorDiskTwoValue.setAttribute("disabled", "disabled");
+        }
+
+        if(fieldDiskOneSize != null && fieldDiskTwoSize != null) {
+            fieldDiskOneSize.setAttribute("disabled", "disabled");
+            fieldDiskTwoSize.setAttribute("disabled", "disabled");
+        }
+
+        /* Reset SSH Key Options */
+        if(selectorAuthType != null && selectorSSHKey != null) {
+            let authOptions = "<option value=password>User/Password</option>\n<option value=ssh>SSH Private Key</option>";
+            selectorAuthType.innerHTML = "";
+            selectorSSHKey.innerHTML = "";
+            selectorAuthType.innerHTML = authOptions;
+            this.onChangeAuthType("password", namespace);
         }
     }
 
@@ -1266,10 +1264,21 @@ export class VmlistComponent implements OnInit {
     /*
      * New VM: Change between pass/ssh auth
      */
-    async onChangeAuthType(authType: string) {
+    async onChangeAuthType(authType: string, namespace: string) {
         let modalSSHDiv = document.getElementById("newvm-userdata-ssh-panel");
         let modelPWDDiv = document.getElementById("newvm-userdata-password-panel");
         if(authType.toLowerCase() == "ssh") {
+            let sshKeySelector = document.getElementById("newvm-userdata-ssh");
+            if (sshKeySelector != null) {
+                let data = await lastValueFrom(await this.k8sService.getSSHSecretsNamespaced(namespace));
+                let keyList = data.items;
+                let sshSelectorOptions = "";
+                for(let i = 0; i < keyList.length; i++) {
+                    sshSelectorOptions += "<option value=" + keyList[i].metadata["name"] + ">" + keyList[i].metadata["name"] + "</option>\n";
+                }
+                sshKeySelector.innerHTML = sshSelectorOptions;
+
+            }
             if(modalSSHDiv != null && modelPWDDiv != null) {
                 modalSSHDiv.setAttribute("class", "modal fade show");
                 modalSSHDiv.setAttribute("aria-modal", "true");
@@ -1360,7 +1369,7 @@ export class VmlistComponent implements OnInit {
                 }
             }
         } catch (e: any) {
-            console.log(e);
+            console.log(e.error.message);
         }
     }
 

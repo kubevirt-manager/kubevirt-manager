@@ -1,8 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { SideMenuComponent } from './side-menu.component';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('SideMenuComponent', () => {
   let component: SideMenuComponent;
@@ -10,15 +11,17 @@ describe('SideMenuComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      declarations: [ SideMenuComponent ]
-    })
+    declarations: [SideMenuComponent],
+    imports: [],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(SideMenuComponent);
     component = fixture.componentInstance;
     component.networkCheck = true;
     component.capkCheck = true;
+    component.imgCheck = true;
     fixture.detectChanges();
   });
 
@@ -49,6 +52,18 @@ describe('SideMenuComponent', () => {
     const contentValue = componentElem.nativeElement;
     expect(contentValue).toBeTruthy();
   });
+  it('should contain Auto Scaling item', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.query(By.css('.fa-expand-alt'))
+    const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain Clusters item', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.query(By.css('.fa-cubes'))
+    const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
+  });
   it('should contain Nodes item', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.query(By.css('.fa-hdd'))
@@ -73,21 +88,21 @@ describe('SideMenuComponent', () => {
     const contentValue = componentElem.nativeElement;
     expect(contentValue).toBeTruthy();
   });
-  it('should contain Network item', () => {
+  it('should contain Images item', () => {
     const componentDoc: DebugElement = fixture.debugElement;
-    const componentElem = componentDoc.query(By.css('.fa-network-wired'))
-    const contentValue = componentElem.nativeElement;
-    expect(contentValue).toBeTruthy();
-  });
-  it('should contain Auto Scaling item', () => {
-    const componentDoc: DebugElement = fixture.debugElement;
-    const componentElem = componentDoc.query(By.css('.fa-expand-alt'))
+    const componentElem = componentDoc.query(By.css('.fa-compact-disc'))
     const contentValue = componentElem.nativeElement;
     expect(contentValue).toBeTruthy();
   });
   it('should contain Cluster item', () => {
     const componentDoc: DebugElement = fixture.debugElement;
-    const componentElem = componentDoc.query(By.css('.fa-cubes'))
+    const componentElem = componentDoc.query(By.css('.fa-key'))
+    const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain Network item', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.query(By.css('.fa-network-wired'))
     const contentValue = componentElem.nativeElement;
     expect(contentValue).toBeTruthy();
   });

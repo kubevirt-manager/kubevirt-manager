@@ -1,6 +1,6 @@
 {
   "name": "kubevirtmgr-webui",
-  "version": "1.3.3",
+  "version": "1.4.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -11,27 +11,27 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^14.2.0",
-    "@angular/common": "^14.2.0",
-    "@angular/compiler": "^14.2.0",
-    "@angular/core": "^14.2.0",
-    "@angular/forms": "^14.2.0",
-    "@angular/platform-browser": "^14.2.0",
-    "@angular/platform-browser-dynamic": "^14.2.0",
-    "@angular/router": "^14.2.0",
+    "@angular/animations": "^18.0.2",
+    "@angular/common": "^18.0.2",
+    "@angular/compiler": "^18.0.2",
+    "@angular/core": "^18.0.2",
+    "@angular/forms": "^18.0.2",
+    "@angular/platform-browser": "^18.0.2",
+    "@angular/platform-browser-dynamic": "^18.0.2",
+    "@angular/router": "^18.0.2",
+    "@types/chart.js": "^2.9.41",
     "buffer": "^6.0.3",
     "chart.js": "^4.2.0",
     "chartjs": "^0.3.24",
     "karma-spec-reporter": "^0.0.36",
     "rxjs": "~7.5.0",
     "tslib": "^2.3.0",
-    "zone.js": "~0.11.4"
+    "zone.js": "~0.14.7"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^14.2.8",
-    "@angular/cli": "~14.2.8",
-    "@angular/compiler-cli": "^14.2.0",
-    "@types/chartjs": "^0.0.31",
+    "@angular-devkit/build-angular": "^18.0.3",
+    "@angular/cli": "~18.0.3",
+    "@angular/compiler-cli": "^18.0.2",
     "@types/jasmine": "~4.0.0",
     "jasmine-core": "~4.3.0",
     "karma": "~6.4.0",
@@ -39,6 +39,6 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
-    "typescript": "~4.7.2"
+    "typescript": "~5.4.5"
   }
 }

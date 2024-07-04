@@ -11,15 +11,18 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-devkit/build-angular:application",
           "options": {
             "allowedCommonJsDependencies": [
               "buffer"
             ],
-            "outputPath": "dist/kubevirtmgr-webui",
+            "outputPath": {
+              "base": "dist/kubevirtmgr-webui"
+            },
             "index": "src/index.html",
-            "main": "src/main.ts",
-            "polyfills": "src/polyfills.ts",
+            "polyfills": [
+              "src/polyfills.ts"
+            ],
             "tsConfig": "tsconfig.app.json",
             "assets": [
               "src/favicon.ico",
@@ -28,7 +31,8 @@
             "styles": [
               "src/styles.css"
             ],
-            "scripts": []
+            "scripts": [],
+            "browser": "src/main.ts"
           },
           "configurations": {
             "production": {
@@ -61,9 +65,7 @@
               }
             },
             "development": {
-              "buildOptimizer": false,
               "optimization": false,
-              "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
@@ -75,10 +77,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "kubevirtmgr-webui:build:production"
+              "buildTarget": "kubevirtmgr-webui:build:production"
             },
             "development": {
-              "browserTarget": "kubevirtmgr-webui:build:development"
+              "buildTarget": "kubevirtmgr-webui:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -86,7 +88,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "kubevirtmgr-webui:build"
+            "buildTarget": "kubevirtmgr-webui:build"
           }
         },
         "test": {

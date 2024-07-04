@@ -6,6 +6,7 @@ import { VMDisk } from 'src/app/models/vmdisk.model';
 import { DataVolumesService } from 'src/app/services/data-volumes.service';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { K8sService } from 'src/app/services/k8s.service';
+import { DataVolume } from 'src/app/interfaces/data-volume';
 
 @Component({
   selector: 'app-disk-list',
@@ -171,7 +172,7 @@ export class DiskListComponent implements OnInit {
         let volumedata = await lastValueFrom(this.dataVolumesService.getDataVolumeInfo(diskNamespace, diskName));
         myInnerHTML += "<li class=\"nav-item\">Data Volume: <span class=\"float-right badge bg-primary\">" + volumedata.metadata["name"] + "</span></li>";
         myInnerHTML += "<li class=\"nav-item\">Namespace: <span class=\"float-right badge bg-primary\">" + volumedata.metadata["namespace"] + "</span></li>";
-        myInnerHTML += "<li class=\"nav-item\">Creation Time: <span class=\"float-right badge bg-primary\">" + volumedata.metadata["creationTimestamp"] + "</span></li>";
+        myInnerHTML += "<li class=\"nav-item\">Creation Time: <span class=\"float-right badge bg-primary\">" + new Date(volumedata.metadata["creationTimestamp"]) + "</span></li>";
         try {
             myInnerHTML += "<li class=\"nav-item\">Storage Class: <span class=\"float-right badge bg-primary\">" + volumedata.spec.pvc["storageClassName"] + "</span></li>";
             myInnerHTML += "<li class=\"nav-item\">Access Mode: <span class=\"float-right badge bg-primary\">" + volumedata.spec.pvc.accessModes[0] + "</span></li>";
@@ -199,7 +200,7 @@ export class DiskListComponent implements OnInit {
         let modalTitle = document.getElementById("info-title");
         let modalBody = document.getElementById("info-cards");
         if(modalTitle != null) {
-            modalTitle.replaceChildren("Disk: " + diskName);
+            modalTitle.replaceChildren("Disk: " + diskNamespace + " - " + diskName);
         }
         if(modalBody != null) {
             modalBody.innerHTML = myInnerHTML;
@@ -260,8 +261,37 @@ export class DiskListComponent implements OnInit {
      */
     async applyNew(diskNamespace: string, diskName: string, diskSc: string, diskAm: string, diskSize: string): Promise<void> {
         if(diskNamespace != null && diskSize != null && diskName != null && diskSc != null) {
+            let thisDv: DataVolume = {
+                apiVersion: "cdi.kubevirt.io/v1beta1",
+                kind: "DataVolume",
+                metadata: {
+                    name: diskName,
+                    namespace: diskNamespace,
+                    annotations: {
+                        "cdi.kubevirt.io/storage.deleteAfterCompletion": "false",
+                    },
+                    labels: {},
+                },
+                spec: {
+                    pvc: {
+                        storageClassName: diskSc,
+                        accessModes:[
+                            diskAm
+                        ],
+                        resources: {
+                            requests: {
+                                storage: diskSize + "Gi",
+                            },
+                        },
+                    },
+                    source: {
+                        blank: {}
+                    }
+                }
+            };
+        
             try {
-                const data = await lastValueFrom(this.dataVolumesService.createBlankDataVolume(diskNamespace, diskName, diskSize, diskSc, diskAm));
+                const data = await lastValueFrom(this.dataVolumesService.createDataVolume(thisDv));
                 this.hideComponent("modal-new");
                 this.reloadComponent();
             } catch (e: any) {

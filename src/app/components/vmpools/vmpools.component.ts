@@ -9,9 +9,10 @@ import { DataVolumesService } from 'src/app/services/data-volumes.service';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { K8sService } from 'src/app/services/k8s.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
-import { DataVolume } from 'src/app/templates/data-volume.apitemplate';
-import { Probe } from 'src/app/templates/probe.apitemplate';
-import { VMPool } from 'src/app/templates/vmpool.apitemplate';
+import { DataVolume } from 'src/app/interfaces/data-volume';
+import { VirtualMachinePool } from 'src/app/interfaces/virtual-machine-pool';
+import { Probe } from 'src/app/interfaces/probe';
+import { KubevirtMgrService } from 'src/app/services/kubevirt-mgr.service';
 
 @Component({
   selector: 'app-vmpools',
@@ -27,17 +28,6 @@ export class VMPoolsComponent implements OnInit {
     netAttachList: NetworkAttach[] = []
     networkCheck: boolean = false;
 
-    myVmPoolCustom = new VMPool().myVmPoolCustom;
-    myVmPoolTyped = new VMPool().myVmPoolType;
-    myVmPoolReadinessProbe = new Probe().readinessProbe;
-    myVmPoolLivenessProbe = new Probe().livenessProbe;
-    blankDiskTemplate = new DataVolume().blankDisk;
-    httpDiskTemplate = new DataVolume().httpDisk;
-    s3DiskTemplate = new DataVolume().s3Disk;
-    gcsDiskTemplate = new DataVolume().gcsDisk;
-    registryDiskTemplate = new DataVolume().registryDisk;
-    pvcDiskTemplate = new DataVolume().pvcDisk;
-
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
@@ -45,7 +35,8 @@ export class VMPoolsComponent implements OnInit {
         private k8sService: K8sService,
         private k8sApisService: K8sApisService,
         private dataVolumesService: DataVolumesService,
-        private kubeVirtService: KubeVirtService
+        private kubeVirtService: KubeVirtService,
+        private kubevirtMgrService: KubevirtMgrService
     ) { }
 
     async ngOnInit(): Promise<void> {
@@ -136,7 +127,7 @@ export class VMPoolsComponent implements OnInit {
             currentVm.creationTimestamp = new Date(vms[i].metadata["creationTimestamp"]);
             currentVm.running = vms[i].spec["running"];
             try {
-                currentVm.status = vms[i].status["printableStatus"];
+                currentVm.status = vms[i].status["printableStatus"].toLowerCase();
                 if (currentVm.status.toLowerCase() == "running") {
                     currentVm.running = true;
                 }
@@ -328,34 +319,6 @@ export class VMPoolsComponent implements OnInit {
             selectorPCField.innerHTML = prioritySelectorOptions;
         }
 
-        /* Clean up devices */
-        while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.length > 0) {
-            this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.pop();
-        }
-        while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.volumes.length > 0){
-            this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.volumes.pop();
-        }
-        while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.length > 0) {
-            this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.pop();
-        }
-        while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.volumes.length > 0){
-            this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.volumes.pop();
-        }
-
-        /* Clean up networks */
-        while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.networks.length > 0){
-            this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.networks.pop();
-        }
-        while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.length > 0) {
-            this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.pop();
-        }
-        while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.networks.length > 0){
-            this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.networks.pop();
-        }
-        while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.length > 0) {
-            this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.pop();
-        }
-
     }
 
     /*
@@ -386,14 +349,12 @@ export class VMPoolsComponent implements OnInit {
         newpooldiskonesize: string,
         newpooldiskonesc: string,
         newpooldiskoneam: string,
-        newpooldiskoneurl: string,
         newpooldiskonecm: string,
         newpooldisktwotype: string,
         newpooldisktwovalue: string,
         newpooldisktwosize: string,
         newpooldisktwosc: string,
         newpooldisktwoam: string,
-        newpooldisktwourl: string,
         newpooldisktwocm: string,
         newpoolnetwork: string,
         newpoolnetworktype: string,
@@ -426,16 +387,14 @@ export class VMPoolsComponent implements OnInit {
             alert("You need to fill in the name and namespace fields!");
         } else if (newpooldiskonetype == "none") {
             alert("Your virtual machine needs at least the first disk!");
-        } else if ((newpooldiskonetype == "blank" || newpooldiskonetype == "http" || newpooldiskonetype == "s3" || newpooldiskonetype == "gcs" || newpooldiskonetype == "registry") && newpooldiskonesize == "") {
+        } else if ((newpooldiskonetype == "blank" || newpooldiskonetype == "image") && newpooldiskonesize == "") {
             alert("You need to set a size for your disk!");
-        } else if ((newpooldiskonetype == "http" || newpooldiskonetype == "s3" || newpooldiskonetype == "gcs" || newpooldiskonetype == "registry") && ((newpooldiskoneurl == "") || (!newpooldiskoneurl.startsWith("http") && !newpooldiskoneurl.startsWith("s3://") && !newpooldiskoneurl.startsWith("gcs://") && !newpooldiskoneurl.startsWith("docker://")))) {
-            alert("You need to enter import URL your Disk 1!\nUse protocol://");
-        } else if (newpooldiskonetype == "disk" && newpooldiskonevalue == "") {
-            alert("You need to select the disk!");
-        } else if ((newpooldisktwotype == "blank" || newpooldisktwotype == "http" || newpooldisktwotype == "s3" || newpooldisktwotype == "gcs" || newpooldisktwotype == "registry") && newpooldisktwosize == "") {
+        } else if (newpooldiskonetype == "image" && newpooldiskonevalue == "") {
+            alert("You need to select Disk1 image");
+        } else if ((newpooldisktwotype == "blank" || newpooldisktwotype == "image") && newpooldisktwosize == "") {
             alert("You need to set a size for your disk!");
-        } else if ((newpooldisktwotype == "http" || newpooldisktwotype == "s3" || newpooldisktwotype == "gcs" || newpooldisktwotype == "registry") && ((newpooldisktwourl == "") || (!newpooldisktwourl.startsWith("http") && !newpooldisktwourl.startsWith("s3://") && !newpooldisktwourl.startsWith("gcs://") && !newpooldisktwourl.startsWith("docker://")))) {
-            alert("You need to enter import URL your Disk 2!\nUse protocol://");
+        } else if (newpooldisktwotype == "image" && newpooldisktwovalue == "") {
+            alert("You need to select Disk2 image");
         } else if (newpooldisktwotype == "disk" && newpooldisktwovalue == "") {
             alert("You need to select the disk!");
         } else if(this.checkPoolExists(newpoolname, newpoolnamespace)) {
@@ -451,6 +410,44 @@ export class VMPoolsComponent implements OnInit {
         } else if (newpoolreadinessenable == "true" && newpoolreadinesstype == "http" && newpoolreadinesspath == "") {
             alert("You need to enter HTTP Path details on the Readiness Probe tab!");
         } else {
+
+            /* Initial Descriptor */
+            let thisVirtualMachinePool: VirtualMachinePool = {
+                apiVersion: "pool.kubevirt.io/v1alpha1",
+                kind: "VirtualMachinePool",
+                metadata: {
+                    name: newpoolname,
+                    namespace: newpoolnamespace
+                },
+                spec: {
+                    replicas: Number(newpoolreplicas),
+                    selector: {
+                        matchLabels: {}
+                    },
+                    virtualMachineTemplate: {
+                        metadata: {},
+                        spec: {
+                            dataVolumeTemplates: {},
+                            running: true,
+                            template: {
+                                metadata: {},
+                                spec: {
+                                    domain: {
+                                        devices: {
+                                            disks: {},
+                                            interfaces: {},
+                                            networkInterfaceMultiqueue: true
+                                        },
+                                    },
+                                    priorityClassName: newpoolpriorityclass,
+                                    networks: {},
+                                    volumes: {}
+                                }
+                            }
+                        }
+                    }
+                }
+            };
 
             /* Load Custom Labels */
             let tmpLabels = {};
@@ -492,6 +489,12 @@ export class VMPoolsComponent implements OnInit {
             let kubevirtManagerLabel = {'kubevirt-manager.io/managed': "true"};
             Object.assign(tmpLabels, kubevirtManagerLabel);
 
+            /* Populate our Pool with our Labels */
+            thisVirtualMachinePool.metadata.labels = tmpLabels;
+            thisVirtualMachinePool.spec.selector.matchLabels = tmpLabels;
+            thisVirtualMachinePool.spec.virtualMachineTemplate.metadata.labels = tmpLabels;
+            thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.metadata.labels = tmpLabels;
+
             /* Check VM Type */
             if(newpooltype.toLowerCase() == "custom") {
                 if(newpoolcpumemsockets == "" || newpoolcpumemcores == "" || newpoolcpumemthreads == "" || newpoolcpumemmemory == "") {
@@ -499,89 +502,34 @@ export class VMPoolsComponent implements OnInit {
                     throw new Error("For custom VM you need to set cpu and memory parameters!");
                 } else {
                     /* Custom VM */
-                    this.myVmPoolCustom.metadata.name = newpoolname;
-                    this.myVmPoolCustom.metadata.namespace = newpoolnamespace;
-                    this.myVmPoolCustom.metadata.labels =  tmpLabels;
-                    this.myVmPoolCustom.spec.selector.matchLabels = tmpLabels;
-                    this.myVmPoolCustom.spec.virtualMachineTemplate.metadata.labels = tmpLabels;
-                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.metadata.labels = tmpLabels;
-                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.priorityClassName = newpoolpriorityclass;
-
-                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.cpu.cores = Number(newpoolcpumemcores);
-                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.cpu.threads = Number(newpoolcpumemthreads);
-                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.cpu.sockets = Number(newpoolcpumemsockets);
-                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.resources.requests.memory = newpoolcpumemmemory + "Gi";
-
-                    /* Clean up datavolume */
-                    while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.dataVolumeTemplates.length > 0) {
-                        this.myVmPoolCustom.spec.virtualMachineTemplate.spec.dataVolumeTemplates.pop();
-                    }
-
-                    /* Clean up devices */
-                    while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.length > 0) {
-                        this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.pop();
-                    }
-                    while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.volumes.length > 0){
-                        this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.volumes.pop();
-                    }
-                    
-                    /* Clean up networks */
-                    while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.networks.length > 0){
-                        this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.networks.pop();
-                    }
-                    while(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.length > 0) {
-                        this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.pop();
-                    }
+                    thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.spec.domain.cpu = {
+                        cores: Number(newpoolcpumemcores),
+                        threads: Number(newpoolcpumemthreads),
+                        sockets: Number(newpoolcpumemsockets)
+                    };
+                    thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.spec.domain.resources = {
+                        requests: {
+                            memory: newpoolcpumemmemory + "Gi"
+                        }
+                    };
                 }
             } else {
-                /* Clean up datavolume */
-                while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.dataVolumeTemplates.length > 0) {
-                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.dataVolumeTemplates.pop();
-                }
-
-                /* Clean up devices */
-                while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.length > 0) {
-                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.pop();
-                }
-                while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.volumes.length > 0){
-                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.volumes.pop();
-                }
-                
-                /* Clean up networks */
-                while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.networks.length > 0){
-                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.networks.pop();
-                }
-                while(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.length > 0) {
-                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.pop();
-                }
-
-                this.myVmPoolTyped.metadata.name = newpoolname;
-                this.myVmPoolTyped.metadata.namespace = newpoolnamespace;
-                this.myVmPoolTyped.metadata.labels =  tmpLabels;
-                this.myVmPoolTyped.spec.selector.matchLabels = tmpLabels;
-                this.myVmPoolTyped.spec.virtualMachineTemplate.metadata.labels = tmpLabels;
-                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.metadata.labels = tmpLabels;
-                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.priorityClassName = newpoolpriorityclass;
-                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.instancetype.name = newpooltype;
+                /* Typed VM */
+                thisVirtualMachinePool.spec.virtualMachineTemplate.spec.instancetype = {
+                    kind: 'VirtualMachineClusterInstancetype',
+                    name: newpooltype
+                };
             }
 
-            /* Placeholders */
-            let data = "";
-            let disk1dv = {};
-            let disk2dv = {};
-            let disk1 = {};
-            let disk2 = {};
-            let disk3 = {};
-            let device1 = {};
-            let device2 = {};
-            let device3 = {};
-            let net1 = {};
-            let iface1 = {};
+            /* Our Arrays */
+            let networks = [];
+            let disks = [];
+            let interfaces = [];
+            let volumes = [];
+            let dvtemplates = [];
 
             let cloudconfig  = "#cloud-config\n";
                 cloudconfig += "manage_etc_hosts: true\n";
-                // Removed so machines can have pool generated hostnames
-                // cloudconfig += "hostname: " + newpoolname + "\n";
 
             let netconfig  ="version: 1\n";
                 netconfig += "config:\n";
@@ -591,222 +539,223 @@ export class VMPoolsComponent implements OnInit {
                 netconfig += "      - type: dhcp\n";
 
             /* Disk1 setup */
-            if(newpooldiskonetype == "http") {
-                /* Create Disk From Image */
-                let disk1name = newpoolnamespace + "-"+ newpoolname + "-disk1";
-                let tmpdv = this.httpDiskTemplate;
-                tmpdv.metadata.name = disk1name;
-                tmpdv.metadata.namespace = newpoolnamespace;
-                tmpdv.spec.pvc.storageClassName = newpooldiskonesc;
-                tmpdv.spec.pvc.accessModes[0] = newpooldiskoneam;
-                tmpdv.spec.pvc.resources.requests.storage = newpooldiskonesize + "Gi";
-                tmpdv.spec.source.http.url = newpooldiskoneurl;
+            let disk1name = newpoolnamespace + "-"+ newpoolname + "-disk1";
+            let disk1 = {};
+            let device1 = {};
+            let dataVolumeOne: DataVolume = {
+                apiVersion: "cdi.kubevirt.io/v1beta1",
+                kind: "DataVolume",
+                metadata: {
+                    name: disk1name,
+                    namespace: newpoolnamespace,
+                    annotations: {
+                        "cdi.kubevirt.io/storage.deleteAfterCompletion": "false",
+                    }
+                },
+                spec: {
+                    pvc: {
+                        storageClassName: newpooldiskonesc,
+                        accessModes:[
+                            newpooldiskoneam
+                        ],
+                        resources: {
+                            requests: {
+                                storage: newpooldiskonesize + "Gi",
+                            }
+                        }
+                    },
+                    source: {}
+                }
+            }
+            if(newpooldiskonetype == "image") {
+                try {
+                    let imageData = await lastValueFrom(await this.kubevirtMgrService.getImage(newpoolnamespace, newpooldiskonevalue));
+                    switch(imageData.spec.type) {
+                        case "http":
+                            dataVolumeOne.spec.source = {
+                                http: {
+                                    url: imageData.spec.http.url
+                                }
+                            }
+                            break;
+                        case "gcs":
+                            dataVolumeOne.spec.source = {
+                                gcs: {
+                                    url: imageData.spec.gcs.url
+                                }
+                            }
+                            break;
+                        case "s3":
+                            dataVolumeOne.spec.source = {
+                                s3: {
+                                    url: imageData.spec.s3.url
+                                }
+                            }
+                            break;
+                        case "registry":
+                            dataVolumeOne.spec.source = {
+                                registry: {
+                                    url: imageData.spec.registry.url
+                                }
+                            }
+                            break;
+                        case "pvc":
+                            dataVolumeOne.spec.source = {
+                                pvc: {
+                                    name: imageData.spec.pvc.name,
+                                    namespace: imageData.spec.pvc.namespace
+                                }
+                            }
+                            break;
+                    }
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e.error.message);
+                    throw new Error("Error loading Disk1 image data!");
+                }
                 if(newpooldiskonecm != "") {
                     disk1 = { 'name': "disk1", 'cache': newpooldiskonecm, 'disk': {}};
                 } else {
                     disk1 = { 'name': "disk1", 'disk': {}};
                 }
-                device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
-                disk1dv = tmpdv;
-            } else if(newpooldiskonetype == "s3") {
-                /* Create Disk From Image */
-                let disk1name = newpoolnamespace + "-"+ newpoolname + "-disk1";
-                let tmpdv = this.s3DiskTemplate;
-                tmpdv.metadata.name = disk1name;
-                tmpdv.metadata.namespace = newpoolnamespace;
-                tmpdv.spec.pvc.storageClassName = newpooldiskonesc;
-                tmpdv.spec.pvc.accessModes[0] = newpooldiskoneam;
-                tmpdv.spec.pvc.resources.requests.storage = newpooldiskonesize + "Gi";
-                tmpdv.spec.source.s3.url = newpooldiskoneurl;
-                if(newpooldiskonecm != "") {
-                    disk1 = { 'name': "disk1", 'cache': newpooldiskonecm, 'disk': {}};
-                } else {
-                    disk1 = { 'name': "disk1", 'disk': {}};
-                }
-                device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
-                disk1dv = tmpdv;
-            } else if(newpooldiskonetype == "gcs") {
-                /* Create Disk From Image */
-                let disk1name = newpoolnamespace + "-"+ newpoolname + "-disk1";
-                let tmpdv = this.gcsDiskTemplate;
-                tmpdv.metadata.name = disk1name;
-                tmpdv.metadata.namespace = newpoolnamespace;
-                tmpdv.spec.pvc.storageClassName = newpooldiskonesc;
-                tmpdv.spec.pvc.accessModes[0] = newpooldiskoneam;
-                tmpdv.spec.pvc.resources.requests.storage = newpooldiskonesize + "Gi";
-                tmpdv.spec.source.gcs.url = newpooldiskoneurl;
-                if(newpooldiskonecm != "") {
-                    disk1 = { 'name': "disk1", 'cache': newpooldiskonecm, 'disk': {}};
-                } else {
-                    disk1 = { 'name': "disk1", 'disk': {}};
-                }
-                device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
-                disk1dv = tmpdv;
-            } else if(newpooldiskonetype == "registry") {
-                /* Create Disk From Image */
-                let disk1name = newpoolnamespace + "-"+ newpoolname + "-disk1";
-                let tmpdv = this.registryDiskTemplate;
-                tmpdv.metadata.name = disk1name;
-                tmpdv.metadata.namespace = newpoolnamespace;
-                tmpdv.spec.pvc.storageClassName = newpooldiskonesc;
-                tmpdv.spec.pvc.accessModes[0] = newpooldiskoneam;
-                tmpdv.spec.pvc.resources.requests.storage = newpooldiskonesize + "Gi";
-                tmpdv.spec.source.registry.url = newpooldiskoneurl;
-                if(newpooldiskonecm != "") {
-                    disk1 = { 'name': "disk1", 'cache': newpooldiskonecm, 'disk': {}};
-                } else {
-                    disk1 = { 'name': "disk1", 'disk': {}};
-                }
-                device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
-                disk1dv = tmpdv;
+                device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}};     
             } else if (newpooldiskonetype == "blank") {
                 /* Create Blank Disk */
-                let disk1name = newpoolnamespace + "-"+ newpoolname + "-disk1";
-                let tmpdv = this.blankDiskTemplate;
-                tmpdv.metadata.name = disk1name;
-                tmpdv.metadata.namespace = newpoolnamespace;
-                tmpdv.spec.pvc.storageClassName = newpooldiskonesc;
-                tmpdv.spec.pvc.accessModes[0] = newpooldiskoneam;
-                tmpdv.spec.pvc.resources.requests.storage = newpooldiskonesize + "Gi";
+                dataVolumeOne.spec.source = {
+                    blank: {}
+                }
                 if(newpooldiskonecm != "") {
                     disk1 = { 'name': "disk1", 'cache': newpooldiskonecm, 'disk': {}};
                 } else {
                     disk1 = { 'name': "disk1", 'disk': {}};
                 }
                 device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
-                disk1dv = tmpdv;
-            } else if (newpooldiskonetype == "pvc") {
-                /* Copy Existing PVC */
-                let disk1name = newpoolnamespace + "-"+ newpoolname + "-disk1";
-                let tmpdv = this.pvcDiskTemplate;
-                tmpdv.metadata.name = disk1name;
-                tmpdv.metadata.namespace = newpoolnamespace;
-                tmpdv.spec.pvc.storageClassName = newpooldiskonesc;
-                tmpdv.spec.pvc.accessModes[0] = newpooldiskoneam;
-                tmpdv.spec.pvc.resources.requests.storage = newpooldiskonesize + "Gi";
-                tmpdv.spec.source.pvc.name = newpooldiskonevalue;
-                tmpdv.spec.source.pvc.namespace = newpoolnamespace;
-                if(newpooldiskonecm != "") {
-                    disk1 = { 'name': "disk1", 'cache': newpooldiskonecm, 'disk': {}};
-                } else {
-                    disk1 = { 'name': "disk1", 'disk': {}};
-                }
-                device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
-                disk1dv = tmpdv;
             }
+            volumes.push(device1);
+            disks.push(disk1);
+            dvtemplates.push(dataVolumeOne);
 
             /* Disk2 setup */
-            if(newpooldisktwotype == "http") {
-                /* Create Disk From Image */
-                let disk2name = newpoolnamespace + "-"+ newpoolname + "-disk2";
-                let tmpdv = this.httpDiskTemplate;
-                tmpdv.metadata.name = disk2name;
-                tmpdv.metadata.namespace = newpoolnamespace;
-                tmpdv.spec.pvc.storageClassName = newpooldisktwosc;
-                tmpdv.spec.pvc.accessModes[0] = newpooldisktwoam;
-                tmpdv.spec.pvc.resources.requests.storage = newpooldisktwosize + "Gi";
-                tmpdv.spec.source.http.url = newpooldisktwourl;
-                if(newpooldisktwocm != "") {
-                    disk2 = { 'name': "disk2", 'cache': newpooldisktwocm, 'disk': {}};
-                } else {
-                    disk2 = { 'name': "disk2", 'disk': {}};
+            if(newpooldisktwotype != "none") {
+                let disk2name = newpoolnamespace + "-" + newpoolname + "-disk2";
+                let disk2 = {};
+                let device2 = {};
+                let dataVolumeTwo: DataVolume = {
+                    apiVersion: "cdi.kubevirt.io/v1beta1",
+                    kind: "DataVolume",
+                    metadata: {
+                        name: disk2name,
+                        namespace: newpoolnamespace,
+                        annotations: {
+                            "cdi.kubevirt.io/storage.deleteAfterCompletion": "false",
+                        }
+                    },
+                    spec: {
+                        pvc: {
+                            storageClassName: newpooldisktwosc,
+                            accessModes:[
+                                newpooldisktwoam
+                            ],
+                            resources: {
+                                requests: {
+                                    storage: newpooldisktwosize + "Gi",
+                                }
+                            }
+                        },
+                        source: {}
+                    }
                 }
-                device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                disk2dv = tmpdv;
-            } else if(newpooldisktwotype == "s3") {
-                /* Create Disk From Image */
-                let disk2name = newpoolnamespace + "-"+ newpoolname + "-disk2";
-                let tmpdv = this.s3DiskTemplate;
-                tmpdv.metadata.name = disk2name;
-                tmpdv.metadata.namespace = newpoolnamespace;
-                tmpdv.spec.pvc.storageClassName = newpooldisktwosc;
-                tmpdv.spec.pvc.accessModes[0] = newpooldisktwoam;
-                tmpdv.spec.pvc.resources.requests.storage = newpooldisktwosize + "Gi";
-                tmpdv.spec.source.s3.url = newpooldisktwourl;
-                if(newpooldisktwocm != "") {
-                    disk2 = { 'name': "disk2", 'cache': newpooldisktwocm, 'disk': {}};
-                } else {
-                    disk2 = { 'name': "disk2", 'disk': {}};
+                if(newpooldisktwotype == "image") {
+                    try {
+                        let imageData = await lastValueFrom(await this.kubevirtMgrService.getImage(newpoolnamespace, newpooldisktwovalue));
+                        switch(imageData.spec.type) {
+                            case "http":
+                                dataVolumeTwo.spec.source = {
+                                    http: {
+                                        url: imageData.spec.http.url
+                                    }
+                                }
+                                break;
+                            case "gcs":
+                                dataVolumeTwo.spec.source = {
+                                    gcs: {
+                                        url: imageData.spec.gcs.url
+                                    }
+                                }
+                                break;
+                            case "s3":
+                                dataVolumeTwo.spec.source = {
+                                    s3: {
+                                        url: imageData.spec.s3.url
+                                    }
+                                }
+                                break;
+                            case "registry":
+                                dataVolumeTwo.spec.source = {
+                                    registry: {
+                                        url: imageData.spec.registry.url
+                                    }
+                                }
+                                break;
+                            case "pvc":
+                                dataVolumeTwo.spec.source = {
+                                    pvc: {
+                                        name: imageData.spec.pvc.name,
+                                        namespace: imageData.spec.pvc.namespace
+                                    }
+                                }
+                                break;
+                        }
+                    } catch (e: any) {
+                        alert(e.error.message);
+                        console.log(e.error.message);
+                        throw new Error("Error loading Disk2 image data!");
+                    }
+                    if(newpooldisktwocm != "") {
+                        disk2 = { 'name': "disk2", 'cache': newpooldisktwocm, 'disk': {}};
+                    } else {
+                        disk2 = { 'name': "disk2", 'disk': {}};
+                    }
+                    device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}};
+                } else if (newpooldisktwotype == "blank") {
+                    /* Create Blank Disk */
+                    dataVolumeTwo.spec.source = {
+                        blank: {}
+                    }
+                    if(newpooldisktwocm != "") {
+                        disk2 = { 'name': "disk2", 'cache': newpooldisktwocm, 'disk': {}};
+                    } else {
+                        disk2 = { 'name': "disk2", 'disk': {}};
+                    }
+                    device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
                 }
-                device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                disk2dv = tmpdv;
-            } else if(newpooldisktwotype == "gcs") {
-                /* Create Disk From Image */
-                let disk2name = newpoolnamespace + "-"+ newpoolname + "-disk2";
-                let tmpdv = this.gcsDiskTemplate;
-                tmpdv.metadata.name = disk2name;
-                tmpdv.metadata.namespace = newpoolnamespace;
-                tmpdv.spec.pvc.storageClassName = newpooldisktwosc;
-                tmpdv.spec.pvc.accessModes[0] = newpooldisktwoam;
-                tmpdv.spec.pvc.resources.requests.storage = newpooldisktwosize + "Gi";
-                tmpdv.spec.source.gcs.url = newpooldisktwourl;
-                if(newpooldisktwocm != "") {
-                    disk2 = { 'name': "disk2", 'cache': newpooldisktwocm, 'disk': {}};
-                } else {
-                    disk2 = { 'name': "disk2", 'disk': {}};
-                }
-                device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                disk2dv = tmpdv;
-            } else if(newpooldisktwotype == "registry") {
-                /* Create Disk From Image */
-                let disk2name = newpoolnamespace + "-"+ newpoolname + "-disk2";
-                let tmpdv = this.registryDiskTemplate;
-                tmpdv.metadata.name = disk2name;
-                tmpdv.metadata.namespace = newpoolnamespace;
-                tmpdv.spec.pvc.storageClassName = newpooldisktwosc;
-                tmpdv.spec.pvc.accessModes[0] = newpooldisktwoam;
-                tmpdv.spec.pvc.resources.requests.storage = newpooldisktwosize + "Gi";
-                tmpdv.spec.source.registry.url = newpooldisktwourl;
-                if(newpooldisktwocm != "") {
-                    disk2 = { 'name': "disk2", 'cache': newpooldisktwocm, 'disk': {}};
-                } else {
-                    disk2 = { 'name': "disk2", 'disk': {}};
-                }
-                device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                disk2dv = tmpdv;
-            } else if (newpooldisktwotype == "blank") {
-                /* Create Blank Disk */
-                let disk2name = newpoolnamespace + "-"+ newpoolname + "-disk2";
-                let tmpdv = this.blankDiskTemplate;
-                tmpdv.metadata.name = disk2name;
-                tmpdv.metadata.namespace = newpoolnamespace;
-                tmpdv.spec.pvc.storageClassName = newpooldisktwosc;
-                tmpdv.spec.pvc.accessModes[0] = newpooldisktwoam;
-                tmpdv.spec.pvc.resources.requests.storage = newpooldisktwosize + "Gi";
-                if(newpooldisktwocm != "") {
-                    disk2 = { 'name': "disk2", 'cache': newpooldisktwocm, 'disk': {}};
-                } else {
-                    disk2 = { 'name': "disk2", 'disk': {}};
-                }
-                device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                disk2dv = tmpdv;
-            } else if (newpooldisktwotype == "pvc") {
-                let disk2name = newpoolnamespace + "-"+ newpoolname + "-disk2";
-                let tmpdv = this.pvcDiskTemplate;
-                tmpdv.metadata.name = disk2name;
-                tmpdv.metadata.namespace = newpoolnamespace;
-                tmpdv.spec.pvc.storageClassName = newpooldisktwosc;
-                tmpdv.spec.pvc.accessModes[0] = newpooldisktwoam;
-                tmpdv.spec.pvc.resources.requests.storage = newpooldisktwosize + "Gi";
-                tmpdv.spec.source.pvc.name = newpooldisktwovalue;
-                tmpdv.spec.source.pvc.namespace = newpoolnamespace;
-                if(newpooldisktwocm != "") {
-                    disk2 = { 'name': "disk2", 'cache': newpooldisktwocm, 'disk': {}};
-                } else {
-                    disk2 = { 'name': "disk2", 'disk': {}};
-                }
-                device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
-                disk2dv = tmpdv;
+                volumes.push(device2);
+                disks.push(disk2);
+                dvtemplates.push(dataVolumeTwo);
             }
 
             /* UserData Setup */
             if(newpooluserdatausername != "") {
                 cloudconfig += "user: " + newpooluserdatausername + "\n";
+                Object.assign(thisVirtualMachinePool.metadata.labels, { "cloud-init.kubevirt-manager.io/username" : newpooluserdatassh });
+                Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.metadata.labels, { "cloud-init.kubevirt-manager.io/username" : newpooluserdatassh });
             }
             if(newpooluserdataauth.toLowerCase() == "ssh") {
                 if (newpooluserdatassh != "") {
-                    cloudconfig += "ssh_authorized_keys:\n";
-                    cloudconfig += "  - " + newpooluserdatassh + "\n";
+                    let sshLabels = {};
+                    Object.assign(sshLabels, { "kubevirt-manager.io/ssh" : "true" });
+                    Object.assign(sshLabels, { "cloud-init.kubevirt-manager.io/ssh" : newpooluserdatassh});
+                    Object.assign(thisVirtualMachinePool.metadata.labels, sshLabels);
+                    Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.metadata.labels, sshLabels);
+                    try {
+                        let sshSecret = await lastValueFrom(this.k8sService.getSecret(newpoolnamespace, newpooluserdatassh));
+                        let sshKey = sshSecret.data["ssh-privatekey"];
+                        cloudconfig += "ssh_authorized_keys:\n";
+                        cloudconfig += "  - " + atob(sshKey) + "\n";
+                    } catch (e: any) {
+                        alert(e.error.message);
+                        console.log(e.error.message);
+                    }
                 }
             } else {
                 if (newpooluserdatapassword != "") {
@@ -824,134 +773,97 @@ export class VMPoolsComponent implements OnInit {
 
 
             /* Adding UserData/NetworkData device */
-            disk3 = {'name': "disk3", 'disk': {'bus': "virtio"}};
-            device3 = {'name': "disk3", 'cloudInitNoCloud': {'userData': cloudconfig, 'networkData': netconfig}};
+            let disk3 = {'name': "disk3", 'disk': {'bus': "virtio"}};
+            let device3 = {'name': "disk3", 'cloudInitNoCloud': {'userData': cloudconfig, 'networkData': netconfig}};
+            volumes.push(device3);
+            disks.push(disk3);
         
 
             /* Networking Setup */
+            let net1 = {};
+            let iface1 = {};
             if(newpoolnetwork != "podNetwork") {
                 net1 = {'name': "net1", 'multus': {'networkName': newpoolnetwork}};
             } else {
                 net1 = {'name': "net1", 'pod': {}};
             }
+            networks.push(net1);
             if(newpoolnetworktype == "bridge") {
                 iface1 = {'name': "net1", 'bridge': {}};
             } else {
                 iface1 = {'name': "net1", 'masquerade': {}};
             }
+            interfaces.push(iface1);
+
+            /* Assigning Arrays */
+            if(networks.length > 0) { thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.spec.networks = networks; }
+            if(interfaces.length > 0) { thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces = interfaces; }
+            if(dvtemplates.length > 0) { thisVirtualMachinePool.spec.virtualMachineTemplate.spec.dataVolumeTemplates = dvtemplates }
+            if(disks.length > 0) { thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks = disks }
+            if(volumes.length > 0) { thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.spec.volumes = volumes }
 
             /* Liveness Probe Setup */
             if(newpoollivenessenable == "enabled") {
+                let livenessProbe: Probe = {
+                    initialDelaySeconds: Number(newpoollivenessinitialdelay),
+                    periodSeconds: Number(newpoollivenessinterval),
+                    timeoutSeconds: Number(newpoollivenesstimeout),
+                    failureThreshold: Number(newpoollivenessfailure),
+                    successThreshold: Number(newpoollivenesssuccess)                
+                };
                 /* Adjusting our Probe */
                 if(newpoollivenesstype.toLowerCase() == "http") {
-                    let myHttpProbe = new Probe().httpProbe;
-                    myHttpProbe.initialDelaySeconds = Number(newpoollivenessinitialdelay);
-                    myHttpProbe.periodSeconds  = Number(newpoollivenessinterval);
-                    myHttpProbe.timeoutSeconds = Number(newpoollivenesstimeout);
-                    myHttpProbe.failureThreshold = Number(newpoollivenessfailure);
-                    myHttpProbe.successThreshold = Number(newpoollivenesssuccess);
-                    myHttpProbe.httpGet.path = newpoollivenesspath;
-                    myHttpProbe.httpGet.port = Number(newpoollivenessport);
-                    this.myVmPoolLivenessProbe = myHttpProbe;
+                    let httpProbe = {
+                        path: newpoollivenesspath,
+                        port: Number(newpoollivenessport)
+                    };
+                    livenessProbe.httpGet = httpProbe;
                 } else {
-                    let myTcpProbe = new Probe().tcpProbe;
-                    myTcpProbe.initialDelaySeconds = Number(newpoollivenessinitialdelay);
-                    myTcpProbe.periodSeconds  = Number(newpoollivenessinterval);
-                    myTcpProbe.timeoutSeconds = Number(newpoollivenesstimeout);
-                    myTcpProbe.failureThreshold = Number(newpoollivenessfailure);
-                    myTcpProbe.successThreshold = Number(newpoollivenesssuccess);
-                    myTcpProbe.tcpSocket.port = Number(newpoollivenessport);
-                    this.myVmPoolLivenessProbe= myTcpProbe;
+                    let tcpProbe = {
+                        port: Number(newpoollivenessport)
+                    };
+                    livenessProbe.tcpSocket = tcpProbe;
                 }
 
                 /* Assigning to our object */
-                let liveness = { 'livenessProbe': this.myVmPoolLivenessProbe };
-                if(newpooltype.toLowerCase() == "custom") {
-                    Object.assign(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec, liveness);
-                } else {
-                    Object.assign(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec, liveness);
-                }
+                thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.spec.livenessProbe = livenessProbe;
             }
 
             /* Readiness Probe Setup */
             if(newpoolreadinessenable == "enabled") {
+                let readinessProbe: Probe = {
+                    initialDelaySeconds: Number(newpoolreadinessinitialdelay),
+                    periodSeconds: Number(newpoolreadinessinterval),
+                    timeoutSeconds: Number(newpoolreadinesstimeout),
+                    failureThreshold: Number(newpoolreadinessfailure),
+                    successThreshold: Number(newpoolreadinesssuccess)                
+                };
                 /* Adjusting our Probe */
                 if(newpoolreadinesstype.toLowerCase() == "http") {
-                    let myHttpProbe = new Probe().httpProbe;
-                    myHttpProbe.initialDelaySeconds = Number(newpoolreadinessinitialdelay);
-                    myHttpProbe.periodSeconds  = Number(newpoolreadinessinterval);
-                    myHttpProbe.timeoutSeconds = Number(newpoolreadinesstimeout);
-                    myHttpProbe.failureThreshold = Number(newpoolreadinessfailure);
-                    myHttpProbe.successThreshold = Number(newpoolreadinesssuccess);
-                    myHttpProbe.httpGet.path = newpoolreadinesspath;
-                    myHttpProbe.httpGet.port = Number(newpoolreadinessport);
-                    this.myVmPoolReadinessProbe = myHttpProbe;
+                    let httpProbe = {
+                        path: newpoolreadinesspath,
+                        port: Number(newpoolreadinessport)
+                    };
+                    readinessProbe.httpGet = httpProbe;
                 } else {
-                    let myTcpProbe = new Probe().tcpProbe;
-                    myTcpProbe.initialDelaySeconds = Number(newpoolreadinessinitialdelay);
-                    myTcpProbe.periodSeconds  = Number(newpoolreadinessinterval);
-                    myTcpProbe.timeoutSeconds = Number(newpoolreadinesstimeout);
-                    myTcpProbe.failureThreshold = Number(newpoolreadinessfailure);
-                    myTcpProbe.successThreshold = Number(newpoolreadinesssuccess);
-                    myTcpProbe.tcpSocket.port = Number(newpoolreadinessport);
-                    this.myVmPoolReadinessProbe= myTcpProbe;
+                    let tcpProbe = {
+                        port: Number(newpoolreadinessport)
+                    };
+                    readinessProbe.tcpSocket = tcpProbe;
                 }
 
                 /* Assigning to our object */
-                let readiness = { 'readinessProbe': this.myVmPoolReadinessProbe };
-                if(newpooltype.toLowerCase() == "custom") {
-                    Object.assign(this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec, readiness);
-                } else {
-                    Object.assign(this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec, readiness);
-                }
+                thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.spec.readinessProbe = readinessProbe;
             }
 
-            /* Create the VM */
-            if(newpooltype.toLowerCase() == "custom") {
-                /* Create a custom CPU/Mem VM */
-                this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.push(disk1);
-                this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.volumes.push(device1);
-                this.myVmPoolCustom.spec.virtualMachineTemplate.spec.dataVolumeTemplates.push(disk1dv);
-                if(newpooldisktwotype == "image" || newpooldisktwotype == "blank" || newpooldisktwotype == "disk") {
-                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.push(disk2);
-                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.volumes.push(device2);
-                    this.myVmPoolCustom.spec.virtualMachineTemplate.spec.dataVolumeTemplates.push(disk2dv);
-                }
-                this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.push(disk3);
-                this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.volumes.push(device3);
-                this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.networks.push(net1);
-                this.myVmPoolCustom.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.push(iface1);
-                try {
-                    this.myVmPoolCustom.spec.replicas = Number(newpoolreplicas);
-                    data = await lastValueFrom(this.kubeVirtService.createPool(newpoolnamespace, newpoolname, this.myVmPoolCustom));
-                    this.hideComponent("modal-newpool");
-                    this.reloadComponent();
-                } catch (e: any) {
-                    alert(e.error.message);
-                    console.log(e);
-                }
-            } else {
-                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.push(disk1);
-                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.volumes.push(device1);
-                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.dataVolumeTemplates.push(disk1dv);
-                if(newpooldisktwotype == "image" || newpooldisktwotype == "blank" || newpooldisktwotype == "disk") {
-                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.push(disk2);
-                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.volumes.push(device2);
-                    this.myVmPoolTyped.spec.virtualMachineTemplate.spec.dataVolumeTemplates.push(disk2dv);
-                }
-                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.disks.push(disk3);
-                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.volumes.push(device3);
-                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.networks.push(net1);
-                this.myVmPoolTyped.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces.push(iface1);
-                try {
-                    this.myVmPoolTyped.spec.replicas = Number(newpoolreplicas);
-                    data = await lastValueFrom(this.kubeVirtService.createPool(newpoolnamespace, newpoolname, this.myVmPoolTyped));
-                    this.hideComponent("modal-newpool");
-                    this.reloadComponent();
-                } catch (e: any) {
-                    alert(e.error.message);
-                    console.log(e);
-                }
+            /* Create the Pool */
+            try {
+                let data = await lastValueFrom(this.kubeVirtService.createPool(thisVirtualMachinePool));
+                this.hideComponent("modal-newpool");
+                this.reloadComponent();
+            } catch (e: any) {
+                alert(e.error.message);
+                console.log(e);
             }
         }
     }
@@ -1299,18 +1211,11 @@ export class VMPoolsComponent implements OnInit {
                 diskOneSizeField.removeAttribute("disabled");
                 diskOneURLField.setAttribute("disabled", "disabled");
             }
-        } else if (diskType == "http" || diskType == "s3" || diskType == "registry") {
-            if(diskOneValueField != null && diskOneSizeField != null && diskOneURLField != null) {
-                diskOneSizeField.removeAttribute("disabled");
-                diskOneURLField.removeAttribute("disabled");
-                diskOneValueField.setAttribute("disabled", "disabled");
-            }
-        } else if (diskType == "pvc") {
-            if (diskOneValueField != null && diskOneSizeField != null && diskOneURLField != null) {
-                diskOneValueField.innerHTML = await this.loadPVCOptions(diskNamespace);
+        } else if (diskType == "image") {
+            if(diskOneValueField != null && diskOneSizeField != null) {
+                diskOneValueField.innerHTML = await this.loadImageOptions(diskNamespace);
                 diskOneValueField.removeAttribute("disabled");
                 diskOneSizeField.removeAttribute("disabled");
-                diskOneURLField.setAttribute("disabled", "disabled");
             }
         } else if (diskType == "dv") {
             if (diskOneValueField != null && diskOneSizeField != null && diskOneURLField != null) {
@@ -1341,18 +1246,11 @@ export class VMPoolsComponent implements OnInit {
                 diskTwoURLField.setAttribute("disabled", "disabled");
                 diskTwoSizeField.removeAttribute("disabled");
             }
-        } else if (diskType == "http" || diskType == "s3" || diskType == "registry") {
-            if (diskTwoValueField != null && diskTwoSizeField != null && diskTwoURLField != null) {
-                diskTwoValueField.setAttribute("disabled", "disabled");
-                diskTwoSizeField.removeAttribute("disabled");
-                diskTwoURLField.removeAttribute("disabled");
-            }
-        } else if (diskType == "pvc") {
-            if (diskTwoValueField != null && diskTwoSizeField != null && diskTwoURLField != null) {
-                diskTwoValueField.innerHTML = await this.loadPVCOptions(diskNamespace);
+        } else if (diskType == "image") {
+            if (diskTwoValueField != null && diskTwoSizeField != null) {
+                diskTwoValueField.innerHTML = await this.loadImageOptions(diskNamespace);
                 diskTwoValueField.removeAttribute("disabled");
                 diskTwoSizeField.removeAttribute("disabled");
-                diskTwoURLField.setAttribute("disabled", "disabled");
             }
         } else if (diskType == "dv") {
             if (diskTwoValueField != null && diskTwoSizeField != null && diskTwoURLField != null) {
@@ -1405,6 +1303,14 @@ export class VMPoolsComponent implements OnInit {
     async onChangeNamespace(namespace: string) {
         let selectorNetworkField = document.getElementById("newpool-network");
         let networkSelectorOptions = "<option value=podNetwork>podNetwork</option>\n";
+        let selectorDiskOneType = document.getElementById("newpool-diskonetype");
+        let selectorDiskTwoType = document.getElementById("newpool-disktwotype");
+        let selectorDiskOneValue = document.getElementById("newpool-diskonevalue");
+        let fieldDiskOneSize = document.getElementById("newpool-diskonesize");
+        let selectorDiskTwoValue = document.getElementById("newpool-disktwovalue");
+        let fieldDiskTwoSize = document.getElementById("newpool-disktwosize");
+        let selectorAuthType = document.getElementById("newpool-userdata-auth");
+        let selectorSSHKey = document.getElementById("newpool-userdata-ssh");
         if(this.networkCheck) {
             try {
                 let data = await lastValueFrom(this.k8sApisService.getNetworkAttachs());
@@ -1425,6 +1331,31 @@ export class VMPoolsComponent implements OnInit {
         }
         if (selectorNetworkField != null && networkSelectorOptions != "") {
             selectorNetworkField.innerHTML = networkSelectorOptions;
+        }
+
+         /* Reset disk options */
+         if(selectorDiskOneType != null && selectorDiskTwoType != null && selectorDiskOneValue != null && selectorDiskTwoValue) {
+            let diskOptions = "<option value=none>None</option>\n<option value=blank>Blank Disk</option>\n<option value=image>Image</option>\n<option value=dv>DataVolume</option>";
+            selectorDiskOneType.innerHTML = diskOptions;
+            selectorDiskTwoType.innerHTML = diskOptions;
+            selectorDiskOneValue.innerHTML = "";
+            selectorDiskTwoValue.innerHTML = "";
+            selectorDiskOneValue.setAttribute("disabled", "disabled");
+            selectorDiskTwoValue.setAttribute("disabled", "disabled");
+        }
+
+        if(fieldDiskOneSize != null && fieldDiskTwoSize != null) {
+            fieldDiskOneSize.setAttribute("disabled", "disabled");
+            fieldDiskTwoSize.setAttribute("disabled", "disabled");
+        }
+
+        /* Reset SSH Key Options */
+        if(selectorAuthType != null && selectorSSHKey != null) {
+            let authOptions = "<option value=password>User/Password</option>\n<option value=ssh>SSH Private Key</option>";
+            selectorAuthType.innerHTML = "";
+            selectorSSHKey.innerHTML = "";
+            selectorAuthType.innerHTML = authOptions;
+            this.onChangeAuthType("password", namespace);
         }
     }
 
@@ -1455,10 +1386,21 @@ export class VMPoolsComponent implements OnInit {
     /*
      * New POOL: Change between pass/ssh auth
      */
-    async onChangeAuthType(authType: string) {
+    async onChangeAuthType(authType: string, namespace: string) {
         let modalSSHDiv = document.getElementById("newpool-userdata-ssh-panel");
         let modelPWDDiv = document.getElementById("newpool-userdata-password-panel");
         if(authType.toLowerCase() == "ssh") {
+            let sshKeySelector = document.getElementById("newpool-userdata-ssh");
+            if (sshKeySelector != null) {
+                let data = await lastValueFrom(await this.k8sService.getSSHSecretsNamespaced(namespace));
+                let keyList = data.items;
+                let sshSelectorOptions = "";
+                for(let i = 0; i < keyList.length; i++) {
+                    sshSelectorOptions += "<option value=" + keyList[i].metadata["name"] + ">" + keyList[i].metadata["name"] + "</option>\n";
+                }
+                sshKeySelector.innerHTML = sshSelectorOptions;
+
+            }
             if(modalSSHDiv != null && modelPWDDiv != null) {
                 modalSSHDiv.setAttribute("class", "modal fade show");
                 modalSSHDiv.setAttribute("aria-modal", "true");
@@ -1623,6 +1565,24 @@ export class VMPoolsComponent implements OnInit {
                 modalPath.setAttribute("style","display: none;");
             }
         }
+    }
+
+    /*
+     * New Pool: Load Image Options
+     */
+    async loadImageOptions(imgNamespace: string) {
+        let imgSelectorOptions = "";
+        try {
+            let data = await lastValueFrom(await this.kubevirtMgrService.getNamespacedImages(imgNamespace));
+            let images = data.items;
+            for (let i = 0; i < images.length; i++) {
+
+                imgSelectorOptions += "<option value=" + images[i].metadata["name"] +">" + images[i].metadata["name"] + "</option>\n";
+            }
+        } catch (e: any) {
+            console.log(e.error.message);
+        }
+        return imgSelectorOptions;
     }
 
     /*

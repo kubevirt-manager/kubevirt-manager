@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { KubeVMClusterInstanceType } from 'src/app/models/kube-vmcluster-instance-type.model';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
-import { VirtualMachineClusterInstanceType } from 'src/app/templates/virtual-machine-cluster-instance-type.apitemplate';
+import { VirtualMachineClusterInstanceType } from 'src/app/interfaces/virtual-machine-cluster-instance-type'
 
 @Component({
   selector: 'app-cluster-instance-type-list',
@@ -13,8 +13,6 @@ import { VirtualMachineClusterInstanceType } from 'src/app/templates/virtual-mac
 export class ClusterInstanceTypeListComponent implements OnInit {
 
     clusterInstanceTypeList: KubeVMClusterInstanceType [] = [];
-
-    myClusterInstanceTypeTemplate = new VirtualMachineClusterInstanceType().template;
 
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
@@ -167,18 +165,32 @@ export class ClusterInstanceTypeListComponent implements OnInit {
      * Create the new type
      */
     async applyNew(typeName: string, typeCPU: string, typeMemory: string): Promise<void> {
-        if(typeName != null && typeCPU != null && typeMemory != null) {
-            this.myClusterInstanceTypeTemplate.metadata.name = typeName;
-            this.myClusterInstanceTypeTemplate.spec.cpu.guest = Number(typeCPU);
-            this.myClusterInstanceTypeTemplate.spec.memory.guest = typeMemory + "Gi";
+        if(typeName != "" && typeCPU != "" && typeMemory != "") {
+            let myCITTemplate: VirtualMachineClusterInstanceType = {
+                apiVersion: 'instancetype.kubevirt.io/v1alpha1',
+                kind: 'VirtualMachineClusterInstancetype',
+                metadata: {
+                    name: typeName
+                },
+                spec: {
+                    cpu: {
+                        guest: Number(typeCPU)
+                    },
+                    memory: {
+                        guest: typeMemory
+                    }
+                }
+            };
             try {
-                const data = await lastValueFrom(this.kubeVirtService.createClusterInstanceType(typeName, this.myClusterInstanceTypeTemplate));
+                const data = await lastValueFrom(this.kubeVirtService.createClusterInstanceType(myCITTemplate));
                 this.hideComponent("model-new");
-                this.reloadComponent();
+                this.reloadComponent(); 
             } catch (e: any) {
                 alert(e.error.message);
                 console.log(e);
             }
+        } else {
+            alert("Make sure to fill the required fields: name, CPU and memory");
         }
     }
 

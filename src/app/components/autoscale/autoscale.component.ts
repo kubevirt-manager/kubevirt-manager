@@ -5,7 +5,7 @@ import { K8sHPA } from 'src/app/models/k8s-hpa.model';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { K8sService } from 'src/app/services/k8s.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
-import { Hpa } from 'src/app/templates/hpa.apitemplate';
+import { HorizontalPodAutoscaler } from 'src/app/interfaces/horizontal-pod-autoscaler';
 
 @Component({
   selector: 'app-autoscale',
@@ -260,32 +260,40 @@ export class AutoscaleComponent implements OnInit {
         } else if (newhpatargetpool == "" || newhpamin == "" || newhpamax == "" || newhpathreshold == "") {
             alert("Please complete all the target properties!");
         } else {
-            let myHpaDescriptor = new Hpa();
 
-            /* Metadata */
-            myHpaDescriptor.cpuPercentageHPAv2.metadata.name = newhpaname;
-            myHpaDescriptor.cpuPercentageHPAv2.metadata.namespace = newhpanamespace;
-
-            /* Load Custom Labels */
-            let tmpLabels = {};
-
-            let kubevirtManagerLabel = {
-                ["kubevirt-manager.io/managed"]: "true"
+            let myHpaDescriptor: HorizontalPodAutoscaler = {
+                apiVersion: "autoscaling/v2",
+                kind: "HorizontalPodAutoscaler",
+                metadata: {
+                    name: newhpaname,
+                    namespace: newhpanamespace,
+                    labels: {
+                        ["kubevirt-manager.io/managed"]: "true"
+                    }
+                },
+                spec: {
+                    scaleTargetRef: {
+                        apiVersion: "pool.kubevirt.io/v1alpha1",
+                        kind: "VirtualMachinePool",
+                        name: newhpatargetpool,
+                    },
+                    minReplicas: Number(newhpamin),
+                    maxReplicas: Number(newhpamax),
+                    metrics: [{
+                        type: "Resource",
+                        resource: {
+                            name: "cpu",
+                            target: {
+                                type: "Utilization",
+                                averageUtilization: Number(newhpathreshold),
+                            }
+                        },         
+                    }],
+                },
             };
-            Object.assign(tmpLabels, kubevirtManagerLabel);
-
-            myHpaDescriptor.cpuPercentageHPAv2.metadata.labels = tmpLabels;
-
-            /* Setting Target Details */
-            myHpaDescriptor.cpuPercentageHPAv2.spec.scaleTargetRef.name = newhpatargetpool;
-
-            /* Setting Scaling Parameters */
-            myHpaDescriptor.cpuPercentageHPAv2.spec.minReplicas = Number(newhpamin);
-            myHpaDescriptor.cpuPercentageHPAv2.spec.maxReplicas = Number(newhpamax);
-            myHpaDescriptor.cpuPercentageHPAv2.spec.metrics[0].resource.target.averageUtilization = Number(newhpathreshold);
 
             try {
-                let newHpaData = await lastValueFrom(this.k8sApisService.createHpa(newhpanamespace, myHpaDescriptor.cpuPercentageHPAv2));
+                let newHpaData = await lastValueFrom(this.k8sApisService.createHpa(myHpaDescriptor));
                 this.hideComponent("modal-new");
                 this.reloadComponent();
             } catch (e: any) {

@@ -56,6 +56,7 @@
                         <dd>Container Network Interface: {{activeCluster.cniPlugin}} </dd>
                         <dd>Container Network Interface Version: {{activeCluster.cniPluginVersion}} </dd>
                         <dd>Container Network Interface VXLAN Tunnel Port: {{activeCluster.cniVXLANPort}} </dd>
+                        <dd>Cluster Autoscaler: {{activeCluster.clusterAutoscaler}} </dd>
                         <dd>IPv4 Pod CIDRs: {{activeCluster.podCidrs}} </dd>
                         <dd>IPv4 Service CIDRs: {{activeCluster.svcCidrs}} </dd>
                         <dd>Cluster DNS Domain: {{activeCluster.controlPlane.dnsDomain}}</dd>
@@ -133,13 +134,13 @@
                                         <!--- SCALE REPLICAS -->
                                         <span>
                                             <a class="btn" (click)="showReplicasCp(activeCluster.controlPlane.name)" title="Scale...">
-                                            <i class="fas fa-arrow-up"></i>
+                                            <i class="fas fa-arrow-up" (click)="showReplicasCp(activeCluster.controlPlane.name)"></i>
                                             </a>
                                         </span>
                                         <!--- CHANGE TYPE BUTTON -->
                                         <span>
                                             <a class="btn" (click)="showConfigCp()" title="Change type...">
-                                            <i class="fas fa-cog"></i>
+                                            <i class="fas fa-cog" (click)="showConfigCp()"></i>
                                             </a>
                                         </span>
                                     </td>
@@ -176,7 +177,7 @@
                                     <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.status}}</a></td>
                                     <td style="line-height: 2.2 !important;">
                                     <span [ngSwitch]="thisVM.status">
-                                        <span *ngSwitchCase="'Running'">
+                                        <span *ngSwitchCase="'running'">
                                             <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.vmi.ifAddr}}</a>
                                         </span>
                                         <span *ngSwitchDefault>
@@ -194,7 +195,7 @@
                                     </span>
                                     <!--- VNC BUTTON -->
                                     <span [ngSwitch]="thisVM.status">
-                                        <a class="btn" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchCase="'Running'">
+                                        <a class="btn" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchCase="'running'">
                                         <i class="fas fa-desktop"></i>
                                         </a>
                                         <a class="btn disabled" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchDefault>
@@ -228,7 +229,7 @@
                                           <i class="fas fa-redo disabled"></i>
                                         </a>
                                     </span>
-                                    <!--- DELETE BUTTON -->
+                                    <!--- DELETE BUTTON 
                                     <span [ngSwitch]="thisVM.running">
                                         <a class="btn disabled" title="Delete..." *ngSwitchCase="true">
                                             <i class="fas fa-trash disabled"></i>
@@ -236,7 +237,7 @@
                                         <a class="btn" title="Delete..." *ngSwitchDefault>
                                             <i class="fas fa-trash"></i>
                                         </a>
-                                    </span>
+                                    </span> -->
                                     </td>
                                 </tr>
                             </tbody>
@@ -265,124 +266,23 @@
                                     <th style="width: 120px">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody> 
                                 <tr *ngFor="let thisPool of activeCluster.machineDeployments">
-                                    <td style="line-height: 2.2 !important;">{{thisPool.name}}</td>
-                                    <td style="line-height: 2.2 !important;">{{thisPool.version}}</td>
-                                    <td style="line-height: 2.2 !important;">{{thisPool.machineTemplate.instType}}</td>
-                                    <td style="line-height: 2.2 !important;">{{(thisPool.machineTemplate.cores || 0) * (thisPool.machineTemplate.sockets || 0) * (thisPool.machineTemplate.threads || 0)}}</td>
-                                    <td style="line-height: 2.2 !important;">{{thisPool.machineTemplate.memory}}</td>
-                                    <td style="line-height: 2.2 !important;">true</td>
-                                    <td style="line-height: 2.2 !important;">{{thisPool.replicas}}</td>
-                                    <td style="line-height: 2.2 !important;">{{thisPool.machineTemplate.priorityClass}}</td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterpooldetails/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.name}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterpooldetails/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.version}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterpooldetails/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.machineTemplate.instType}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterpooldetails/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{(thisPool.machineTemplate.cores || 0) * (thisPool.machineTemplate.sockets || 0) * (thisPool.machineTemplate.threads || 0)}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterpooldetails/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.machineTemplate.memory}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterpooldetails/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">true</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterpooldetails/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.replicas}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterpooldetails/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.machineTemplate.priorityClass}}</a></td>
                                     <td style="line-height: 2.2 !important;">
-                                        <!--- SCALE REPLICAS -->
-                                        <span>
-                                            <a class="btn" (click)="showReplicasWp(thisPool.namespace, thisPool.name, thisPool.replicas)"  title="Scale...">
-                                            <i class="fas fa-arrow-up"></i>
-                                            </a>
-                                        </span>
                                         <!--- DELETE BUTTON -->
                                         <span>
                                             <a class="btn" (click)="showDeleteWp(thisPool.namespace, thisPool.name)" title="Delete...">
                                             <i class="fas fa-trash"></i>
                                             </a>
                                         </span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <br>
-                        <hr>
-                        <dt>Instances</dt>
-                        <br>
-                        <table class="table table-sm" style="vertical-align: middle !important;">
-                            <thead>
-                                <tr>
-                                <th style="width: 10px">&nbsp;</th>
-                                <th style="width: 140px">Virtual Machine</th>
-                                <th style="width: 60px">Node</th>
-                                <th style="width: 50px">Status</th>
-                                <th style="width: 50px">IP Address</th>
-                                <th style="width: 50px">Ready</th>
-                                <th style="width: 180px">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr *ngFor="let thisVM of allWorkers">
-                                    <td style="line-height: 2.2 !important; align-content: center;">
-                                    <span>
-                                        <span>
-                                        <span class="badge"><i class="fas fa-hdd"></i></span>
-                                        </span>
-                                    </span>
-                                    </td>
-                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.name}}</a></td>
-                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.nodeSel}}</a></td>
-                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.status}}</a></td>
-                                    <td style="line-height: 2.2 !important;">
-                                    <span [ngSwitch]="thisVM.status">
-                                        <span *ngSwitchCase="'Running'">
-                                            <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.vmi.ifAddr}}</a>
-                                        </span>
-                                        <span *ngSwitchDefault>
-                                            <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">&nbsp;</a>
-                                        </span>
-                                    </span>
-                                    </td>
-                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.ready}}</a></td>
-                                    <td style="line-height: 0 !important;">
-                                    <!--- INFO BUTTON -->
-                                    <span>
-                                        <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="Show info...">
-                                        <i class="fas fa-info"></i>
-                                        </a>
-                                    </span>
-                                    <!--- VNC BUTTON -->
-                                    <span [ngSwitch]="thisVM.status">
-                                        <a class="btn" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchCase="'Running'">
-                                        <i class="fas fa-desktop"></i>
-                                        </a>
-                                        <a class="btn disabled" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchDefault>
-                                        <i class="fas fa-desktop disabled"></i>
-                                        </a>
-                                    </span>
-                                    <!--- POWER ON BUTTON -->
-                                    <span [ngSwitch]="thisVM.running">
-                                        <a class="btn disabled" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchCase="true">
-                                          <i class="fas fa-plug disabled"></i>
-                                        </a>
-                                        <a class="btn" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchDefault>
-                                          <i class="fas fa-plug"></i>
-                                        </a>
-                                    </span>
-                                    <!--- POWER OFF BUTTON -->
-                                    <span [ngSwitch]="thisVM.running">
-                                        <a class="btn" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchCase="true">
-                                          <i class="fas fa-power-off"></i>
-                                        </a>
-                                        <a class="btn disabled" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchDefault>
-                                          <i class="fas fa-power-off disabled"></i>
-                                        </a>
-                                    </span>
-                                    <!--- RESTART BUTTON -->
-                                    <span [ngSwitch]="thisVM.running">
-                                        <a class="btn" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchCase="true">
-                                          <i class="fas fa-redo"></i>
-                                        </a>
-                                        <a class="btn disabled" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchDefault>
-                                          <i class="fas fa-redo disabled"></i>
-                                        </a>
-                                    </span>
-                                    <!--- DELETE BUTTON -->
-                                    <span [ngSwitch]="thisVM.running">
-                                        <a class="btn disabled" title="Delete..." *ngSwitchCase="true">
-                                            <i class="fas fa-trash disabled"></i>
-                                        </a>
-                                        <a class="btn" title="Delete..." *ngSwitchDefault>
-                                            <i class="fas fa-trash"></i>
-                                        </a>
-                                    </span>
                                     </td>
                                 </tr>
                             </tbody>
@@ -446,7 +346,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-replicas-wp")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)='applyReplicasWp(replicaswpinput.value)'>Resize</button>
+              <button type="button" class="btn btn-primary">>Resize</button>
             </div>
           </div>
           <!-- /.modal-content -->
@@ -565,6 +465,7 @@
               </button>
             </div>
             <div class="modal-body" id="new-wp-value">
+                        <input #newnodepoolautoscaling type="hidden" id="newnodepool-autoscaling" name="newnodepool-autoscaling" value="false">
                         <label for="newnodepool-name">Pool Name:</label>
                         <input #newnodepoolname type="text" class="form-control" id="newnodepool-name" name="newnodepool-name" value="pool-name">
                         <div class="row">
@@ -599,8 +500,20 @@
                       <select #newnodepoolpc class="custom-select rounded-0" name="newnodepool-pc" id="newnodepool-pc">
                           <option>Value 1</option>
                       </select>
-                      <label for="newnodepool-replicas">Number of Nodes:</label>
-                      <input #newnodepoolreplicas type="number" class="form-control" id="newnodepool-replicas" name="newnodepool-replicas">
+                      <div class="row">
+                          <div class="col-4">
+                            <label for="newnodepool-replicas">Number of Nodes:</label>
+                            <input #newnodepoolreplicas type="number" class="form-control" id="newnodepool-replicas" name="newnodepool-replicas">
+                          </div>
+                          <div class="col-4">
+                            <label for="newnodepool-minreplicas">Autoscaler Min Nodes:</label>
+                            <input #newnodepoolminreplicas type=number class="form-control" name="newnodepool-minreplicas" id="newnodepool-minreplicas" placeholder="1" disabled>
+                          </div>
+                          <div class="col-4">
+                            <label for="newnodepool-maxreplicas">Autoscaler Max Nodes:</label>
+                            <input #newnodepoolmaxreplicas type=number class="form-control" name="newnodepool-maxreplicas" id="newnodepool-maxreplicas" placeholder="99" disabled>
+                          </div>
+                        </div>
                       <br>
                       <label for="newnodepool-disk">Boot Disk</label>
                         <div class="row">
@@ -634,7 +547,7 @@
                         <div class="row">&nbsp;</div>
                          <div class="modal-footer justify-content-between">
                             <button type="button" class="btn btn-default" (click)='hideComponent("modal-newcluster")'>Close</button>
-                            <button type="button" class="btn btn-primary" (click)='createNodePoolRelatedObjects(newnodepoolname.value, newnodepoolosdist.value, newnodepoolosversion.value, newnodepooltype.value, newnodepoolcpumemsockets.value, newnodepoolcpumemcores.value, newnodepoolcpumemthreads.value, newnodepoolcpumemmemory.value, newnodepoolpc.value, newnodepoolreplicas.value, newnodepooldisksize.value, newnodepooldisksc.value, newnodepooldiskam.value, newnodepooldiskcm.value)'>Create</button>
+                            <button type="button" class="btn btn-primary" (click)='createNodePoolRelatedObjects(newnodepoolautoscaling.value, newnodepoolname.value, newnodepoolosdist.value, newnodepoolosversion.value, newnodepooltype.value, newnodepoolcpumemsockets.value, newnodepoolcpumemcores.value, newnodepoolcpumemthreads.value, newnodepoolcpumemmemory.value, newnodepoolpc.value, newnodepoolreplicas.value, newnodepoolminreplicas.value, newnodepoolmaxreplicas.value, newnodepooldisksize.value, newnodepooldisksc.value, newnodepooldiskam.value, newnodepooldiskcm.value)'>Create</button>
                         </div>
 
 

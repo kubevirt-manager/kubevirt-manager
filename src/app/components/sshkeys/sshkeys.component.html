@@ -1,0 +1,110 @@
+<div class="content">
+    <div class="container-fluid">
+      <div class="content-wrapper">
+        &nbsp;<br>
+        <div class="card card-outline">
+          <div class="card-header">
+            <h3 class="card-title">
+              <i class="fas fa-key"></i>
+              &nbsp;&nbsp;SSH Keys
+            </h3>
+            <div class="card-tools">
+              <button type="button" class="btn btn-tool" (click)="showNew()" title="New Key...">
+                <i class="fas fa-plus-square"></i>
+            </button>
+            </div>
+          </div>
+          <div class="card-body">
+           <table class="table table-sm" style="vertical-align: middle !important;">
+              <thead>
+                <tr>
+                  <th style="width: 10px">&nbsp;</th>
+                  <th style="width: 60px">Namespace</th>
+                  <th style="width: 100px">Name</th>
+                  <th style="width: 150px">Created At</th>
+                  <th style="width: 20px">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                  <tr *ngFor="let thisKey of keyList">
+                    <td style="line-height: 2.2 !important; align-content: center;"><i class="fas fa-key"></i></td>
+                    <td style="line-height: 2.2 !important;">{{thisKey.namespace}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisKey.name}}</td>
+                    <td style="line-height: 2.2 !important;">{{thisKey.creationTimestamp}}</td>
+                    <td style="line-height: 0 !important;">
+                      <a class="btn" (click)="showDelete(thisKey.name, thisKey.namespace)" title="Delete...">
+                        <i class="fas fa-trash" (click)="showDelete(thisKey.name, thisKey.namespace)"></i>
+                      </a>
+                    </td>
+                  </tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- /.card-body -->
+        </div>
+      </div>
+
+
+      <!--            -->
+      <!-- Modal: New -->
+      <!--            -->
+      <div class="modal fade" id="modal-new" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="new-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-new")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <input type="hidden" id="new-node" name="new-node" value="">
+            <div class="modal-body" id="new-value">
+                <label for="newkeyname">Name:</label>
+                <input #newkeyname type="text" class="form-control" id="new-key-name" name="new-key-name" placeholder="name">
+                <label for="newkeynamespace">Namespace:</label>
+                <select #newkeynamespace class="custom-select rounded-0" name="new-key-namespace" id="new-key-namespace">
+                    <option>Value 1</option>
+                </select>
+                <label for="newkeyvalue">Value:</label>
+                <textarea #newkeyvalue class="form-control" rows="3" cols="10" id="new-key-value" name="new-key-value"></textarea>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-new")'>Close</button>
+              <button type="button" class="btn btn-primary" (click)="applyNew(newkeyname.value, newkeynamespace.value, newkeyvalue.value)">Create</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+
+        <!--               -->
+        <!-- Modal: Delete -->
+        <!--               -->
+        <div class="modal fade" id="modal-delete" style="display: none;" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                <h4 class="modal-title" id="delete-title">TITLE_TEMPLATE</h4>
+                <button type="button" class="close" (click)='hideComponent("modal-delete")'>
+                    <span aria-hidden="true">×</span>
+                </button>
+                </div>
+                <input type="hidden" id="delete-namespace" name="delete-namespace" value="">
+                <input type="hidden" id="delete-name" name="delete-name" value="">
+                <div class="modal-body" id="delete-value">
+                <p>BODY_TEMPLATE</p>
+                </div>
+                <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-default" (click)='hideComponent("modal-delete")'>Close</button>
+                <button type="button" class="btn btn-danger" (click)="applyDelete()">Delete</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+
+
+    </div>
+</div>

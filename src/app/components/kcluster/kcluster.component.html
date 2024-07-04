@@ -221,6 +221,11 @@
                         <label for="newcluster-cniversion">CNI Version:</label>
                         <select #newclustercniversion class="custom-select rounded-0" name="newcluster-cniversion" id="newcluster-cniversion" disabled>
                         </select>
+                        <label for="newcluster-autoscaler">Enable Node Autoscaler:</label>
+                        <select #newclusterautoscaler class="custom-select rounded-0" name="newcluster-autoscaler" id="newcluster-autoscaler" (change)="onChangeClusterAutoscaler(newclusterautoscaler.value)">
+                            <option value="false">False</option>
+                            <option value="true">True</option>
+                        </select>
                         <label for="newcluster-dns">Cluster DNS:</label>
                         <input #newclusterdns type="text" class="form-control" id="newcluster-dns" name="newcluster-dns">
                         <br>
@@ -383,8 +388,20 @@
                       <select #newclusternodepoolpc class="custom-select rounded-0" name="newcluster-nodepool-pc" id="newcluster-nodepool-pc">
                           <option>Value 1</option>
                       </select>
-                      <label for="newcluster-nodepool-replicas">Number of Nodes:</label>
-                      <input #newclusternodepoolreplicas type="number" class="form-control" id="newcluster-nodepool-replicas" name="newcluster-nodepool-replicas">
+                      <div class="row">
+                          <div class="col-4">
+                            <label for="newcluster-nodepool-replicas">Number of Nodes:</label>
+                            <input #newclusternodepoolreplicas type="number" class="form-control" id="newcluster-nodepool-replicas" name="newcluster-nodepool-replicas">
+                          </div>
+                          <div class="col-4">
+                            <label for="newcluster-nodepool-minreplicas">Autoscaler Min Nodes:</label>
+                            <input #newclusternodepoolminreplicas type=number class="form-control" name="newcluster-nodepool-minreplicas" id="newcluster-nodepool-minreplicas" placeholder="1" disabled>
+                          </div>
+                          <div class="col-4">
+                            <label for="newcluster-nodepool-maxreplicas">Autoscaler Max Nodes:</label>
+                            <input #newclusternodepoolmaxreplicas type=number class="form-control" name="newcluster-nodepool-maxreplicas" id="newcluster-nodepool-maxreplicas" placeholder="99" disabled>
+                          </div>
+                      </div>
                       <br>
                       <label for="newcluster-nodepool-disk">Boot Disk</label>
                         <div class="row">
@@ -451,7 +468,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-newcluster")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)='applyNewCluster(newclustername.value, newclusternamespace.value, newclusterlabelkeyone.value, newclusterlabelvalueone.value, newclusterlabelkeytwo.value, newclusterlabelvaluetwo.value, newclusterlabelkeythree.value, newclusterlabelvaluethree.value, newclusterversion.value, newclustercni.value, newclustercniversion.value, newclusterdns.value, newclusterpodcidr.value, newclustersvccidr.value, newclusternetwork.value, newclusternetworktype.value, newclustercontrolplaneeptype.value, newclustercontrolplaneepannotationskeyone.value, newclustercontrolplaneepannotationsvalueone.value, newclustercontrolplaneepannotationskeytwo.value, newclustercontrolplaneepannotationsvaluetwo.value, newclustercontrolplaneosdist.value, newclustercontrolplaneosversion.value, newclustercontrolplanetype.value, newclustercontrolplanecpumemsockets.value, newclustercontrolplanecpumemcores.value, newclustercontrolplanecpumemthreads.value, newclustercontrolplanecpumemmemory.value, newclustercontrolplanepc.value, newclustercontrolplanereplicas.value, newclustercontrolplanedisksize.value, newclustercontrolplanedisksc.value, newclustercontrolplanediskam.value, newclustercontrolplanediskcm.value,  newclusternodepoolname.value, newclusternodepoolosdist.value, newclusternodepoolosversion.value, newclusternodepooltype.value, newclusternodepoolcpumemsockets.value, newclusternodepoolcpumemcores.value, newclusternodepoolcpumemthreads.value, newclusternodepoolcpumemmemory.value, newclusternodepoolpc.value, newclusternodepoolreplicas.value, newclusternodepooldisksize.value, newclusternodepooldisksc.value, newclusternodepooldiskam.value, newclusternodepooldiskcm.value, newclusterfeaturescertmanager.checked, newclusterfeaturesdashboard.checked, newclusterfeaturesmetrics.checked, newclusterfeatureshaproxyingress.checked, newclusterfeaturesnginxingress.checked, newclusterfeaturestekton.checked)'>Create</button>
+              <button type="button" class="btn btn-primary" (click)='applyNewCluster(newclustername.value, newclusternamespace.value, newclusterlabelkeyone.value, newclusterlabelvalueone.value, newclusterlabelkeytwo.value, newclusterlabelvaluetwo.value, newclusterlabelkeythree.value, newclusterlabelvaluethree.value, newclusterversion.value, newclustercni.value, newclustercniversion.value, newclusterautoscaler.value, newclusterdns.value, newclusterpodcidr.value, newclustersvccidr.value, newclusternetwork.value, newclusternetworktype.value, newclustercontrolplaneeptype.value, newclustercontrolplaneepannotationskeyone.value, newclustercontrolplaneepannotationsvalueone.value, newclustercontrolplaneepannotationskeytwo.value, newclustercontrolplaneepannotationsvaluetwo.value, newclustercontrolplaneosdist.value, newclustercontrolplaneosversion.value, newclustercontrolplanetype.value, newclustercontrolplanecpumemsockets.value, newclustercontrolplanecpumemcores.value, newclustercontrolplanecpumemthreads.value, newclustercontrolplanecpumemmemory.value, newclustercontrolplanepc.value, newclustercontrolplanereplicas.value, newclustercontrolplanedisksize.value, newclustercontrolplanedisksc.value, newclustercontrolplanediskam.value, newclustercontrolplanediskcm.value,  newclusternodepoolname.value, newclusternodepoolosdist.value, newclusternodepoolosversion.value, newclusternodepooltype.value, newclusternodepoolcpumemsockets.value, newclusternodepoolcpumemcores.value, newclusternodepoolcpumemthreads.value, newclusternodepoolcpumemmemory.value, newclusternodepoolpc.value, newclusternodepoolreplicas.value, newclusternodepoolminreplicas.value, newclusternodepoolmaxreplicas.value, newclusternodepooldisksize.value, newclusternodepooldisksc.value, newclusternodepooldiskam.value, newclusternodepooldiskcm.value, newclusterfeaturescertmanager.checked, newclusterfeaturesdashboard.checked, newclusterfeaturesmetrics.checked, newclusterfeatureshaproxyingress.checked, newclusterfeaturesnginxingress.checked, newclusterfeaturestekton.checked)'>Create</button>
             </div>
           </form>
           </div>

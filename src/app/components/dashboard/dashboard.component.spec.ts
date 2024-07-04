@@ -1,8 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { DashboardComponent } from './dashboard.component';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('DashboardComponent', () => {
   let component: DashboardComponent;
@@ -12,9 +13,10 @@ describe('DashboardComponent', () => {
     const k8sSpy = jasmine.createSpyObj('K8sService',['getNodes'])
 
     await TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule], 
-      declarations: [ DashboardComponent ]
-    })
+    declarations: [DashboardComponent],
+    imports: [],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(DashboardComponent);
