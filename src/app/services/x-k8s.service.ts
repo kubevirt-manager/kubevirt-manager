@@ -80,6 +80,15 @@ export class XK8sService {
         return this.http.patch(`${baseUrl}/namespaces/${namespace}/kubeadmcontrolplanes/${name}`, '{"spec":{"replicas": ' + size + '}}', { 'headers': headers } );
     }
 
+    updatePoolAutoscaling(namespace: string, name: string, min: string, max: string): Observable<any> {
+        var baseUrl = "./k8s/apis/cluster.x-k8s.io/v1beta1"
+        const headers = {
+            'content-type': 'application/merge-patch+json',
+            'accept': 'application/json'
+        };
+        return this.http.patch(`${baseUrl}/namespaces/${namespace}/machinedeployments/${name}`, '{"metadata":{"annotations":{"cluster.x-k8s.io/cluster-api-autoscaler-node-group-max-size":"' + max + '","cluster.x-k8s.io/cluster-api-autoscaler-node-group-min-size":"' + min + '"}}}', { 'headers': headers } );
+    }
+
     scaleMachineDeployment(namespace: string, name: string, size: string): Observable<any> {
         var baseUrl = "./k8s/apis/cluster.x-k8s.io/v1beta1"
         const headers = {

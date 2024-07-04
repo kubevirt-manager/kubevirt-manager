@@ -154,7 +154,7 @@ ng build
 ```
 To run the tool:
 ```sh
-kubectl proxy --www=./dist/kubevirtmgr-webui/ --accept-hosts=^.*$ --address=[::] --api-prefix=/k8s/ --www-prefix=
+kubectl proxy --www=./dist/kubevirtmgr-webui/browser/ --accept-hosts=^.*$ --address=[::] --api-prefix=/k8s/ --www-prefix=
 ```
 Access the tool at: http://localhost:8001/
 

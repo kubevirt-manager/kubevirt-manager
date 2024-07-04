@@ -25,7 +25,7 @@
                        <dt>Metadata</dt>
                        <br>
                        <dd>Name: {{activePool.name}} </dd>
-                       <dd>Namespace: {{activePool.name}} </dd>
+                       <dd>Namespace: {{activePool.namespace}} </dd>
                        <dd>Labels:</dd>
                        <ul *ngFor="let thisLabel of activePool.labels | keyvalue">
                            <li>{{thisLabel.key}} : {{thisLabel.value}}</li>
@@ -33,8 +33,8 @@
                        <hr>
                        <dt>
                         Spec
-                        <a class="btn float-right" title="Edit...">
-                            <i class="fas fa-pen" ></i>
+                        <a class="btn float-right" (click)='showReplicas(activePool.namespace, activePool.name, activePool.replicas)' title="Edit...">
+                            <i class="fas fa-pen" (click)='showReplicas(activePool.namespace, activePool.name, activePool.replicas)'></i>
                         </a>
                       </dt>
                       <br>
@@ -54,9 +54,6 @@
                         <div *ngIf="customTemplate; else vmTemplated">
                           <dt>
                             General Hardware
-                            <a class="btn float-right" title="Edit...">
-                                <i class="fas fa-pen" ></i>
-                            </a>
                           </dt>
                           <br>
                           <dd>Instance Type: {{activePool.machineTemplate.instType}} </dd>
@@ -69,9 +66,6 @@
                        <ng-template #vmTemplated>
                           <dt>
                             General Hardware
-                            <a class="btn float-right" title="Edit...">
-                                <i class="fas fa-pen" ></i>
-                            </a>
                           </dt>
                           <br>
                           <dd>Instance Type: {{activePool.machineTemplate.instType}} </dd>
@@ -81,18 +75,12 @@
                        <hr>
                        <dt>
                         Execution
-                        <a class="btn float-right" title="Edit...">
-                            <i class="fas fa-pen" ></i>
-                        </a>
                        </dt>
                        <br>
                        <dd>Priority Class: {{activePool.machineTemplate.priorityClass}} </dd>
                        <hr>
                        <dt>
                         Networking
-                        <!-- <a class="btn float-right" title="Edit...">
-                            <i class="fas fa-pen"></i>
-                        </a> -->
                        </dt>
                        <br>
                        <dd>NIC: {{poolNetwork.name}}</dd>
@@ -141,8 +129,8 @@
                        <div>
                           <dt>
                             General Config
-                            <a class="btn float-right" title="Edit...">
-                                <i class="fas fa-pen" ></i>
+                            <a class="btn float-right" (click)='showAutoscaling(activePool.namespace, activePool.name, activePool.minReplicas, activePool.maxReplicas)' title="Edit...">
+                                <i class="fas fa-pen" (click)='showAutoscaling(activePool.namespace, activePool.name, activePool.minReplicas, activePool.maxReplicas)'></i>
                             </a>
                           </dt>
                           <br>
@@ -178,7 +166,7 @@
                                     <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.status}}</a></td>
                                     <td style="line-height: 2.2 !important;">
                                     <span [ngSwitch]="thisVM.status">
-                                        <span *ngSwitchCase="'Running'">
+                                        <span *ngSwitchCase="'running'">
                                             <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.vmi.ifAddr}}</a>
                                         </span>
                                         <span *ngSwitchDefault>
@@ -196,7 +184,7 @@
                                     </span>
                                     <!--- VNC BUTTON -->
                                     <span [ngSwitch]="thisVM.status">
-                                        <a class="btn" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchCase="'Running'">
+                                        <a class="btn" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchCase="'running'">
                                         <i class="fas fa-desktop"></i>
                                         </a>
                                         <a class="btn disabled" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchDefault>
@@ -238,7 +226,6 @@
                   </div>
                 </div>
               </div>
-            
           </div>
           <!-- /.card-body -->
         </div>
@@ -248,24 +235,26 @@
       <!--                 -->
       <!-- Modal: Replicas -->
       <!--                 -->
-      <div class="modal fade" id="modal-replicas" style="display: none;" aria-hidden="true">
+      <div class="modal fade" id="modal-wp-replicas" style="display: none;" aria-hidden="true">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header">
-              <h4 class="modal-title" id="replicas-title">Scale: pool-namespace - pool-name</h4>
-              <button type="button" class="close">
+              <h4 class="modal-title" id="replicas-wp-title">Scale: pool-namespace - pool-name</h4>
+              <button type="button" (click)='hideComponent("modal-wp-replicas")' class="close">
                 <span aria-hidden="true">×</span>
               </button>
             </div>
-            <div class="modal-body" id="replicas-value">
+            <div class="modal-body" id="replicas-wp-value">
               <div class="form-group">
+                <input type="hidden" id="replicas-wp-namespace" name="replicas-wp-namespace" value="">
+                <input type="hidden" id="replicas-wp-name" name="replicas-wp-name" value="">
                 <label for="replicasInput">New number of replicas</label>
-                <input #replicasinput type="number" class="form-control" id="replicas-input" name="replicas-input" placeholder="0">
+                <input #replicasinput type="number" class="form-control" id="replicas-wp-input" name="replicas-wp-input" placeholder="0">
               </div>
             </div>
             <div class="modal-footer justify-content-between">
-              <button type="button" class="btn btn-default">Close</button>
-              <button type="button" class="btn btn-primary" >Resize</button>
+              <button type="button" (click)='hideComponent("modal-wp-replicas")' class="btn btn-default">Close</button>
+              <button type="button" class="btn btn-primary" (click)='applyReplicas(replicasinput.value)'>Resize</button>
             </div>
           </div>
           <!-- /.modal-content -->
@@ -274,31 +263,108 @@
       </div> 
 
 
-    <!--                  -->
-    <!-- Modal: Autoscaling  -->
-    <!--                  -->
-    <div class="modal fade" id="modal-autoscaling" style="display: none;" aria-hidden="true">
+      <!--                     -->
+      <!-- Modal: Autoscaling  -->
+      <!--                     -->
+      <div class="modal fade" id="modal-wp-autoscaling" style="display: none;" aria-hidden="true">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
             <div class="modal-header">
-              <h4 class="modal-title" id="type-title">Liveness: pool-namespace - pool-name</h4>
-              <button type="button" class="close">
+              <h4 class="modal-title" id="autoscaling-wp-title">Autoscaling: pool-namespace - pool-name</h4>
+              <button type="button" (click)='hideComponent("modal-wp-autoscaling")' class="close">
                 <span aria-hidden="true">×</span>
               </button>
             </div>
-            <div class="modal-body" id="type-value">
-              <div>
-                <label for="pooldetails-liveness-enable">Liveness Probe:</label>
-                
-                <label for="pooldetails-liveness-type">Probe Type:</label>
-                
+            <div class="modal-body" id="autoscaling-wp-value">
+                <div class="form-group">
+                  <input type="hidden" id="autoscaling-wp-namespace" name="replicas-wp-namespace" value="">
+                  <input type="hidden" id="autoscaling-wp-name" name="replicas-wp-name" value="">
+                  <label for="minwpinput">Minimum nodes:</label>
+                  <input #minwpinput type="number" class="form-control" id="min-wp-input" name="min-wp-input" placeholder="0">
+                  <label for="maxwpinput">Maximum nodes:</label>
+                  <input #maxwpinput type="number" class="form-control" id="max-wp-input" name="max-wp-input" placeholder="0">
+                </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" (click)='hideComponent("modal-wp-autoscaling")' class="btn btn-default">Close</button>
+                <button type="button" class="btn btn-primary" (click)='applyAutoscaling(minwpinput.value, maxwpinput.value)'>Apply</button>
             </div>
           </div>
           <!-- /.modal-content -->
         </div>
         <!-- /.modal-dialog -->
-    </div>
+      </div>
 
+      <!--                           -->
+      <!-- Modal: Config Worker Pool -->
+      <!--                           -->
+      <div class="modal fade" id="modal-config-wp" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="config-wp-title">TITLE_TEMPLATE</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-config-wp")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="config-wp-value">
+                        <label for="config-wp-type">Virtual Machine Type:</label>
+                        <select #configwptype class="custom-select rounded-0" name="config-wp-type" id="config-wp-type">
+                          <option>Value 1</option>
+                        </select>
+                        <div class="pane fade" id="config-wp-memory" name="config-wp-memory" style="display: none;" aria-hidden="true">
+                          <label for="config-wpumem-sockets">Sockets:</label>
+                          <input #configwpcpumemsockets type="number" class="form-control" id="config-wpumem-sockets" name="config-wpumem-sockets">
+                          <label for="config-wpumem-cores">Cores:</label>
+                          <input #configwpcpumemcores type="number" class="form-control" id="config-wpumem-cores" name="config-wpumem-cores">
+                          <label for="config-wpumem-threads">Threads:</label>
+                          <input #configwpcpumemthreads type="number" class="form-control" id="config-wpumem-threads" name="config-wpumem-threads">
+                          <label for="config-wpumem-memory">Memory (in GB):</label>
+                          <input #configwpcpumemmemory type="number" class="form-control" id="config-wpumem-memory" name="config-wpumem-memory">
+                        </div>
+                        <label for="config-wp-priorityclass">Priority Class:</label>
+                        <select #configwppc class="custom-select rounded-0" name="config-wp-pc" id="config-wp-pc">
+                          <option>Value 1</option>
+                        </select>
+                        <label for="config-wp-disk">Boot Disk</label>
+                        <div class="row">
+                            <div class="col-3">
+                                <label for="config-wp-disksize">Size in GB:</label>
+                                <input #configwpdisksize type=number class="form-control" name="config-wp-disksize" id="config-wp-disksize" placeholder="100">
+                            </div>
+                            <div class="col-3">
+                                <label for="config-wp-disksc">Storage Class:</label>
+                                <select #configwpdisksc class="custom-select rounded-0" name="config-wp-disksc" id="config-wp-disksc">
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label for="config-wp-diskam">Access Mode:</label>
+                                <select #configwpdiskam class="custom-select rounded-0" name="config-wp-diskam" id="config-wp-diskam">
+                                    <option>ReadWriteOnce</option>
+                                    <option>ReadOnlyMany</option>
+                                    <option>ReadWriteMany</option>
+                                </select>
+                            </div>
+                            <div class="col-3">
+                                <label for="config-wp-diskcm">Cache Mode:</label>
+                                <select #configwpdiskcm class="custom-select rounded-0" name="config-wp-diskcm" id="config-wp-diskcm">
+                                  <option value="">Automatic</option>
+                                  <option value="none">None</option>
+                                  <option value="writethrough">WriteThrough</option>
+                                  <option value="writeback">WriteBack</option>
+                                </select>
+                            </div>
+                        </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-config-wp")'>Close</button>
+              <button type="button" class="btn btn-primary">Apply</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
 
     </div>
 </div>

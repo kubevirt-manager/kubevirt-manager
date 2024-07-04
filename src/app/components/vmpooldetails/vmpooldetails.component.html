@@ -231,7 +231,7 @@
                                     <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.status}}</a></td>
                                     <td style="line-height: 2.2 !important;">
                                     <span [ngSwitch]="thisVM.status">
-                                        <span *ngSwitchCase="'Running'">
+                                        <span *ngSwitchCase="'running'">
                                             <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.vmi.ifAddr}}</a>
                                         </span>
                                         <span *ngSwitchDefault>
@@ -255,7 +255,7 @@
                                     </span>
                                     <!--- VNC BUTTON -->
                                     <span [ngSwitch]="thisVM.status">
-                                        <a class="btn" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchCase="'Running'">
+                                        <a class="btn" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchCase="'running'">
                                         <i class="fas fa-desktop"></i>
                                         </a>
                                         <a class="btn disabled" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchDefault>

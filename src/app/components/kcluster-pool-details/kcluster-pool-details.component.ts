@@ -78,7 +78,7 @@ export class KClusterPoolDetailsComponent implements OnInit {
         await this.loadWorkerPoolsVMs();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
-            navTitle.replaceChildren("Kubernetes Cluster Details");
+            navTitle.replaceChildren("Kubernetes Cluster - Pool Details");
         }
     }
 
@@ -229,7 +229,7 @@ export class KClusterPoolDetailsComponent implements OnInit {
                 currentVm.namespace = vms[i].metadata["namespace"];
                 currentVm.creationTimestamp = new Date(vms[i].metadata["creationTimestamp"]);
                 try {
-                    currentVm.status = vms[i].status["printableStatus"];
+                    currentVm.status = vms[i].status["printableStatus"].toLowerCase();
                     /* Working around a bug when scaling down and VM stuck in terminating */
                     if(currentVm.status.toLowerCase() == "terminating") {
                         currentVm.running = false;
@@ -474,6 +474,128 @@ export class KClusterPoolDetailsComponent implements OnInit {
         } else if (vmOperation == "delete") {
             const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
             this.reloadComponent();
+        }
+    }
+
+    /*
+     * Show Worker Pool Replicas Window
+     */
+    showReplicas(wpNamespace: string, wpName: string, wpReplicas: number): void {
+        let modalDiv = document.getElementById("modal-wp-replicas");
+        let modalTitle = document.getElementById("replicas-wp-title");
+        let nameField = document.getElementById("replicas-wp-name");
+        let namespaceField = document.getElementById("replicas-wp-namespace");
+        let replicasField = document.getElementById("replicas-wp-input");
+        if(modalTitle != null) {
+            modalTitle.replaceChildren("Scale: " + wpNamespace + " - " + wpName);
+        }
+        if(nameField != null && namespaceField != null && replicasField != null) {
+            nameField.setAttribute("value", wpName);
+            namespaceField.setAttribute("value", wpNamespace);
+            replicasField.setAttribute("placeholder", wpReplicas.toString());
+            replicasField.setAttribute("value", wpReplicas.toString());
+        }
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+    }
+
+    /*
+     * Perform Resize of Worker Pool
+     */
+    async applyReplicas(replicasSize: string): Promise<void> {
+        let nameField = document.getElementById("replicas-wp-name");
+        let namespaceField = document.getElementById("replicas-wp-namespace");
+        if(replicasSize != null && nameField != null && namespaceField != null) {
+            let wpNamespace = namespaceField.getAttribute("value");
+            let wpName = nameField.getAttribute("value");
+            if(replicasSize != null && wpName != null && wpNamespace != null) {
+                try {
+                    const data = await lastValueFrom(this.xK8sService.scaleMachineDeployment(wpNamespace, wpName, replicasSize));
+                    this.hideComponent("modal-replicas-wp");
+                    this.reloadComponent();
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
+                }
+            }
+        }
+    }
+
+    /*
+     * Show Worker Pool Autoscaling Window
+     */
+    showAutoscaling(wpNamespace: string, wpName: string, wpMin: number, wpMax: number): void {
+        let modalDiv = document.getElementById("modal-wp-autoscaling");
+        let modalTitle = document.getElementById("autoscaling-wp-title");
+        let nameField = document.getElementById("autoscaling-wp-name");
+        let namespaceField = document.getElementById("autoscaling-wp-namespace");
+        let minField = document.getElementById("min-wp-input");
+        let maxField = document.getElementById("max-wp-input");
+        if(modalTitle != null) {
+            modalTitle.replaceChildren("Autoscaling: " + wpNamespace + " - " + wpName);
+        }
+
+        if(minField != null && maxField != null) {
+            minField.textContent = wpMin.toString();
+            maxField.textContent = wpMax.toString();
+
+            minField.setAttribute("value", wpMin.toString());
+            maxField.setAttribute("value", wpMax.toString())
+
+        }
+
+        if(nameField != null && namespaceField != null) {
+            nameField.setAttribute("value", wpName);
+            namespaceField.setAttribute("value", wpNamespace);
+        }
+
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+    }
+
+    /*
+     * Perform Autoscaling change on Worker Pool
+     */
+    async applyAutoscaling(min: string, max: string): Promise<void> {
+        let nameField = document.getElementById("replicas-wp-name");
+        let namespaceField = document.getElementById("replicas-wp-namespace");
+        if(min != null && max != null && nameField != null && namespaceField != null) {
+            let wpNamespace = namespaceField.getAttribute("value");
+            let wpName = nameField.getAttribute("value");
+            if(wpName != null && wpNamespace != null) {
+                try {
+                    const data = await lastValueFrom(this.xK8sService.updatePoolAutoscaling(wpNamespace, wpName, min, max));
+                    this.hideComponent("modal-replicas-wp");
+                    this.reloadComponent();
+                } catch (e: any) {
+                    alert(e.error.message);
+                    console.log(e);
+                }
+            }
+        }
+    }
+
+    /*
+     * Hide Component
+     */
+    hideComponent(divId: string): void {
+        let modalDiv = document.getElementById(divId);
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade");
+            modalDiv.setAttribute("aria-modal", "false");
+            modalDiv.setAttribute("role", "");
+            modalDiv.setAttribute("aria-hidden", "true");
+            modalDiv.setAttribute("style","display: none;");
         }
     }
 

@@ -14,6 +14,7 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositorie
     chromium \
     harfbuzz \
     nss \
+    expat-dev \
     freetype \
     ttf-freefont \
     font-noto-emoji \

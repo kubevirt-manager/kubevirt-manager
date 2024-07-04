@@ -21,6 +21,7 @@ describe('SideMenuComponent', () => {
     component = fixture.componentInstance;
     component.networkCheck = true;
     component.capkCheck = true;
+    component.imgCheck = true;
     fixture.detectChanges();
   });
 
@@ -51,6 +52,18 @@ describe('SideMenuComponent', () => {
     const contentValue = componentElem.nativeElement;
     expect(contentValue).toBeTruthy();
   });
+  it('should contain Auto Scaling item', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.query(By.css('.fa-expand-alt'))
+    const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain Clusters item', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.query(By.css('.fa-cubes'))
+    const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
+  });
   it('should contain Nodes item', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.query(By.css('.fa-hdd'))
@@ -75,21 +88,21 @@ describe('SideMenuComponent', () => {
     const contentValue = componentElem.nativeElement;
     expect(contentValue).toBeTruthy();
   });
-  it('should contain Network item', () => {
+  it('should contain Images item', () => {
     const componentDoc: DebugElement = fixture.debugElement;
-    const componentElem = componentDoc.query(By.css('.fa-network-wired'))
-    const contentValue = componentElem.nativeElement;
-    expect(contentValue).toBeTruthy();
-  });
-  it('should contain Auto Scaling item', () => {
-    const componentDoc: DebugElement = fixture.debugElement;
-    const componentElem = componentDoc.query(By.css('.fa-expand-alt'))
+    const componentElem = componentDoc.query(By.css('.fa-compact-disc'))
     const contentValue = componentElem.nativeElement;
     expect(contentValue).toBeTruthy();
   });
   it('should contain Cluster item', () => {
     const componentDoc: DebugElement = fixture.debugElement;
-    const componentElem = componentDoc.query(By.css('.fa-cubes'))
+    const componentElem = componentDoc.query(By.css('.fa-key'))
+    const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain Network item', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.query(By.css('.fa-network-wired'))
     const contentValue = componentElem.nativeElement;
     expect(contentValue).toBeTruthy();
   });

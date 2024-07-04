@@ -188,7 +188,8 @@ export class KClusterDetailsComponent implements OnInit {
             try {
                 if(cluster.metadata.labels["capk.kubevirt-manager.io/autoscaler"] != null) {
                     if(cluster.metadata.labels["capk.kubevirt-manager.io/autoscaler"] == "true") {
-                        thisCluster.clusterAutoscaler = true;                        
+                        thisCluster.clusterAutoscaler = true;
+                        this.enableNewPoolAutoscaling();
                     } else {
                         thisCluster.clusterAutoscaler = false;
                     }
@@ -433,7 +434,7 @@ export class KClusterDetailsComponent implements OnInit {
             currentVm.namespace = vms[i].metadata["namespace"];
             currentVm.creationTimestamp = new Date(vms[i].metadata["creationTimestamp"]);
             try {
-                currentVm.status = vms[i].status["printableStatus"];
+                currentVm.status = vms[i].status["printableStatus"].toLowerCase();
                 /* Working around a bug when scaling down and VM stuck in terminating */
                 if(currentVm.status.toLowerCase() == "terminating") {
                     currentVm.running = false;
@@ -614,6 +615,20 @@ export class KClusterDetailsComponent implements OnInit {
         } else if (vmOperation == "delete") {
             const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
             this.reloadComponent();
+        }
+    }
+
+    /*
+     * Enable New Pool Autoscaling
+     */
+    enableNewPoolAutoscaling(): void {
+        let inputAs = document.getElementById("newnodepool-autoscaling");
+        let inputMin = document.getElementById("newnodepool-minreplicas")
+        let inputMax = document.getElementById("newnodepool-maxreplicas");
+        if(inputAs != null && inputMin != null && inputMax != null) {
+            inputAs.setAttribute("value", "true");
+            inputMin.removeAttribute("disabled");
+            inputMax.removeAttribute("disabled");
         }
     }
 
@@ -948,55 +963,6 @@ export class KClusterDetailsComponent implements OnInit {
     }
 
     /*
-     * Show Worker Pool Replicas Window
-     */
-    showReplicasWp(wpNamespace: string, wpName: string, wpReplicas: number): void {
-        let modalDiv = document.getElementById("modal-replicas-wp");
-        let modalTitle = document.getElementById("replicas-wp-title");
-        let nameField = document.getElementById("replicas-wp-name");
-        let namespaceField = document.getElementById("replicas-wp-namespace");
-        let replicasField = document.getElementById("replicas-wp-input");
-        if(modalTitle != null) {
-            modalTitle.replaceChildren("Scale: " + wpName);
-        }
-        if(nameField != null && namespaceField != null && replicasField != null) {
-            nameField.setAttribute("value", wpName);
-            namespaceField.setAttribute("value", wpNamespace);
-            replicasField.setAttribute("placeholder", wpReplicas.toString());
-            replicasField.setAttribute("value", wpReplicas.toString());
-        }
-        if(modalDiv != null) {
-            modalDiv.setAttribute("class", "modal fade show");
-            modalDiv.setAttribute("aria-modal", "true");
-            modalDiv.setAttribute("role", "dialog");
-            modalDiv.setAttribute("aria-hidden", "false");
-            modalDiv.setAttribute("style","display: block;");
-        }
-    }
-
-    /*
-     * Perform Resize of Worker Pool
-     */
-    async applyReplicasWp(replicasSize: string): Promise<void> {
-        let nameField = document.getElementById("replicas-wp-name");
-        let namespaceField = document.getElementById("replicas-wp-namespace");
-        if(replicasSize != null && nameField != null && namespaceField != null) {
-            let wpNamespace = namespaceField.getAttribute("value");
-            let wpName = nameField.getAttribute("value");
-            if(replicasSize != null && wpName != null && wpNamespace != null) {
-                try {
-                    const data = await lastValueFrom(this.xK8sService.scaleMachineDeployment(wpNamespace, wpName, replicasSize));
-                    this.hideComponent("modal-replicas-wp");
-                    this.reloadComponent();
-                } catch (e: any) {
-                    alert(e.error.message);
-                    console.log(e);
-                }
-            }
-        }
-    }
-
-    /*
      * Show Delete WP Window
      */
     showDeleteWp(namespace: string, name: string): void {
@@ -1052,6 +1018,7 @@ export class KClusterDetailsComponent implements OnInit {
      * Create Node Pool Objects
      */
     async createNodePoolRelatedObjects(
+        nodepoolautoscaling: string,
         nodepoolname: string,
         nodepoolosdist: string,
         nodepoolosversion: string,
@@ -1062,6 +1029,8 @@ export class KClusterDetailsComponent implements OnInit {
         nodepoolcpumemmemory: string,
         nodepoolpc: string,
         nodepoolreplicas: string,
+        nodepoolminreplicas: string,
+        nodepoolmaxreplicas: string,
         nodepooldisksize: string,
         nodepooldisksc: string,
         nodepooldiskam: string,
@@ -1092,6 +1061,7 @@ export class KClusterDetailsComponent implements OnInit {
             /* Custom Labels */
             let tmpLabels = {};
             let machineTemplateLabels = {};
+            let machineDeploymentAnnotations = {};
 
             /* Load other labels */
             let thisLabel = { 'kubevirt-manager.io/cluster-name': name };
@@ -1100,6 +1070,7 @@ export class KClusterDetailsComponent implements OnInit {
 
             let kubevirtManagerLabel = { 'kubevirt-manager.io/managed': "true" };
             Object.assign(tmpLabels, kubevirtManagerLabel);
+            Object.assign(tmpLabels, { 'capk.kubevirt-manager.io/autoscaler': nodepoolautoscaling });
 
             
             /* Machine Labels */
@@ -1109,6 +1080,12 @@ export class KClusterDetailsComponent implements OnInit {
             Object.assign(machineTemplateLabels, { 'capk.kubevirt-manager.io/flavor-version': nodepoolosversion });
             Object.assign(machineTemplateLabels, { 'capk.kubevirt-manager.io/kube-version' : version });
             Object.assign(machineTemplateLabels, { 'kubevirt.io/domain': name + "-" + nodepoolname });
+
+            /* MachineDeployment Annotations */
+            if(nodepoolautoscaling == "true") {
+                Object.assign(machineDeploymentAnnotations, { 'cluster.x-k8s.io/cluster-api-autoscaler-node-group-min-size': nodepoolminreplicas });
+                Object.assign(machineDeploymentAnnotations, { 'cluster.x-k8s.io/cluster-api-autoscaler-node-group-max-size': nodepoolmaxreplicas });
+            }
 
             /* KubeadmConfig */
             let kubeadmConfigTemplate: KubeadmConfigTemplate = {
@@ -1143,7 +1120,8 @@ export class KClusterDetailsComponent implements OnInit {
                 metadata: {
                     name: name + "-" + nodepoolname,
                     namespace: namespace,
-                    labels: tmpLabels
+                    labels: tmpLabels,
+                    annotations: machineDeploymentAnnotations
                 },
                 spec: {
                     clusterName: name,
@@ -1331,7 +1309,7 @@ export class KClusterDetailsComponent implements OnInit {
     }
 
     /*
-     * UPDATE: Fill Distro Versions fro Node Pool
+     * UPDATE: Fill Distro Versions from Node Pool
      */
     async onChangeNodePoolOS(os: string): Promise<void> {
         let nodePoolOSVersionField = document.getElementById("newnodepool-osversion");
@@ -1525,7 +1503,7 @@ export class KClusterDetailsComponent implements OnInit {
     randomClusterHash(): string {
         var randomChars = 'abcdefghijklmnopqrstuvwxyz';
         var result = '';
-        for ( var i = 0; i < 6; i++ ) {
+        for ( var i = 0; i < 8; i++ ) {
             result += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
         }
         return result;

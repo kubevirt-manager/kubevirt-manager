@@ -134,13 +134,13 @@
                                         <!--- SCALE REPLICAS -->
                                         <span>
                                             <a class="btn" (click)="showReplicasCp(activeCluster.controlPlane.name)" title="Scale...">
-                                            <i class="fas fa-arrow-up"></i>
+                                            <i class="fas fa-arrow-up" (click)="showReplicasCp(activeCluster.controlPlane.name)"></i>
                                             </a>
                                         </span>
                                         <!--- CHANGE TYPE BUTTON -->
                                         <span>
                                             <a class="btn" (click)="showConfigCp()" title="Change type...">
-                                            <i class="fas fa-cog"></i>
+                                            <i class="fas fa-cog" (click)="showConfigCp()"></i>
                                             </a>
                                         </span>
                                     </td>
@@ -177,7 +177,7 @@
                                     <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.status}}</a></td>
                                     <td style="line-height: 2.2 !important;">
                                     <span [ngSwitch]="thisVM.status">
-                                        <span *ngSwitchCase="'Running'">
+                                        <span *ngSwitchCase="'running'">
                                             <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.vmi.ifAddr}}</a>
                                         </span>
                                         <span *ngSwitchDefault>
@@ -195,7 +195,7 @@
                                     </span>
                                     <!--- VNC BUTTON -->
                                     <span [ngSwitch]="thisVM.status">
-                                        <a class="btn" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchCase="'Running'">
+                                        <a class="btn" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchCase="'running'">
                                         <i class="fas fa-desktop"></i>
                                         </a>
                                         <a class="btn disabled" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchDefault>
@@ -269,30 +269,18 @@
                             <tbody> 
                                 <tr *ngFor="let thisPool of activeCluster.machineDeployments">
                                     <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterpooldetails/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.name}}</a></td>
-                                    <td style="line-height: 2.2 !important;">{{thisPool.version}}</td>
-                                    <td style="line-height: 2.2 !important;">{{thisPool.machineTemplate.instType}}</td>
-                                    <td style="line-height: 2.2 !important;">{{(thisPool.machineTemplate.cores || 0) * (thisPool.machineTemplate.sockets || 0) * (thisPool.machineTemplate.threads || 0)}}</td>
-                                    <td style="line-height: 2.2 !important;">{{thisPool.machineTemplate.memory}}</td>
-                                    <td style="line-height: 2.2 !important;">true</td>
-                                    <td style="line-height: 2.2 !important;">{{thisPool.replicas}}</td>
-                                    <td style="line-height: 2.2 !important;">{{thisPool.machineTemplate.priorityClass}}</td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterpooldetails/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.version}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterpooldetails/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.machineTemplate.instType}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterpooldetails/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{(thisPool.machineTemplate.cores || 0) * (thisPool.machineTemplate.sockets || 0) * (thisPool.machineTemplate.threads || 0)}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterpooldetails/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.machineTemplate.memory}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterpooldetails/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">true</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterpooldetails/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.replicas}}</a></td>
+                                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterpooldetails/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.machineTemplate.priorityClass}}</a></td>
                                     <td style="line-height: 2.2 !important;">
-                                        <!--- SCALE REPLICAS -->
-                                        <span>
-                                            <a class="btn" (click)="showReplicasWp(thisPool.namespace, thisPool.name, thisPool.replicas)"  title="Scale...">
-                                            <i class="fas fa-arrow-up"></i>
-                                            </a>
-                                        </span>
                                         <!--- DELETE BUTTON -->
                                         <span>
                                             <a class="btn" (click)="showDeleteWp(thisPool.namespace, thisPool.name)" title="Delete...">
                                             <i class="fas fa-trash"></i>
-                                            </a>
-                                        </span>
-                                        <!--- CLUSTER AUTOSCALER BUTTON -->
-                                        <span *ngIf="activeCluster.clusterAutoscaler">
-                                            <a class="btn" title="Autoscaling...">
-                                            <i class="fas fa-cog"></i>
                                             </a>
                                         </span>
                                     </td>
@@ -358,7 +346,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-replicas-wp")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)='applyReplicasWp(replicaswpinput.value)'>Resize</button>
+              <button type="button" class="btn btn-primary">>Resize</button>
             </div>
           </div>
           <!-- /.modal-content -->
@@ -477,6 +465,7 @@
               </button>
             </div>
             <div class="modal-body" id="new-wp-value">
+                        <input #newnodepoolautoscaling type="hidden" id="newnodepool-autoscaling" name="newnodepool-autoscaling" value="false">
                         <label for="newnodepool-name">Pool Name:</label>
                         <input #newnodepoolname type="text" class="form-control" id="newnodepool-name" name="newnodepool-name" value="pool-name">
                         <div class="row">
@@ -511,8 +500,20 @@
                       <select #newnodepoolpc class="custom-select rounded-0" name="newnodepool-pc" id="newnodepool-pc">
                           <option>Value 1</option>
                       </select>
-                      <label for="newnodepool-replicas">Number of Nodes:</label>
-                      <input #newnodepoolreplicas type="number" class="form-control" id="newnodepool-replicas" name="newnodepool-replicas">
+                      <div class="row">
+                          <div class="col-4">
+                            <label for="newnodepool-replicas">Number of Nodes:</label>
+                            <input #newnodepoolreplicas type="number" class="form-control" id="newnodepool-replicas" name="newnodepool-replicas">
+                          </div>
+                          <div class="col-4">
+                            <label for="newnodepool-minreplicas">Autoscaler Min Nodes:</label>
+                            <input #newnodepoolminreplicas type=number class="form-control" name="newnodepool-minreplicas" id="newnodepool-minreplicas" placeholder="1" disabled>
+                          </div>
+                          <div class="col-4">
+                            <label for="newnodepool-maxreplicas">Autoscaler Max Nodes:</label>
+                            <input #newnodepoolmaxreplicas type=number class="form-control" name="newnodepool-maxreplicas" id="newnodepool-maxreplicas" placeholder="99" disabled>
+                          </div>
+                        </div>
                       <br>
                       <label for="newnodepool-disk">Boot Disk</label>
                         <div class="row">
@@ -546,7 +547,7 @@
                         <div class="row">&nbsp;</div>
                          <div class="modal-footer justify-content-between">
                             <button type="button" class="btn btn-default" (click)='hideComponent("modal-newcluster")'>Close</button>
-                            <button type="button" class="btn btn-primary" (click)='createNodePoolRelatedObjects(newnodepoolname.value, newnodepoolosdist.value, newnodepoolosversion.value, newnodepooltype.value, newnodepoolcpumemsockets.value, newnodepoolcpumemcores.value, newnodepoolcpumemthreads.value, newnodepoolcpumemmemory.value, newnodepoolpc.value, newnodepoolreplicas.value, newnodepooldisksize.value, newnodepooldisksc.value, newnodepooldiskam.value, newnodepooldiskcm.value)'>Create</button>
+                            <button type="button" class="btn btn-primary" (click)='createNodePoolRelatedObjects(newnodepoolautoscaling.value, newnodepoolname.value, newnodepoolosdist.value, newnodepoolosversion.value, newnodepooltype.value, newnodepoolcpumemsockets.value, newnodepoolcpumemcores.value, newnodepoolcpumemthreads.value, newnodepoolcpumemmemory.value, newnodepoolpc.value, newnodepoolreplicas.value, newnodepoolminreplicas.value, newnodepoolmaxreplicas.value, newnodepooldisksize.value, newnodepooldisksc.value, newnodepooldiskam.value, newnodepooldiskcm.value)'>Create</button>
                         </div>
 
 

@@ -33,7 +33,7 @@
                 <tr *ngFor="let thisVM of thisNode.vmlist">
                   <td style="line-height: 2.2 !important; align-content: center;">
                     <span [ngSwitch]="thisVM.status">
-                      <span *ngSwitchCase="'Running'">
+                      <span *ngSwitchCase="'running'">
                         <span class="badge bg-success"><i class="fas fa-check-circle"></i></span>
                       </span>
                       <span *ngSwitchDefault>
@@ -49,7 +49,7 @@
                   <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.status}}</a></td>
                   <td style="line-height: 2.2 !important;">
                     <span [ngSwitch]="thisVM.status">
-                      <span *ngSwitchCase="'Running'">
+                      <span *ngSwitchCase="'running'">
                         {{thisVM.vmi.ifAddr}}
                       </span>
                       <span *ngSwitchDefault>
@@ -66,7 +66,7 @@
                     </span>
                     <!--- PAUSE BUTTON -->
                     <span [ngSwitch]="thisVM.status">
-                        <a class="btn" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' title="Pause..." *ngSwitchCase="'Running'">
+                        <a class="btn" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' title="Pause..." *ngSwitchCase="'running'">
                           <i class="fas fa-pause"></i>
                         </a>
                         <a class="btn disabled" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' title="Pause..." *ngSwitchDefault>
@@ -75,7 +75,7 @@
                       </span>
                     <!--- PLAY BUTTON -->
                     <span [ngSwitch]="thisVM.status">
-                      <a class="btn" (click)='vmOperations("unpause", thisVM.namespace, thisVM.name)' title="Resume..." *ngSwitchCase="'Paused'">
+                      <a class="btn" (click)='vmOperations("unpause", thisVM.namespace, thisVM.name)' title="Resume..." *ngSwitchCase="'paused'">
                         <i class="fas fa-play"></i>
                       </a>
                       <a class="btn disabled" (click)='vmOperations("unpause", thisVM.namespace, thisVM.name)' title="Resume..." *ngSwitchDefault>
@@ -84,7 +84,7 @@
                     </span>
                     <!--- VNC BUTTON -->
                     <span [ngSwitch]="thisVM.status">
-                      <a class="btn" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchCase="'Running'">
+                      <a class="btn" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchCase="'running'">
                         <i class="fas fa-desktop"></i>
                       </a>
                       <a class="btn disabled" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchDefault>

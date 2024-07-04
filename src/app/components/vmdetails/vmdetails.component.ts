@@ -112,7 +112,7 @@ export class VmdetailsComponent implements OnInit {
         this.activeVm.creationTimestamp = new Date(data.metadata["creationTimestamp"]);
         this.activeVm.running = data.spec["running"];
         if (data.status) {
-            this.activeVm.printableStatus = data.status["printableStatus"];
+            this.activeVm.printableStatus = data.status["printableStatus"].toLowerCase();
             if (this.activeVm.printableStatus.toLowerCase() == "running") {
                 this.activeVm.running = true;
             }

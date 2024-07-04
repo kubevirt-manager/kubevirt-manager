@@ -127,7 +127,7 @@ export class VMPoolsComponent implements OnInit {
             currentVm.creationTimestamp = new Date(vms[i].metadata["creationTimestamp"]);
             currentVm.running = vms[i].spec["running"];
             try {
-                currentVm.status = vms[i].status["printableStatus"];
+                currentVm.status = vms[i].status["printableStatus"].toLowerCase();
                 if (currentVm.status.toLowerCase() == "running") {
                     currentVm.running = true;
                 }

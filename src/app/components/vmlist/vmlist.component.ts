@@ -99,7 +99,7 @@ export class VmlistComponent implements OnInit {
             currentVm.namespace = vms[i].metadata["namespace"];
             currentVm.creationTimestamp = new Date(vms[i].metadata["creationTimestamp"]);
             try {
-                currentVm.status = vms[i].status["printableStatus"];
+                currentVm.status = vms[i].status["printableStatus"].toLowerCase();
                 /* Working around a bug when scaling down and VM stuck in terminating */
                 if(currentVm.status.toLowerCase() == "terminating") {
                     currentVm.running = false;
