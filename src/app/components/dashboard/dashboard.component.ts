@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { DataVolumesService } from 'src/app/services/data-volumes.service';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
@@ -6,7 +6,6 @@ import { K8sService } from 'src/app/services/k8s.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
 import { PrometheusService } from 'src/app/services/prometheus.service';
 import { Chart } from 'chart.js/auto'
-import { Router } from '@angular/router';
 import { XK8sService } from 'src/app/services/x-k8s.service';
 
 @Component({
@@ -60,8 +59,8 @@ export class DashboardComponent implements OnInit {
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
+        private cdRef: ChangeDetectorRef,
         private k8sService: K8sService,
-        private router: Router,
         private k8sApisService: K8sApisService,
         private kubeVirtService: KubeVirtService,
         private dataVolumesService: DataVolumesService,
@@ -110,6 +109,25 @@ export class DashboardComponent implements OnInit {
     }
 
     /*
+     * Reload Prometheus Metrics
+     */
+    async reloadPrometheus(): Promise<void>  {
+        try {
+            const data = await lastValueFrom(this.prometheusService.checkPrometheus());
+            if(data["status"].toLowerCase() == "success") {
+                await this.getTimestamps();
+                this.cpuGraphReload();
+                this.memGraphReload();
+                this.netGraphReload();
+                this.stgGraphReload();
+
+            }
+        } catch (e: any) {
+            console.log("No prometheus...");
+        }
+    }
+
+    /*
      * Generate timestamps for Prometheus Query
      */
     async getTimestamps(): Promise<void>  {
@@ -136,6 +154,10 @@ export class DashboardComponent implements OnInit {
      * Get Nodes Information
      */
     async getNodes(): Promise<void> {
+        this.memInfo = 0;
+        this.storageInfo = 0;
+        this.cpuInfo = 0;
+        this.nodeInfo.running = 0;
         let data = await lastValueFrom(this.k8sService.getNodes());
         let nodes = data.items;
         this.nodeInfo.total = nodes.length;
@@ -152,6 +174,24 @@ export class DashboardComponent implements OnInit {
         }
         this.nodeInfo.percent = Math.round((this.nodeInfo.running * 100) / this.nodeInfo.total);
         this.storageInfo = Math.round((this.storageInfo * 100) / 100);
+    }
+
+    /*
+     * Reload cpu data
+     */
+    async cpuGraphReload(): Promise<void> {
+        /* get CPU data from Prometheus */
+        let response = await lastValueFrom(this.prometheusService.getCpuSummary(this.promStartTime, this.promEndTime, this.promStep));
+        let data = response.data.result[0].values;
+
+        /* prepare Data for Graph */
+        let cpuData = data.map(function(value: any[],index: any) { return value[1]; });
+        let labelData = Array(cpuData.length).fill("");
+
+        this.cpuChart.data.labels = labelData;
+        this.cpuChart.data.datasets[0].data = cpuData;
+
+        this.cpuChart.update();
     }
 
     /*
@@ -214,6 +254,25 @@ export class DashboardComponent implements OnInit {
         });
     }
 
+     /*
+     * Reload Memory Data
+     */
+     async memGraphReload(): Promise<void> {
+        /* get Memory data from Prometheus */
+        let response = await lastValueFrom(this.prometheusService.getMemSummary(this.promStartTime, this.promEndTime, this.promStep));
+        let data = response.data.result[0].values;
+
+        /* prepare Data for Graph */
+        let memData = data.map(function(value: any[],index: any) { return value[1]; });
+        let labelData = Array(memData.length).fill("");
+
+        this.memChart.data.labels = labelData;
+        this.memChart.data.datasets[0].data = memData;
+
+        this.memChart.update();
+
+    }
+
     /*
      * Generate Memory Graph
      */
@@ -272,6 +331,46 @@ export class DashboardComponent implements OnInit {
             }
             
         });
+
+    }
+
+    /*
+     * Reload Network Data
+     */
+    async netGraphReload(): Promise<void> {
+        /* get Network Sent data from Prometheus */
+        let response = await lastValueFrom(this.prometheusService.getNetSent(this.promStartTime, this.promEndTime, this.promStep));
+        let data = response.data.result[0].values;
+
+        /* prepare Sent Data for Graph */
+        let sentData = data.map(function(value: any[],index: any) { return value[1]; });
+
+        let i = 0;
+
+        /* Convert sent data to kbytes */
+        for(i = 0; i < sentData.length; i++) {
+            sentData[i] = (sentData[i]/1024)/1024;
+        }
+
+        /* get Network Received data from Prometheus */
+        response = await lastValueFrom(this.prometheusService.getNetRecv(this.promStartTime, this.promEndTime, this.promStep));
+        data = response.data.result[0].values;
+
+        /* prepare Received Data for Graph */
+        let recvData = data.map(function(value: any[],index: any) { return value[1]; });
+
+        /* Convert received data to kbytes */
+        for(i = 0; i < recvData.length; i++) {
+            recvData[i] = (recvData[i]/1024)/1024;
+        }
+
+        let labelData = Array(sentData.length).fill("");
+
+        this.netChart.data.labels = labelData;
+        this.netChart.data.datasets[0].data = sentData;
+        this.netChart.data.datasets[1].data = recvData;
+
+        this.netChart.update();
     }
 
     /*
@@ -360,6 +459,46 @@ export class DashboardComponent implements OnInit {
               }
             
         });
+
+    }
+
+    /*
+     * Reload Storage Data
+     */
+    async stgGraphReload(): Promise<void> {
+        /* get Storage Read data from Prometheus */
+        let response = await lastValueFrom(this.prometheusService.getStorageRead(this.promStartTime, this.promEndTime, this.promStep));
+        let data = response.data.result[0].values;
+
+        /* prepare Read Data for Graph */
+        let readData = data.map(function(value: any[],index: any) { return value[1]; });
+
+        let i = 0;
+
+        /* Convert read data to mbytes */
+        for(i = 0; i < readData.length; i++) {
+            readData[i] = (readData[i]/1024)/1024;
+        }
+
+        /* get Storage Write data from Prometheus */
+        response = await lastValueFrom(this.prometheusService.getStorageWrite(this.promStartTime, this.promEndTime, this.promStep));
+        data = response.data.result[0].values;
+
+        /* prepare Write Data for Graph */
+        let writeData = data.map(function(value: any[],index: any) { return value[1]; });
+
+        /* Convert write data to mbytes */
+        for(i = 0; i < writeData.length; i++) {
+            writeData[i] = (writeData[i]/1024)/1024;
+        }
+
+        let labelData = Array(readData.length).fill("");
+
+        this.stgChart.data.labels = labelData;
+        this.stgChart.data.datasets[0].data = readData;
+        this.stgChart.data.datasets[1].data = writeData;
+
+        this.stgChart.update();
     }
 
     /*
@@ -448,12 +587,16 @@ export class DashboardComponent implements OnInit {
               }
             
         });
+
     }
 
     /*
      * Get VMs Information
      */
     async getVMs(): Promise<void> {
+        this.vmInfo.percent = 0;
+        this.vmInfo.total = 0;
+        this.vmInfo.running = 0;
         try {
             const data = await lastValueFrom(this.kubeVirtService.getVMs());
             let vms = data.items;
@@ -501,6 +644,7 @@ export class DashboardComponent implements OnInit {
             const data = await lastValueFrom(this.kubeVirtService.getVMPools());
             let pools = data.items;
             this.poolInfo.total = data.items.length;
+            this.poolInfo.running = 0;
             for (let i = 0; i < pools.length; i++) {
                 if(pools[i].spec.virtualMachineTemplate.spec["running"]) {
                     this.poolInfo.running += 1;
@@ -572,10 +716,18 @@ export class DashboardComponent implements OnInit {
     /*
      * Reload this component
      */
-    reloadComponent(): void {
-        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
-            this.router.navigate([`/`]);
-        })
+    async reloadComponent(): Promise<void> {
+        await this.getNodes();   // Needed to calculate CPU Graph
+        this.getVMs();
+        this.getDisks();
+        this.getNetworks();
+        this.getPools();
+        this.getClusters();
+        this.getScalingGroups();
+        this.getInstanceTypes();
+        this.getLoadBalancers();
+        this.reloadPrometheus();
+        await this.cdRef.detectChanges();
     }
 
 }

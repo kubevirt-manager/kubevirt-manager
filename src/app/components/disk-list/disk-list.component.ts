@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { K8sNode } from 'src/app/models/k8s-node.model';
 import { VMDisk } from 'src/app/models/vmdisk.model';
@@ -22,10 +21,10 @@ export class DiskListComponent implements OnInit {
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
+        private cdRef: ChangeDetectorRef,
         private k8sService: K8sService,
         private k8sApisService: K8sApisService,
-        private dataVolumesService: DataVolumesService,
-        private router: Router
+        private dataVolumesService: DataVolumesService
     ) { }
 
     async ngOnInit(): Promise<void> {
@@ -76,6 +75,7 @@ export class DiskListComponent implements OnInit {
      * Get DataVolumes
      */
     async getDVs(): Promise<void> {
+        this.diskList = [];
         try {
             const data = await lastValueFrom(this.dataVolumesService.getDataVolumes());
             let disks = data.items;
@@ -377,10 +377,10 @@ export class DiskListComponent implements OnInit {
     /*
      * Reload this component
      */
-    reloadComponent(): void {
-        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
-            this.router.navigate([`/dsklist`]);
-        })
+    async reloadComponent(): Promise<void> {
+        await this.getDVs();
+        await this.getStorageClasses();
+        await this.cdRef.detectChanges();
     }
 
 }

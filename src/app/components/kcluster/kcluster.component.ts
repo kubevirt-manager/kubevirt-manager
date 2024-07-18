@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Buffer } from 'buffer';
 import { lastValueFrom } from 'rxjs';
 import { KClusterKubeadmControlPlane } from 'src/app/models/kcluster-kubeadm-control-plane.model';
@@ -42,7 +41,7 @@ export class KClusterComponent implements OnInit {
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
-        private router: Router,
+        private cdRef: ChangeDetectorRef,
         private kubevirtMgrCapk: KubevirtMgrCapk,
         private k8sService: K8sService,
         private k8sApisService: K8sApisService,
@@ -102,6 +101,7 @@ export class KClusterComponent implements OnInit {
      * Load Cluster List
      */
      async getClusters(): Promise<void> {
+        this.clusterList = [];
         const data = await lastValueFrom(this.xK8sService.getClusters());
         let clusters = data.items;
         for(let i = 0; i < clusters.length; i++) {
@@ -2422,10 +2422,9 @@ export class KClusterComponent implements OnInit {
     /*
      * Reload this component
      */
-    reloadComponent(): void {
-        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
-            this.router.navigate([`/kcluster`]);
-        })
+    async reloadComponent(): Promise<void> {
+        await this.getClusters();
+        await this.cdRef.detectChanges();
     }
 
 }

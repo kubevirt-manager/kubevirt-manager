@@ -2,7 +2,7 @@
 FROM node:22.2.0-bookworm as builder
 
 LABEL org.opencontainers.image.authors="marcelo@feitoza.com.br"
-LABEL description="Kubevirt Manager 1.4.0 - Builder"
+LABEL description="Kubevirt Manager 1.4.1 - Builder"
 
 WORKDIR /usr/src/app
 COPY . /usr/src/app
@@ -13,7 +13,7 @@ RUN cd /usr/src/app && npm install -g npm@10.8.1 && npm run clean && npm install
 FROM nginx:1.27-alpine
 
 LABEL org.opencontainers.image.authors="marcelo@feitoza.com.br"
-LABEL description="Kubevirt Manager 1.4.0"
+LABEL description="Kubevirt Manager 1.4.1"
 
 RUN mkdir -p /etc/nginx/location.d/
 RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && \

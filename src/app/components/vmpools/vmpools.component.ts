@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { KubeVirtVM } from 'src/app/models/kube-virt-vm.model';
 import { KubeVirtVMI } from 'src/app/models/kube-virt-vmi.model';
@@ -31,7 +30,7 @@ export class VMPoolsComponent implements OnInit {
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
-        private router: Router,
+        private cdRef: ChangeDetectorRef,
         private k8sService: K8sService,
         private k8sApisService: K8sApisService,
         private dataVolumesService: DataVolumesService,
@@ -56,6 +55,7 @@ export class VMPoolsComponent implements OnInit {
      * Load Pool List
      */
     async getPools(): Promise<void> {
+        this.poolList = [];
         let currentPool = new KubeVirtVMPool;
         const data = await lastValueFrom(this.kubeVirtService.getVMPools());
         let pools = data.items;
@@ -1620,10 +1620,9 @@ export class VMPoolsComponent implements OnInit {
     /*
      * Reload this component
      */
-    reloadComponent(): void {
-        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
-            this.router.navigate([`/vmpools`]);
-        })
+    async reloadComponent(): Promise<void> {
+        await this.getPools();
+        await this.cdRef.detectChanges();
     }
 
 }

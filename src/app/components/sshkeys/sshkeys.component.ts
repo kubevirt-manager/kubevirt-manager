@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { Secret } from 'src/app/interfaces/secret';
 import { SSHKey } from 'src/app/models/sshkey.model';
@@ -17,7 +16,7 @@ export class SSHKeysComponent implements OnInit {
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
-        private router: Router,
+        private cdRef: ChangeDetectorRef,
         private k8sService: K8sService
     ) { }
 
@@ -38,6 +37,7 @@ export class SSHKeysComponent implements OnInit {
      * Get the list of Keys
      */
     async getKeys(): Promise<void> {
+        this.keyList = [];
         let currentKey = new SSHKey;
         const data = await lastValueFrom(this.k8sService.getSSHSecrets());
         let keys = data.items;
@@ -201,10 +201,9 @@ export class SSHKeysComponent implements OnInit {
     /*
      * Reload this component
      */
-    reloadComponent(): void {
-        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
-            this.router.navigate([`/sshkeys`]);
-        })
+    async reloadComponent(): Promise<void> {
+        await this.getKeys();
+        await this.cdRef.detectChanges();
     }
 
 }

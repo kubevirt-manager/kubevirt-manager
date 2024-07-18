@@ -1,11 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { K8sService } from 'src/app/services/k8s.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
 import { K8sNode } from 'src/app/models/k8s-node.model';
 import { KubeVirtVM } from 'src/app/models/kube-virt-vm.model';
 import { KubeVirtVMI } from 'src/app/models/kube-virt-vmi.model';
 import { lastValueFrom } from 'rxjs';
-import { Router } from '@angular/router';
 import { VMDisk } from 'src/app/models/vmdisk.model';
 import { NetworkAttach } from 'src/app/models/network-attach.model';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
@@ -13,7 +12,6 @@ import { DataVolumesService } from 'src/app/services/data-volumes.service';
 import { DataVolume } from 'src/app/interfaces/data-volume';
 import { VirtualMachine } from 'src/app/interfaces/virtual-machine';
 import { KubevirtMgrService } from 'src/app/services/kubevirt-mgr.service';
-import { Images } from 'src/app/models/images.model';
 
 
 @Component({
@@ -34,8 +32,8 @@ export class VmlistComponent implements OnInit {
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
+        private cdRef: ChangeDetectorRef,
         private k8sService: K8sService,
-        private router: Router,
         private dataVolumesService: DataVolumesService,
         private k8sApisService: K8sApisService,
         private kubeVirtService: KubeVirtService,
@@ -60,6 +58,7 @@ export class VmlistComponent implements OnInit {
      * Load Nodes
      */
     async getNodes(): Promise<void> {
+        this.nodeList = [];
         try {
             let currentNode = new K8sNode;
             const data = await lastValueFrom(this.k8sService.getNodes());
@@ -90,6 +89,7 @@ export class VmlistComponent implements OnInit {
      * Load VM List
      */
     async getVMs(): Promise<void> {
+        this.vmList = [];
         let currentVm = new KubeVirtVM;
         const data = await lastValueFrom(this.kubeVirtService.getVMs());
         let vms = data.items;
@@ -1401,9 +1401,9 @@ export class VmlistComponent implements OnInit {
     /*
      * Reload this component
      */
-    reloadComponent(): void {
-        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
-            this.router.navigate([`/vmlist`]);
-        })
+    async reloadComponent(): Promise<void> {
+        await this.getVMs();
+        await this.getNodes();
+        this.cdRef.detectChanges();
     }
 }

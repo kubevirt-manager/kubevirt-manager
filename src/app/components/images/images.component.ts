@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { Image } from 'src/app/interfaces/image';
 import { Images } from 'src/app/models/images.model';
@@ -18,7 +17,7 @@ export class ImagesComponent implements OnInit {
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
-        private router: Router,
+        private cdRef: ChangeDetectorRef,
         private k8sService: K8sService,
         private kubevirtMgrService: KubevirtMgrService
     ) { }
@@ -40,6 +39,7 @@ export class ImagesComponent implements OnInit {
      * Get the list of Images
      */
     async getImages(): Promise<void> {
+        this.imageList = [];
         let currentImage = new Images;
         const data = await lastValueFrom(this.kubevirtMgrService.getImages());
         let images = data.items;
@@ -442,10 +442,9 @@ export class ImagesComponent implements OnInit {
     /*
      * Reload this component
      */
-    reloadComponent(): void {
-        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
-            this.router.navigate([`/imagelist`]);
-        })
+    async reloadComponent(): Promise<void> {
+        await this.getImages();
+        await this.cdRef.detectChanges();
     }
 
 }

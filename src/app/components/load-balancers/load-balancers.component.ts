@@ -1,5 +1,4 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import { LoadBalancerPort } from 'src/app/models/load-balancer-port.model';
 import { LoadBalancer } from 'src/app/models/load-balancer.model';
@@ -20,8 +19,8 @@ export class LoadBalancersComponent implements OnInit {
     charDot = '.';
 
     constructor(
+        private cdRef: ChangeDetectorRef,
         private k8sService: K8sService,
-        private router: Router,
         private kubeVirtService: KubeVirtService
     ) { }
 
@@ -41,6 +40,7 @@ export class LoadBalancersComponent implements OnInit {
      * Get Services from Kubernetes
      */
     async getLoadBalancers(): Promise<void> {
+        this.loadBalancerList = [];
         let currentLoadBalancer = new LoadBalancer;
         try {
             const data = await lastValueFrom(this.k8sService.getServices());
@@ -448,10 +448,9 @@ export class LoadBalancersComponent implements OnInit {
     /*
      * Reload this component
      */
-    reloadComponent(): void {
-        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
-            this.router.navigate([`/lblist`]);
-        })
+    async reloadComponent(): Promise<void> {
+        await this.getLoadBalancers();
+        await this.cdRef.detectChanges();
     }
 
 }

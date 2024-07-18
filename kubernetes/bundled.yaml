@@ -5,8 +5,7 @@ metadata:
   name: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.4.0
-
+    kubevirt-manager.io/version: 1.4.1
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -15,88 +14,8 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.4.0
+    kubevirt-manager.io/version: 1.4.1
 
----
-apiVersion: apiextensions.k8s.io/v1
-kind: CustomResourceDefinition
-metadata:
-  name: images.kubevirt-manager.io
-spec:
-  group: kubevirt-manager.io
-  versions:
-    - name: v1
-      served: true
-      storage: true
-      schema:
-        openAPIV3Schema:
-          type: object
-          properties:
-            spec:
-              type: object
-              x-kubernetes-validations:
-                - rule: "self.type.matches('^(http)|(gcs)|(s3)|(registry)|(pvc)$')"
-                  message: "spec.type should be: http, registry, s3, gcs, pvc"
-              required:
-                - type
-                - readableName
-              oneOf:
-                - required: ["http"]
-                - required: ["registry"]
-                - required: ["s3"]
-                - required: ["gcs"]
-                - required: ["pvc"]
-              properties:
-                type:
-                  type: string
-                credentials:
-                  type: string
-                readableName:
-                  type: string
-                readableDescription:
-                  type: string
-                http:
-                  type: object
-                  properties:
-                    url: 
-                      type: string
-                registry:
-                  type: object
-                  properties:
-                    url:
-                      type: string
-                s3:
-                  type: object
-                  properties:
-                    url:
-                      type: string
-                gcs:
-                  type: object
-                  properties:
-                    url:
-                      type: string
-                pvc:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                    namespace:
-                      type: string
-      additionalPrinterColumns:
-        - name: "Type"
-          type: "string"
-          jsonPath: ".spec.type"
-        - name: Age
-          type: date
-          jsonPath: .metadata.creationTimestamp
-  scope: Namespaced
-  names:
-    plural: images
-    singular: image
-    kind: Image
-    shortNames:
-    - img
-    
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -110,13 +29,16 @@ rules:
     resources: ["customresourcedefinitions"]
     verbs: ["get", "list"]
   - apiGroups: [""]
-    resources: ["persistentvolumeclaims", "persistentvolumes", "services", "secrets", "serviceaccounts", "configmaps", "deployments"]
-    verbs: ["*"]
-  - apiGroups: ["rbac.authorization.k8s.io"]
-    resources: ["rolebindings"]
+    resources: ["persistentvolumeclaims", "persistentvolumes", "services", "secrets", "serviceaccounts", "configmaps"]
     verbs: ["*"]
   - apiGroups: ["apps"]
     resources: ["deployments"]
+    verbs: ["*"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["role", "clusterrole"]
+    verbs: ["get", "list"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["rolebindings", "clusterrolebindings"]
     verbs: ["*"]
   - apiGroups: ["storage.k8s.io"]
     resources: ["storageclasses"]
@@ -166,7 +88,7 @@ rules:
   - apiGroups: ["kubevirt-manager.io"]
     resources: ["images"]
     verbs: ["*"]
-
+    
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -174,7 +96,7 @@ metadata:
   name: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.4.0
+    kubevirt-manager.io/version: 1.4.1
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -210,7 +132,7 @@ metadata:
   name: kubevirt-manager-kccm
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.4.0
+    kubevirt-manager.io/version: 1.4.1
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -226,100 +148,36 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: kubevirt-manager-cas-workload
 rules:
-  - apiGroups:
-    - ""
-    resources:
-    - namespaces
-    - persistentvolumeclaims
-    - persistentvolumes
-    - pods
-    - replicationcontrollers
-    - services
-    verbs:
-    - get
-    - list
-    - watch
-  - apiGroups:
-    - ""
-    resources:
-    - nodes
-    verbs:
-    - get
-    - list
-    - update
-    - watch
-  - apiGroups:
-    - ""
-    resources:
-    - pods/eviction
-    verbs:
-    - create
-  - apiGroups:
-    - policy
-    resources:
-    - poddisruptionbudgets
-    verbs:
-    - list
-    - watch
-  - apiGroups:
-    - storage.k8s.io
-    resources:
-    - csinodes
-    - storageclasses
-    - csidrivers
-    - csistoragecapacities
-    verbs:
-    - get
-    - list
-    - watch
-  - apiGroups:
-    - batch
-    resources:
-    - jobs
-    verbs:
-    - list
-    - watch
-  - apiGroups:
-    - apps
-    resources:
-    - daemonsets
-    - replicasets
-    - statefulsets
-    verbs:
-    - list
-    - watch
-  - apiGroups:
-    - ""
-    resources:
-    - events
-    verbs:
-    - create
-    - patch
-  - apiGroups:
-    - ""
-    resources:
-    - configmaps
-    verbs:
-    - create
-    - delete
-    - get
-    - update
-  - apiGroups:
-    - coordination.k8s.io
-    resources:
-    - leases
-    verbs:
-    - create
-    - get
-    - update
-  - apiGroups:
-    - ""
-    resources:
-    - secrets
-    verbs:
-    - get
-    - list
-    - watch
+  - apiGroups: [""]
+    resources: ["namespaces", "persistentvolumeclaims", "persistentvolumes", "pods", "replicationcontrollers", "services", "secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch", "udate"]
+  - apiGroups: [""]
+    resources: ["pods/eviction"]
+    verbs: ["create"]
+  - apiGroups: ["policy"]
+    resources: ["poddisruptionbudgets"]
+    verbs: ["list", "watch"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["csinodes", "storageclasses", "csidrivers", "csistoragecapacities"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["daemonsets", "replicasets", "statefulsets"]
+    verbs: ["list", "watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create", "delete", "get", "update"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["create", "get", "update"]
 
 ---
 kind: ClusterRole
@@ -327,30 +185,46 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: kubevirt-manager-cas-management
 rules:
-  - apiGroups:
-    - cluster.x-k8s.io
-    resources:
-    - machinedeployments
-    - machinedeployments/scale
-    - machines
-    - machinesets
-    - machinepools
-    verbs:
-    - get
-    - list
-    - update
-    - watch
-  - apiGroups:
-    - infrastructure.cluster.x-k8s.io
-    resources:
-    - kubevirtcluster
-    - kubevirtmachinetemplate
-    - kubevirtmachinetemplates
-    verbs:
-    - get
-    - list
-    - update
-    - watch
+  - apiGroups: ["cluster.x-k8s.io"]
+    resources: ["machinedeployments", "machinedeployments/scale", "machines", "machinesets", "machinepools"]
+    verbs: ["get", "list", "watch", "udate"]
+  - apiGroups: ["infrastructure.cluster.x-k8s.io"]
+    resources: ["kubevirtcluster", "kubevirtmachinetemplate", "kubevirtmachinetemplates"]
+    verbs: ["get", "list", "watch", "udate"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubevirt-manager-cas-workload
+  labels:
+    app: kubevirt-manager
+    kubevirt-manager.io/version: 1.4.1
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubevirt-manager-cas-workload
+subjects:
+- kind: ServiceAccount
+  name: kubevirt-manager
+  namespace: kubevirt-manager
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubevirt-manager-cas-management
+  labels:
+    app: kubevirt-manager
+    kubevirt-manager.io/version: 1.4.1
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubevirt-manager-cas-management
+subjects:
+- kind: ServiceAccount
+  name: kubevirt-manager
+  namespace: kubevirt-manager
     
 ---
 apiVersion: scheduling.k8s.io/v1
@@ -360,7 +234,7 @@ metadata:
   name: vm-standard
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.4.0
+    kubevirt-manager.io/version: 1.4.1
     kubevirt-manager.io/managed: "true"
 preemptionPolicy: Never
 value: 999999999
@@ -373,7 +247,7 @@ metadata:
   name: vm-preemptible
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.4.0
+    kubevirt-manager.io/version: 1.4.1
     kubevirt-manager.io/managed: "true"
 preemptionPolicy: PreemptLowerPriority
 value: 1000000
@@ -386,12 +260,12 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.4.0
+    kubevirt-manager.io/version: 1.4.1
 spec:
   selector:
     matchLabels:
       app: kubevirt-manager
-      kubevirt-manager.io/version: 1.4.0
+      kubevirt-manager.io/version: 1.4.1
   replicas: 1
   strategy:
     type: Recreate
@@ -399,11 +273,11 @@ spec:
     metadata:
       labels:
         app: kubevirt-manager
-        kubevirt-manager.io/version: 1.4.0
+        kubevirt-manager.io/version: 1.4.1
     spec:
       containers:
         - name: kubevirtmgr
-          image: kubevirtmanager/kubevirt-manager:1.4.0
+          image: kubevirtmanager/kubevirt-manager:1.4.1
           imagePullPolicy: IfNotPresent
           ports:
           - name: http
@@ -452,7 +326,7 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.4.0
+    kubevirt-manager.io/version: 1.4.1
 spec:
   type: ClusterIP
   selector:
