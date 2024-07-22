@@ -14,6 +14,8 @@
                   <ul class="nav nav-pills">
                     <li class="nav-item"><a class="nav-link active" href="#overview" data-toggle="tab">Overview</a></li>
                     <li class="nav-item"><a class="nav-link" href="#details" data-toggle="tab">Details</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#logging" data-toggle="tab">Logs</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#vmmonitoring" data-toggle="tab" *ngIf="promCheck">Monitoring</a></li>
                     <li class="nav-item"><a class="nav-link" href="#vmconsole" data-toggle="tab">Console</a></li>
                   </ul>
                 </div>
@@ -149,6 +151,95 @@
                                 <li>Storage Class: {{disk2Info.storageClass}}</li>
                             </ul>
                        </div>
+                    </div>
+                    <!-- VM Logging -->
+                    <div class="tab-pane" id="logging">
+                        <dt>Logging</dt>
+                        <br>
+                        <div id="log-viewer" class="log-viewer">
+                            <div id="log-stream" class="log-stream">
+                                <div *ngFor="let thisMessage of consoleMessages">
+                                    <span>{{thisMessage}}</span>
+                                </div>
+                            </div>
+                        </div>
+                     </div>
+                    <!-- VM Monitoring -->
+                    <div class="tab-pane" id="vmmonitoring">  
+                       <dt>Monitoring</dt>
+                       <br>
+                       <!-- PROMETHEUS: CPU -->
+                       <div class="row">
+                         <div class="col-lg-6 col-6">
+                            <div class="card">
+                                <div class="card-header border-0">
+                                    <div class="d-flex justify-content-between">
+                                        <h3 class="card-title">CPU Usage</h3>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="position-relative"><div class="chartjs-size-monitor">
+                                        <div class="chart-container">
+                                            <canvas  id="CpuChart" >{{ cpuChart }}</canvas>
+                                        </div>
+                                    </div></div>
+                                </div>
+                            </div>
+                         </div>
+                         <!-- PROMETHEUS: MEMORY -->
+                         <div class="col-lg-6 col-6">
+                            <div class="card">
+                                <div class="card-header border-0">
+                                    <div class="d-flex justify-content-between">
+                                        <h3 class="card-title">Memory Usage</h3>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="position-relative"><div class="chartjs-size-monitor">
+                                        <div class="chart-container">
+                                            <canvas  id="MemChart" >{{ memChart }}</canvas>
+                                        </div>
+                                    </div></div>
+                                </div>
+                            </div>
+                         </div>
+                       </div>
+                       <!-- PROMETHEUS: STORAGE -->
+                       <div class="row">
+                        <div class="col-lg-6 col-6">
+                           <div class="card">
+                               <div class="card-header border-0">
+                                   <div class="d-flex justify-content-between">
+                                       <h3 class="card-title">Storage Usage</h3>
+                                   </div>
+                               </div>
+                               <div class="card-body">
+                                   <div class="position-relative"><div class="chartjs-size-monitor">
+                                       <div class="chart-container">
+                                           <canvas  id="StgChart" >{{ stgChart }}</canvas>
+                                       </div>
+                                   </div></div>
+                               </div>
+                           </div>
+                        </div>
+                        <!-- PROMETHEUS: NET -->
+                        <div class="col-lg-6 col-6">
+                           <div class="card">
+                               <div class="card-header border-0">
+                                   <div class="d-flex justify-content-between">
+                                       <h3 class="card-title">Network Usage</h3>
+                                   </div>
+                               </div>
+                               <div class="card-body">
+                                   <div class="position-relative"><div class="chartjs-size-monitor">
+                                       <div class="chart-container">
+                                           <canvas  id="NetChart" >{{ netChart }}</canvas>
+                                       </div>
+                                   </div></div>
+                               </div>
+                           </div>
+                        </div>
+                      </div>
                     </div>
                     <!-- VM Console -->
                     <div class="tab-pane" id="vmconsole">  

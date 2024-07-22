@@ -14,8 +14,11 @@ metadata:
   name: kubevirt-manager
 rules:
   - apiGroups: [""]
-    resources: ["nodes", "namespaces"]
+    resources: ["nodes", "namespaces", "pods"]
     verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
   - apiGroups: [""]
     resources: ["customresourcedefinitions"]
     verbs: ["get", "list"]

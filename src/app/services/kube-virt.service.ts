@@ -289,7 +289,7 @@ export class KubeVirtService {
     }
 
     removePoolReadiness(namespace: string, name: string): Observable<any> {
-        var baseUrl ='./k8s/apis/pool.kubevirt.io/v1alpha1';
+        var baseUrl = './k8s/apis/pool.kubevirt.io/v1alpha1';
         const headers = {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'
@@ -298,12 +298,28 @@ export class KubeVirtService {
     }
 
     updatePoolReadiness(namespace: string, name: string, readiness: string): Observable<any> {
-        var baseUrl ='./k8s/apis/pool.kubevirt.io/v1alpha1';
+        var baseUrl = './k8s/apis/pool.kubevirt.io/v1alpha1';
         const headers = {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'
         };
         return this.http.patch(`${baseUrl}/namespaces/${namespace}/virtualmachinepools/${name}`, '{"spec":{"virtualMachineTemplate":{"spec":{"template":{"spec":{"readinessProbe":'+ readiness +'}}}}}}', { 'headers': headers } );
+    }
+
+    findVMPod(namespace: string, uid: string): Observable<any> {
+        var myUrl = "./k8s/api/v1/namespaces/" + namespace + "/pods?labelSelector=kubevirt.io%2Fcreated-by%3D" + uid + "&limit=1";
+
+        return this.http.get(`${myUrl}`);
+    }
+
+    getVMSerialLog(namespace: string, name: string): Observable<any> {
+        var myUrl = "./k8s/api/v1/namespaces/" + namespace + "/pods/" + name + "/log?container=guest-console-log";
+
+        const headers = {
+            'accept': 'application/json, */*'
+        };
+
+        return this.http.get(`${myUrl}`, {'headers': headers, 'responseType': "text"});
     }
 
 }

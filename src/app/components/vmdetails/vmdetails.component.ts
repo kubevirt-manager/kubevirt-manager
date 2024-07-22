@@ -1,12 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { KubeVirtVM } from 'src/app/models/kube-virt-vm.model';
 import { DataVolumesService } from 'src/app/services/data-volumes.service';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
+import { PrometheusService } from 'src/app/services/prometheus.service';
+import { Chart } from 'chart.js/auto'
 import { KubeVirtVMI } from 'src/app/models/kube-virt-vmi.model';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+
 
 @Component({
   selector: 'app-vmdetails',
@@ -20,6 +23,9 @@ export class VmdetailsComponent implements OnInit {
     activeVm: KubeVirtVM = new KubeVirtVM;
     customTemplate: boolean = false;
     urlSafe: SafeResourceUrl = "";
+    promCheck: boolean = false;
+
+    myInterval = setInterval(() =>{ this.reloadCharts(); }, 30000);
 
     /* 
      * Network Information 
@@ -77,24 +83,528 @@ export class VmdetailsComponent implements OnInit {
 
     };
 
+    /* Prometheus query data */
+    promStartTime = 0;
+    promEndTime = 0;
+    promInterval = 3600; // Prometheus Window 30 minutes
+    promStep = 30;       // Prometheus Step 20 seconds
+
+    /* Chart.JS placeholder */
+    cpuChart: any;
+    memChart: any;
+    netChart: any;
+    stgChart: any;
+
+    /* Console Reader */
+    consoleMessages: Array<string> = new Array();
+
     constructor(
         private router: Router,
         private route: ActivatedRoute,
         private sanitizer: DomSanitizer,
         private k8sApisService: K8sApisService,
         private dataVolumesService: DataVolumesService,
-        private kubeVirtService: KubeVirtService
+        private prometheusService: PrometheusService,
+        private kubeVirtService: KubeVirtService,
+        private cdRef: ChangeDetectorRef
     ) { }
 
     async ngOnInit(): Promise<void> {
         this.vmName = this.route.snapshot.params['name'];
         this.vmNamespace = this.route.snapshot.params['namespace'];
         await this.loadVm();
+        await this.loadPrometheus();
+        await this.loadSerialLog();
         this.loadNoVNC(this.activeVm.namespace, this.activeVm.name);
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Virtual Machine Details");
         }
+    }
+
+    /*
+     * Serial Log
+     */
+    async loadSerialLog(): Promise<void> {
+        let podName = "";
+        try {
+            let data = await lastValueFrom(this.kubeVirtService.findVMPod(this.vmNamespace, this.activeVm.vmi.uid));
+            podName = data.items[0].metadata["name"];
+            data = await lastValueFrom(this.kubeVirtService.getVMSerialLog(this.vmNamespace, podName));
+            for (const line of data.split(/[\r\n]+/)){
+                this.consoleMessages.push(line);
+            }
+        } catch (e: any) {
+            console.log(e);
+        }
+    }
+
+    /*
+     * Load Prometheus Metrics
+     */
+    async loadPrometheus(): Promise<void>  {
+        try {
+            const data = await lastValueFrom(this.prometheusService.checkPrometheus());
+            if(data["status"].toLowerCase() == "success") {
+                this.promCheck = true;
+                await this.getTimestamps();
+                this.cpuGraph();
+                this.memGraph();
+                this.netGraph();
+                this.stgGraph();
+            } else {
+                this.promCheck = false;
+            }
+        } catch (e: any) {
+            this.promCheck = false;
+            console.log("No prometheus...");
+        }
+    }
+
+    /*
+     * Reload Prometheus Metrics
+     */
+    async reloadPrometheus(): Promise<void>  {
+        try {
+            const data = await lastValueFrom(this.prometheusService.checkPrometheus());
+            if(data["status"].toLowerCase() == "success") {
+                this.promCheck = true;
+                await this.getTimestamps();
+                this.cpuGraphReload();
+                this.memGraphReload();
+                this.netGraphReload();
+                this.stgGraphReload();
+            } else {
+                this.promCheck = false;
+            }
+        } catch (e: any) {
+            this.promCheck = false;
+            console.log("No prometheus...");
+        }
+    }
+
+    /*
+     * Generate timestamps for Prometheus Query
+     */
+    async getTimestamps(): Promise<void>  {
+        this.promEndTime = Math.floor(Date.now() / 1000)
+        this.promStartTime = this.promEndTime - this.promInterval;
+    }
+
+    /*
+     * Reload cpu data
+     */
+    async cpuGraphReload(): Promise<void> {
+        /* get CPU data from Prometheus */
+        let response = await lastValueFrom(this.prometheusService.getVMCpuSummary(this.vmName, this.vmNamespace, this.promStartTime, this.promEndTime, this.promStep));
+        let data = response.data.result[0].values;
+
+        /* prepare Data for Graph */
+        let cpuData = data.map(function(value: any[],index: any) { return value[1]; });
+        let labelData = Array(cpuData.length).fill("");
+
+        this.cpuChart.data.labels = labelData;
+        this.cpuChart.data.datasets[0].data = cpuData;
+
+        this.cpuChart.update();
+    }
+
+    /*
+     * Generate CPU Graph
+     */
+    async cpuGraph(): Promise<void> {
+        let maxCpu = this.activeVm.cores * this.activeVm.sockets * this.activeVm.threads;
+
+        /* get CPU data from Prometheus */
+        let response = await lastValueFrom(this.prometheusService.getVMCpuSummary(this.vmName, this.vmNamespace, this.promStartTime, this.promEndTime, this.promStep));
+        let data = response.data.result[0].values;
+
+        /* prepare Data for Graph */
+        let cpuData = data.map(function(value: any[],index: any) { return value[1]; });
+        let labelData = Array(cpuData.length).fill("");
+
+        this.cpuChart = new Chart("CpuChart", {
+            type: 'line',
+            data: {
+              labels: labelData, 
+                 datasets: [
+                {
+                  label: "CPU Usage",
+                  pointRadius: 1,
+                  pointBorderWidth: 0,
+                  tension: 1,
+                  borderWidth: 3,
+                  data: cpuData,
+                  backgroundColor: 'blue',
+                  borderColor: 'blue',
+                  fill: true
+                }  
+              ]
+            },
+            options: {
+              aspectRatio:5,
+              animations: {
+                tension: {
+                  duration: 1000,
+                  easing: 'linear',
+                  from: 1,
+                  to: 0,
+                  loop: false
+                }
+              },
+              scales: {
+                x: {
+                    grid: {
+                      display: false
+                    }
+                  },
+                  y: {
+                    min: 0,
+                    max: maxCpu,
+                    grid: {
+                      display: true
+                    }
+                  }
+              }
+            }
+            
+        });
+    }
+
+     /*
+     * Reload Memory Data
+     */
+     async memGraphReload(): Promise<void> {
+        /* get Memory data from Prometheus */
+        let response = await lastValueFrom(this.prometheusService.getVMMemSummary(this.vmName, this.vmNamespace, this.promStartTime, this.promEndTime, this.promStep));
+        let data = response.data.result[0].values;
+
+        /* prepare Data for Graph */
+        let memData = data.map(function(value: any[],index: any) { return value[1]; });
+        let labelData = Array(memData.length).fill("");
+
+        this.memChart.data.labels = labelData;
+        this.memChart.data.datasets[0].data = memData;
+
+        this.memChart.update();
+
+    }
+
+    /*
+     * Generate Memory Graph
+     */
+    async memGraph(): Promise<void> {
+        /* get Memory data from Prometheus */
+        let response = await lastValueFrom(this.prometheusService.getVMMemSummary(this.vmName, this.vmNamespace, this.promStartTime, this.promEndTime, this.promStep));
+        let data = response.data.result[0].values;
+
+        /* prepare Data for Graph */
+        let memData = data.map(function(value: any[],index: any) { return value[1]; });
+        let labelData = Array(memData.length).fill("");
+
+        this.memChart = new Chart("MemChart", {
+            type: 'line',
+            data: {
+              labels: labelData, 
+                 datasets: [
+                {
+                  label: "Mem Usage",
+                  pointRadius: 1,
+                  pointBorderWidth: 0,
+                  tension: 1,
+                  borderWidth: 3,
+                  data: memData,
+                  backgroundColor: 'green',
+                  borderColor: 'green',
+                  fill: true
+                }  
+              ]
+            },
+            options: {
+              aspectRatio:5,
+              animations: {
+                tension: {
+                  duration: 1000,
+                  easing: 'linear',
+                  from: 1,
+                  to: 0,
+                  loop: false
+                }
+              },
+              scales: {
+                x: {
+                    grid: {
+                      display: false
+                    }
+                  },
+                  y: {
+                    min: 0,
+                    max: Number.parseInt(this.activeVm.memory.split("Gi")[0]) * 1024,
+                    grid: {
+                      display: true
+                    }
+                  }
+              }
+            }
+            
+        });
+
+    }
+
+    /*
+     * Reload Network Data
+     */
+    async netGraphReload(): Promise<void> {
+        /* get Network Sent data from Prometheus */
+        let response = await lastValueFrom(this.prometheusService.getVMNetSent(this.vmName, this.vmNamespace, this.promStartTime, this.promEndTime, this.promStep));
+        let data = response.data.result[0].values;
+
+        /* prepare Sent Data for Graph */
+        let sentData = data.map(function(value: any[],index: any) { return value[1]; });
+
+        let i = 0;
+
+        /* Convert sent data to kbytes */
+        for(i = 0; i < sentData.length; i++) {
+            sentData[i] = (sentData[i]/1024)/1024;
+        }
+
+        /* get Network Received data from Prometheus */
+        response = await lastValueFrom(this.prometheusService.getVMNetRecv(this.vmName, this.vmNamespace, this.promStartTime, this.promEndTime, this.promStep));
+        data = response.data.result[0].values;
+
+        /* prepare Received Data for Graph */
+        let recvData = data.map(function(value: any[],index: any) { return value[1]; });
+
+        /* Convert received data to kbytes */
+        for(i = 0; i < recvData.length; i++) {
+            recvData[i] = (recvData[i]/1024)/1024;
+        }
+
+        let labelData = Array(sentData.length).fill("");
+
+        this.netChart.data.labels = labelData;
+        this.netChart.data.datasets[0].data = sentData;
+        this.netChart.data.datasets[1].data = recvData;
+
+        this.netChart.update();
+    }
+
+    /*
+     * Generate Network Graph (bytes)
+     */
+    async netGraph(): Promise<void> {
+        /* get Network Sent data from Prometheus */
+        let response = await lastValueFrom(this.prometheusService.getVMNetSent(this.vmName, this.vmNamespace, this.promStartTime, this.promEndTime, this.promStep));
+        let data = response.data.result[0].values;
+
+        /* prepare Sent Data for Graph */
+        let sentData = data.map(function(value: any[],index: any) { return value[1]; });
+
+        let i = 0;
+
+        /* Convert sent data to kbytes */
+        for(i = 0; i < sentData.length; i++) {
+            sentData[i] = (sentData[i]/1024)/1024;
+        }
+
+        /* get Network Received data from Prometheus */
+        response = await lastValueFrom(this.prometheusService.getVMNetRecv(this.vmName, this.vmNamespace, this.promStartTime, this.promEndTime, this.promStep));
+        data = response.data.result[0].values;
+
+        /* prepare Received Data for Graph */
+        let recvData = data.map(function(value: any[],index: any) { return value[1]; });
+
+        /* Convert received data to kbytes */
+        for(i = 0; i < recvData.length; i++) {
+            recvData[i] = (recvData[i]/1024)/1024;
+        }
+
+        let labelData = Array(sentData.length).fill("");
+
+        this.netChart = new Chart("NetChart", {
+            type: 'line',
+            data: {
+              labels: labelData, 
+                 datasets: [
+                {
+                  label: "Sent",
+                  data: sentData,
+                  pointRadius: 1,
+                  pointBorderWidth: 0,
+                  tension: 1,
+                  borderWidth: 3,
+                  borderColor: 'green',
+                  backgroundColor: 'green'
+                },
+                {
+                  label: "Recv",
+                  data: recvData,
+                  pointRadius: 1,
+                  pointBorderWidth: 0,
+                  tension: 1,
+                  borderWidth: 3,
+                  borderColor: 'blue',
+                  backgroundColor: 'blue'
+                }
+              ]
+            },
+            options: {
+                aspectRatio:5,
+                animations: {
+                  tension: {
+                    duration: 1000,
+                    easing: 'linear',
+                    from: 1,
+                    to: 0,
+                    loop: false
+                  }
+                },
+                scales: {
+                  x: {
+                      grid: {
+                        display: false
+                      }
+                    },
+                    y: {
+                      min: 0,
+                      grid: {
+                        display: true
+                      }
+                    }
+                }
+              }
+            
+        });
+
+    }
+
+    /*
+     * Reload Storage Data
+     */
+    async stgGraphReload(): Promise<void> {
+        /* get Storage Read data from Prometheus */
+        let response = await lastValueFrom(this.prometheusService.getVMStorageRead(this.vmName, this.vmNamespace, this.promStartTime, this.promEndTime, this.promStep));
+        let data = response.data.result[0].values;
+
+        /* prepare Read Data for Graph */
+        let readData = data.map(function(value: any[],index: any) { return value[1]; });
+
+        let i = 0;
+
+        /* Convert read data to mbytes */
+        for(i = 0; i < readData.length; i++) {
+            readData[i] = (readData[i]/1024)/1024;
+        }
+
+        /* get Storage Write data from Prometheus */
+        response = await lastValueFrom(this.prometheusService.getVMStorageWrite(this.vmName, this.vmNamespace, this.promStartTime, this.promEndTime, this.promStep));
+        data = response.data.result[0].values;
+
+        /* prepare Write Data for Graph */
+        let writeData = data.map(function(value: any[],index: any) { return value[1]; });
+
+        /* Convert write data to mbytes */
+        for(i = 0; i < writeData.length; i++) {
+            writeData[i] = (writeData[i]/1024)/1024;
+        }
+
+        let labelData = Array(readData.length).fill("");
+
+        this.stgChart.data.labels = labelData;
+        this.stgChart.data.datasets[0].data = readData;
+        this.stgChart.data.datasets[1].data = writeData;
+
+        this.stgChart.update();
+    }
+
+    /*
+     * Generate Storage Graph (bytes)
+     */
+    async stgGraph(): Promise<void> {
+        /* get Storage Read data from Prometheus */
+        let response = await lastValueFrom(this.prometheusService.getVMStorageRead(this.vmName, this.vmNamespace, this.promStartTime, this.promEndTime, this.promStep));
+        let data = response.data.result[0].values;
+
+        /* prepare Read Data for Graph */
+        let readData = data.map(function(value: any[],index: any) { return value[1]; });
+
+        let i = 0;
+
+        /* Convert read data to mbytes */
+        for(i = 0; i < readData.length; i++) {
+            readData[i] = (readData[i]/1024)/1024;
+        }
+
+        /* get Storage Write data from Prometheus */
+        response = await lastValueFrom(this.prometheusService.getVMStorageWrite(this.vmName, this.vmNamespace, this.promStartTime, this.promEndTime, this.promStep));
+        data = response.data.result[0].values;
+
+        /* prepare Write Data for Graph */
+        let writeData = data.map(function(value: any[],index: any) { return value[1]; });
+
+        /* Convert write data to mbytes */
+        for(i = 0; i < writeData.length; i++) {
+            writeData[i] = (writeData[i]/1024)/1024;
+        }
+
+        let labelData = Array(readData.length).fill("");
+
+        this.stgChart = new Chart("StgChart", {
+            type: 'line',
+            data: {
+              labels: labelData, 
+                 datasets: [
+                {
+                  label: "Read",
+                  data: readData,
+                  pointRadius: 1,
+                  pointBorderWidth: 0,
+                  tension: 1,
+                  borderWidth: 3,
+                  borderColor: 'green',
+                  backgroundColor: 'green'
+                },
+                {
+                  label: "Write",
+                  data: writeData,
+                  pointRadius: 1,
+                  pointBorderWidth: 0,
+                  tension: 1,
+                  borderWidth: 3,
+                  borderColor: 'blue',
+                  backgroundColor: 'blue'
+                  }
+              ]
+            },
+            options: {
+                aspectRatio:5,
+                animations: {
+                  tension: {
+                    duration: 1000,
+                    easing: 'linear',
+                    from: 1,
+                    to: 0,
+                    loop: false
+                  }
+                },
+                scales: {
+                  x: {
+                      grid: {
+                        display: false
+                      }
+                    },
+                    y: {
+                      min: 0,
+                      grid: {
+                        display: true
+                      }
+                    }
+                }
+              }
+            
+        });
+
     }
 
     /*
@@ -167,6 +677,7 @@ export class VmdetailsComponent implements OnInit {
                 currentVmi = new KubeVirtVMI();
                 currentVmi.name = datavmi.metadata["name"];
                 currentVmi.namespace = datavmi.metadata["namespace"];
+                currentVmi.uid = datavmi.metadata["uid"];
                 currentVmi.running = true;
                 currentVmi.creationTimestamp = new Date(datavmi.metadata["creationTimestamp"]);
                 currentVmi.osId = datavmi.status.guestOSInfo["id"];
@@ -535,6 +1046,14 @@ export class VmdetailsComponent implements OnInit {
         this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
             this.router.navigate([`/vmdetail/${this.vmNamespace}/${this.vmName}`]);
         })
+    }
+
+    /*
+     * Reload Charts
+     */
+    async reloadCharts(): Promise<void> {
+        this.reloadPrometheus();
+        await this.cdRef.detectChanges();
     }
 
 }
