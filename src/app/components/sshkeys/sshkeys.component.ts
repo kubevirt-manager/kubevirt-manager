@@ -121,7 +121,7 @@ export class SSHKeysComponent implements OnInit {
             };
             try {
                 const data = await lastValueFrom(this.k8sService.createSecret(myKey));
-                this.hideComponent("model-new");
+                this.hideComponent("modal-new");
                 this.reloadComponent(); 
             } catch (e: any) {
                 alert(e.error.message);

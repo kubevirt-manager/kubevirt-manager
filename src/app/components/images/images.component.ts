@@ -104,7 +104,7 @@ export class ImagesComponent implements OnInit {
             } else {
                 try {
                     const data = await lastValueFrom(this.kubevirtMgrService.createImage(myImage));
-                    this.hideComponent("model-new");
+                    this.hideComponent("modalnew");
                     this.reloadComponent(); 
                 } catch (e: any) {
                     alert(e.error.message);
@@ -414,7 +414,7 @@ export class ImagesComponent implements OnInit {
                 }
                 try {
                     const data = await lastValueFrom(this.kubevirtMgrService.editImage(myImage));
-                    this.hideComponent("model-edit");
+                    this.hideComponent("modaledit");
                     this.reloadComponent();
                 } catch (e: any) {
                     alert(e.error.message);

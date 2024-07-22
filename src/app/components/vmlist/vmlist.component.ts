@@ -468,6 +468,7 @@ export class VmlistComponent implements OnInit {
             let cloudconfig  = "#cloud-config\n";
                 cloudconfig += "manage_etc_hosts: true\n";
                 cloudconfig += "hostname: " + newvmname + "\n";
+                cloudconfig += "ssh_pwauth: true\n";
             let netconfig  ="version: 1\n";
                 netconfig += "config:\n";
                 netconfig += "    - type: physical\n";
@@ -720,7 +721,6 @@ export class VmlistComponent implements OnInit {
 
             /* UserData Setup */
             if(newvmuserdatausername != "") {
-                cloudconfig += "user: " + newvmuserdatausername + "\n";
                 Object.assign(thisVirtualMachine.metadata.labels, { "cloud-init.kubevirt-manager.io/username" : newvmuserdatausername });
             }
             if(newvmuserdataauth.toLowerCase() == "ssh") {
@@ -732,8 +732,15 @@ export class VmlistComponent implements OnInit {
                     try {
                         let sshSecret = await lastValueFrom(this.k8sService.getSecret(newvmnamespace, newvmuserdatassh));
                         let sshKey = sshSecret.data["ssh-privatekey"];
-                        cloudconfig += "ssh_authorized_keys:\n";
-                        cloudconfig += "  - " + atob(sshKey) + "\n";
+                        cloudconfig += "chpasswd:\n";
+                        cloudconfig += "  expire: true\n";
+                        cloudconfig += "users:\n";
+                        cloudconfig += "  - name: " + newvmuserdatausername + "\n";
+                        cloudconfig += "    lock_passwd: false\n";
+                        cloudconfig += "    sudo: ALL=(ALL) NOPASSWD:ALL\n";
+                        cloudconfig += "    shell: /bin/bash\n";
+                        cloudconfig += "    ssh_authorized_keys:\n";
+                        cloudconfig += "      - " + atob(sshKey) + "\n";
                     } catch (e: any) {
                         alert(e.error.message);
                         console.log(e.error.message);
@@ -741,7 +748,16 @@ export class VmlistComponent implements OnInit {
                 }
             } else {
                 if (newvmuserdatapassword != "") {
-                    cloudconfig += "password: " + newvmuserdatapassword + "\n";
+                    cloudconfig += "chpasswd:\n";
+                    cloudconfig += "  expire: true\n";
+                    cloudconfig += "  users:\n";
+                    cloudconfig += "    - {name: " + newvmuserdatausername + ", password: " + newvmuserdatapassword + ", type: text}\n"
+                    cloudconfig += "users:\n";
+                    cloudconfig += "  - name: " + newvmuserdatausername + "\n";
+                    cloudconfig += "    lock_passwd: false\n";
+                    cloudconfig += "    sudo: ALL=(ALL) NOPASSWD:ALL\n";
+                    cloudconfig += "    shell: /bin/bash\n";
+                    cloudconfig += "    plain_text_passwd: " + newvmuserdatapassword + "\n";
                 }
             }
 
