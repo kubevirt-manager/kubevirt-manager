@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { K8sNode } from 'src/app/models/k8s-node.model';
 import { VMDisk } from 'src/app/models/vmdisk.model';
@@ -22,6 +23,7 @@ export class DiskListComponent implements OnInit {
 
     constructor(
         private cdRef: ChangeDetectorRef,
+        private router: Router,
         private k8sService: K8sService,
         private k8sApisService: K8sApisService,
         private dataVolumesService: DataVolumesService
@@ -154,7 +156,7 @@ export class DiskListComponent implements OnInit {
                     let newSize = diskSize.trim() + "Gi";
                     const data = await lastValueFrom(this.k8sService.resizePersistentVolumeClaims(diskNamespace, diskName, newSize));
                     this.hideComponent("modal-resize");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -293,7 +295,7 @@ export class DiskListComponent implements OnInit {
             try {
                 const data = await lastValueFrom(this.dataVolumesService.createDataVolume(thisDv));
                 this.hideComponent("modal-new");
-                this.reloadComponent();
+                this.fullReload();
             } catch (e: any) {
                 alert(e.error.message);
                 console.log(e);
@@ -350,7 +352,7 @@ export class DiskListComponent implements OnInit {
                     }
                     let deleteDataVolume = await lastValueFrom(this.dataVolumesService.deleteDataVolume(diskNamespace, diskName));
                     this.hideComponent("modal-delete");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -381,6 +383,15 @@ export class DiskListComponent implements OnInit {
         await this.getDVs();
         await this.getStorageClasses();
         await this.cdRef.detectChanges();
+    }
+
+    /*
+     * full reload
+     */
+    fullReload(): void {
+        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
+            this.router.navigate([`/dsklist`]);
+        })
     }
 
 }

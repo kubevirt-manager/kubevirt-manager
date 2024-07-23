@@ -5,6 +5,7 @@ import { K8sNode } from 'src/app/models/k8s-node.model';
 import { KubeVirtVM } from 'src/app/models/kube-virt-vm.model';
 import { KubeVirtVMI } from 'src/app/models/kube-virt-vmi.model';
 import { lastValueFrom } from 'rxjs';
+import { Router } from '@angular/router';
 import { VMDisk } from 'src/app/models/vmdisk.model';
 import { NetworkAttach } from 'src/app/models/network-attach.model';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
@@ -33,6 +34,7 @@ export class VmlistComponent implements OnInit {
 
     constructor(
         private cdRef: ChangeDetectorRef,
+        private router: Router,
         private k8sService: K8sService,
         private dataVolumesService: DataVolumesService,
         private k8sApisService: K8sApisService,
@@ -338,6 +340,8 @@ export class VmlistComponent implements OnInit {
         newvmcpumemthreads: string,
         newvmcpumemmemory: string,
         newvmpriorityclass: string,
+        newvmfirmware: string,
+        newvmsecureboot: string,
         newvmdiskonetype: string,
         newvmdiskonevalue: string,
         newvmdiskonesize: string,
@@ -842,6 +846,25 @@ export class VmlistComponent implements OnInit {
             if(interfaces.length > 0) { thisVirtualMachine.spec.template.spec.domain.devices.interfaces = interfaces; }
             if(volumes.length > 0) { thisVirtualMachine.spec.template.spec.volumes = volumes; }
 
+            /* Firmware and Secure Boot */
+            if(newvmfirmware.toLowerCase() == "bios") {
+                let firmware = { 'bootloader': { 'bios': {}}};
+                thisVirtualMachine.spec.template.spec.domain.firmware = firmware;
+            } else if (newvmfirmware.toLowerCase() == "uefi") {
+                let firmware = {};
+                if(newvmsecureboot == "true") {
+                    firmware = { 'bootloader': { 'efi': { 'secureBoot': true }}};
+                } else {
+                    firmware = { 'bootloader': { 'efi': { 'secureBoot': false }}};
+                }
+                let features = { 'smm': { 'enabled': true }};
+                thisVirtualMachine.spec.template.spec.domain.firmware = firmware;
+                thisVirtualMachine.spec.template.spec.domain.features = features;
+            } else {
+                let firmware = { 'bootloader': { 'bios': {}}};
+                thisVirtualMachine.spec.template.spec.domain.firmware = firmware;
+            }
+
             /* Create the VM */
             if(newvmtype.toLowerCase() == "custom") {
                 thisVirtualMachine.spec.template.spec.domain.cpu = {
@@ -864,7 +887,7 @@ export class VmlistComponent implements OnInit {
             try {
                 let data = await lastValueFrom(this.kubeVirtService.createVm(thisVirtualMachine));
                 this.hideComponent("modal-newvm");
-                this.reloadComponent();
+                this.fullReload();
             } catch (e: any) {
                 alert(e.error.message);
                 console.log(e.error.message);
@@ -925,7 +948,7 @@ export class VmlistComponent implements OnInit {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.scaleVm(resizeNamespace, resizeName, cores, threads, sockets, memory));
                     this.hideComponent("modal-resize");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e.error.message);
@@ -976,7 +999,7 @@ export class VmlistComponent implements OnInit {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
                     this.hideComponent("modal-delete");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e.error.message);
@@ -1037,7 +1060,7 @@ export class VmlistComponent implements OnInit {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.changeVmType(vmNamespace, vmName, vmType));
                     this.hideComponent("modal-type");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e.error.message);
@@ -1069,6 +1092,22 @@ export class VmlistComponent implements OnInit {
         } else if (vmOperation == "delete") {
             const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
             this.reloadComponent();
+        }
+    }
+
+    /*
+     * New VM: Change Firmware
+     */
+    async onChangeFirmware(firmware: string) {
+        let secureBootValueField = document.getElementById("newvm-secureboot");
+        if(firmware == "uefi") {
+            if (secureBootValueField != null) {
+                secureBootValueField.removeAttribute("disabled");
+            }
+        } else if (firmware == "bios") {
+            if (secureBootValueField != null) {
+                secureBootValueField.setAttribute("disabled", "disabled");
+            }
         }
     }
 
@@ -1421,5 +1460,14 @@ export class VmlistComponent implements OnInit {
         await this.getVMs();
         await this.getNodes();
         this.cdRef.detectChanges();
+    }
+
+    /*
+     * Full Reload
+     */
+    fullReload(): void {
+        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
+            this.router.navigate([`/vmlist`]);
+        })
     }
 }

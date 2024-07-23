@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { K8sHPA } from 'src/app/models/k8s-hpa.model';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
@@ -18,6 +19,7 @@ export class AutoscaleComponent implements OnInit {
 
     constructor(
         private cdRef: ChangeDetectorRef,
+        private router: Router,
         private k8sService: K8sService,
         private k8sApisService: K8sApisService,
         private kubeVirtService: KubeVirtService
@@ -182,7 +184,7 @@ export class AutoscaleComponent implements OnInit {
         try {
             let patchService = await lastValueFrom(this.k8sApisService.patchHpa(namespace, name, Number(minReplicas), Number(maxReplicas), Number(metricAvg)));
             this.hideComponent("modal-edit");
-            this.reloadComponent();
+            this.fullReload();
         } catch (e: any) {
             alert(e.error.message);
             console.log(e);
@@ -220,7 +222,7 @@ export class AutoscaleComponent implements OnInit {
                 try {
                     let deleteService = await lastValueFrom(this.k8sApisService.deleteHPA(hpaNamespace, hpaName));
                     this.hideComponent("modal-delete");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -295,7 +297,7 @@ export class AutoscaleComponent implements OnInit {
             try {
                 let newHpaData = await lastValueFrom(this.k8sApisService.createHpa(myHpaDescriptor));
                 this.hideComponent("modal-new");
-                this.reloadComponent();
+                this.fullReload();
             } catch (e: any) {
                 alert(e.error.message);
                 console.log(e);
@@ -309,6 +311,15 @@ export class AutoscaleComponent implements OnInit {
     async reloadComponent(): Promise<void> {
         await this.getHPAs();
         await this.cdRef.detectChanges();
+    }
+
+    /*
+     * full reload
+     */
+    fullReload(): void {
+        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
+            this.router.navigate([`/autoscale`]);
+        })
     }
 
 }

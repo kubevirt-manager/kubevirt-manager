@@ -14,6 +14,8 @@ export class KubeVirtVM {
   memory:             string  = "";
   nodeSel:            string  = "";
   instType:           string  = "";
+  firmware:           string  = "";
+  secureBoot:        boolean  = false;
   vmi:           KubeVirtVMI  = new KubeVirtVMI;
   priorityClass:      string  = "";
   printableStatus:    string  = "";

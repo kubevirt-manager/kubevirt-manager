@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { Buffer } from 'buffer';
 import { lastValueFrom } from 'rxjs';
 import { KClusterKubeadmControlPlane } from 'src/app/models/kcluster-kubeadm-control-plane.model';
@@ -42,6 +43,7 @@ export class KClusterComponent implements OnInit {
 
     constructor(
         private cdRef: ChangeDetectorRef,
+        private router: Router,
         private kubevirtMgrCapk: KubevirtMgrCapk,
         private k8sService: K8sService,
         private k8sApisService: K8sApisService,
@@ -352,7 +354,7 @@ export class KClusterComponent implements OnInit {
                 try {
                     let clusterData = await lastValueFrom(this.xK8sService.deleteCluster(clusterNamespace, clusterName));
                     this.hideComponent("modal-delete");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     console.log(e);
                     alert(e.error.message);
@@ -780,7 +782,7 @@ export class KClusterComponent implements OnInit {
                 }
 
                 this.hideComponent("modal-newcluster");
-                this.reloadComponent();
+                this.fullReload();
             } catch (e: any) {
                 console.log(e);
                 alert(e.error.message);
@@ -988,7 +990,7 @@ export class KClusterComponent implements OnInit {
                 this.loadKubevirtCloudControllerManager(clusternamespace, clustername);
 
                 this.hideComponent("modal-newclustercustom");
-                this.reloadComponent();
+                this.fullReload();
             } catch (e: any) {
                 console.log(e);
                 alert(e.error.message);
@@ -2420,11 +2422,84 @@ export class KClusterComponent implements OnInit {
     }
 
     /*
+     * Control Plane: Firmware
+     */
+    async onChangeStdControlPlaneFirmware(firmware: string) {
+        let secureBootValueField = document.getElementById("newcluster-controlplane-secureboot");
+        if(firmware == "uefi") {
+            if (secureBootValueField != null) {
+                secureBootValueField.removeAttribute("disabled");
+            }
+        } else if (firmware == "bios") {
+            if (secureBootValueField != null) {
+                secureBootValueField.setAttribute("disabled", "disabled");
+            }
+        }
+    }
+
+    /*
+     * Node Pool: Firmware
+     */
+    async onChangeStdNodePoolFirmware(firmware: string) {
+        let secureBootValueField = document.getElementById("newcluster-nodepool-secureboot");
+        if(firmware == "uefi") {
+            if (secureBootValueField != null) {
+                secureBootValueField.removeAttribute("disabled");
+            }
+        } else if (firmware == "bios") {
+            if (secureBootValueField != null) {
+                secureBootValueField.setAttribute("disabled", "disabled");
+            }
+        }
+    }
+
+    /*
+     * Control Plane: Firmware
+     */
+    async onChangeCustomControlPlaneFirmware(firmware: string) {
+        let secureBootValueField = document.getElementById("newclustercustom-controlplane-secureboot");
+        if(firmware == "uefi") {
+            if (secureBootValueField != null) {
+                secureBootValueField.removeAttribute("disabled");
+            }
+        } else if (firmware == "bios") {
+            if (secureBootValueField != null) {
+                secureBootValueField.setAttribute("disabled", "disabled");
+            }
+        }
+    }
+
+    /*
+     * Node Pool: Firmware
+     */
+    async onChangeCustomNodePoolFirmware(firmware: string) {
+        let secureBootValueField = document.getElementById("newclustercustom-nodepool-secureboot");
+        if(firmware == "uefi") {
+            if (secureBootValueField != null) {
+                secureBootValueField.removeAttribute("disabled");
+            }
+        } else if (firmware == "bios") {
+            if (secureBootValueField != null) {
+                secureBootValueField.setAttribute("disabled", "disabled");
+            }
+        }
+    }
+
+    /*
      * Reload this component
      */
     async reloadComponent(): Promise<void> {
         await this.getClusters();
         await this.cdRef.detectChanges();
+    }
+
+    /*
+     * full reload
+     */
+    fullReload(): void {
+        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
+            this.router.navigate([`/kcluster`]);
+        })
     }
 
 }

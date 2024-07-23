@@ -25,16 +25,16 @@ export interface VirtualMachine {
                     firmware?: {
                         bootloader?: {
                             efi?: {
-                                secureBoot?: false;
+                                secureBoot?: false|true;
                             };
                             bios?: {
-                                useSerial?: false;
+                                useSerial?: false|true;
                             };
                         }
                     };
                     features?: {
                         smm?: {
-                            enabled?: false;
+                            enabled?: false|true;
                         }
                     };
                     cpu?: {

@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { Image } from 'src/app/interfaces/image';
 import { Images } from 'src/app/models/images.model';
@@ -18,6 +19,7 @@ export class ImagesComponent implements OnInit {
 
     constructor(
         private cdRef: ChangeDetectorRef,
+        private router: Router,
         private k8sService: K8sService,
         private kubevirtMgrService: KubevirtMgrService
     ) { }
@@ -105,7 +107,7 @@ export class ImagesComponent implements OnInit {
                 try {
                     const data = await lastValueFrom(this.kubevirtMgrService.createImage(myImage));
                     this.hideComponent("modalnew");
-                    this.reloadComponent(); 
+                    this.fullReload(); 
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -229,7 +231,7 @@ export class ImagesComponent implements OnInit {
                 try {
                     let deleteImage = await lastValueFrom(this.kubevirtMgrService.deleteImage(imageNamespace, imageName));
                     this.hideComponent("modal-delete");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -415,7 +417,7 @@ export class ImagesComponent implements OnInit {
                 try {
                     const data = await lastValueFrom(this.kubevirtMgrService.editImage(myImage));
                     this.hideComponent("modaledit");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -445,6 +447,15 @@ export class ImagesComponent implements OnInit {
     async reloadComponent(): Promise<void> {
         await this.getImages();
         await this.cdRef.detectChanges();
+    }
+
+    /*
+     * full reload
+     */
+    fullReload(): void {
+        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
+            this.router.navigate([`/imagelist`]);
+        })
     }
 
 }

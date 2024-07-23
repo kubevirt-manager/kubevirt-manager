@@ -9,4 +9,6 @@ export class KClusterKubevirtMachineTemplate {
     memory:             string  = "";
     instType:           string  = "";
     priorityClass:      string  = "";
+    firmware:           string  = "";
+    secureBoot:        boolean  = false;
 }

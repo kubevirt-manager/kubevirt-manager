@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { LoadBalancerPort } from 'src/app/models/load-balancer-port.model';
 import { LoadBalancer } from 'src/app/models/load-balancer.model';
@@ -20,6 +21,7 @@ export class LoadBalancersComponent implements OnInit {
 
     constructor(
         private cdRef: ChangeDetectorRef,
+        private router: Router,
         private k8sService: K8sService,
         private kubeVirtService: KubeVirtService
     ) { }
@@ -227,7 +229,7 @@ export class LoadBalancersComponent implements OnInit {
                 try {
                     let newTypeData = await lastValueFrom(this.k8sService.changeServiceType(lbNamespace, lbName, newType));
                     this.hideComponent("modal-type");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -392,7 +394,7 @@ export class LoadBalancersComponent implements OnInit {
             try {
                 let newLbData = await lastValueFrom(this.k8sService.createService(myService));
                 this.hideComponent("modal-new");
-                this.reloadComponent();
+                this.fullReload();
             } catch (e: any) {
                 alert(e.error.message);
                 console.log(e);
@@ -451,6 +453,15 @@ export class LoadBalancersComponent implements OnInit {
     async reloadComponent(): Promise<void> {
         await this.getLoadBalancers();
         await this.cdRef.detectChanges();
+    }
+
+    /*
+     * full reload
+     */
+    fullReload(): void {
+        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
+            this.router.navigate([`/lblist`]);
+        })
     }
 
 }

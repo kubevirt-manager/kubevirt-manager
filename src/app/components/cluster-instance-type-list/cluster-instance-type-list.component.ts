@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { KubeVMClusterInstanceType } from 'src/app/models/kube-vmcluster-instance-type.model';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
@@ -17,6 +18,7 @@ export class ClusterInstanceTypeListComponent implements OnInit {
 
     constructor(
         private cdRef: ChangeDetectorRef,
+        private router: Router,
         private kubeVirtService: KubeVirtService
     ) { }
 
@@ -86,7 +88,7 @@ export class ClusterInstanceTypeListComponent implements OnInit {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.editClusterInstanceType(typeName, cpuSize, memorySize));
                     this.hideComponent("modal-edit");
-                    this.reloadComponent(); 
+                    this.fullReload(); 
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -133,7 +135,7 @@ export class ClusterInstanceTypeListComponent implements OnInit {
                 try {
                     const data = await lastValueFrom(await this.kubeVirtService.deleteClusterInstanceType(typeName));
                     this.hideComponent("modal-delete");
-                    this.reloadComponent(); 
+                    this.fullReload(); 
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -184,7 +186,7 @@ export class ClusterInstanceTypeListComponent implements OnInit {
             try {
                 const data = await lastValueFrom(this.kubeVirtService.createClusterInstanceType(myCITTemplate));
                 this.hideComponent("modal-new");
-                this.reloadComponent(); 
+                this.fullReload(); 
             } catch (e: any) {
                 alert(e.error.message);
                 console.log(e);
@@ -215,5 +217,13 @@ export class ClusterInstanceTypeListComponent implements OnInit {
     async reloadComponent(): Promise<void> {
         await this.getClusterInstanceTypes();
         await this.cdRef.detectChanges();
+    }
+
+    /*full reloadReload this component
+     */
+    fullReload(): void {
+        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
+            this.router.navigate([`/citlist`]);
+        })
     }
 }

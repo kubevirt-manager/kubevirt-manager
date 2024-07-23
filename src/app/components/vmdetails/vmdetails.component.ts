@@ -717,6 +717,35 @@ export class VmdetailsComponent implements OnInit {
             this.activeVm.priorityClass = "";
             console.log(e);
         }
+        
+        try {
+            if(data.spec.template.spec.domain.firmware.bootloader.bios != null) {
+                this.activeVm.firmware = "bios";
+            }
+        } catch (e: any) {
+            this.activeVm.firmware = "";
+        }
+
+        try {
+            if(data.spec.template.spec.domain.firmware.bootloader.efi != null) {
+                this.activeVm.firmware = "efi";
+            }
+        } catch (e: any) {
+            this.activeVm.firmware = "";
+        }
+
+        if(this.activeVm.firmware == "efi") {
+            try {
+                if(data.spec.template.spec.domain.firmware.bootloader.efi.secureBoot == true) {
+                    this.activeVm.secureBoot = true;
+                } else {
+                    this.activeVm.secureBoot = false;
+                }
+            } catch(e: any) {
+                this.activeVm.secureBoot = false;
+            }
+        }
+
 
         /* Loading Network Info */
         await this.loadNetInfo(data.spec.template.spec.domain.devices.interfaces, data.spec.template.spec.networks);

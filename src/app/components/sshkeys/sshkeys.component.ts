@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { Secret } from 'src/app/interfaces/secret';
 import { SSHKey } from 'src/app/models/sshkey.model';
@@ -17,6 +18,7 @@ export class SSHKeysComponent implements OnInit {
 
     constructor(
         private cdRef: ChangeDetectorRef,
+        private router: Router,
         private k8sService: K8sService
     ) { }
 
@@ -122,7 +124,7 @@ export class SSHKeysComponent implements OnInit {
             try {
                 const data = await lastValueFrom(this.k8sService.createSecret(myKey));
                 this.hideComponent("modal-new");
-                this.reloadComponent(); 
+                this.fullReload(); 
             } catch (e: any) {
                 alert(e.error.message);
                 console.log(e);
@@ -174,7 +176,7 @@ export class SSHKeysComponent implements OnInit {
                 try {
                     let deleteSecret = await lastValueFrom(this.k8sService.deleteSecret(keyNamespace, keyName));
                     this.hideComponent("modal-delete");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -204,6 +206,15 @@ export class SSHKeysComponent implements OnInit {
     async reloadComponent(): Promise<void> {
         await this.getKeys();
         await this.cdRef.detectChanges();
+    }
+
+    /*
+     * full reload
+     */
+    fullReload(): void {
+        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
+            this.router.navigate([`/sshkeys`]);
+        })
     }
 
 }

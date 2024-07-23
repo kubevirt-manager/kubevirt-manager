@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { KubeVirtVM } from 'src/app/models/kube-virt-vm.model';
 import { KubeVirtVMI } from 'src/app/models/kube-virt-vmi.model';
@@ -31,6 +32,7 @@ export class VMPoolsComponent implements OnInit {
 
     constructor(
         private cdRef: ChangeDetectorRef,
+        private router: Router,
         private k8sService: K8sService,
         private k8sApisService: K8sApisService,
         private dataVolumesService: DataVolumesService,
@@ -344,6 +346,8 @@ export class VMPoolsComponent implements OnInit {
         newpoolcpumemthreads: string,
         newpoolcpumemmemory: string,
         newpoolpriorityclass: string,
+        newpoolfirmware: string,
+        newpoolsecureboot: string,
         newpooldiskonetype: string,
         newpooldiskonevalue: string,
         newpooldiskonesize: string,
@@ -795,6 +799,25 @@ export class VMPoolsComponent implements OnInit {
             }
             interfaces.push(iface1);
 
+            /* Firmware and Secure Boot */
+            if(newpoolfirmware.toLowerCase() == "bios") {
+                let firmware = { 'bootloader': { 'bios': {}}};
+                thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.spec.domain.firmware = firmware;
+            } else if (newpoolfirmware.toLowerCase() == "uefi") {
+                let firmware = {};
+                if(newpoolsecureboot == "true") {
+                    firmware = { 'bootloader': { 'efi': { 'secureBoot': true }}};
+                } else {
+                    firmware = { 'bootloader': { 'efi': { 'secureBoot': false }}};
+                }
+                let features = { 'smm': { 'enabled': true }};
+                thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.spec.domain.firmware = firmware;
+                thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.spec.domain.features = features;
+            } else {
+                let firmware = { 'bootloader': { 'bios': {}}};
+                thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.spec.domain.firmware = firmware;
+            }
+
             /* Assigning Arrays */
             if(networks.length > 0) { thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.spec.networks = networks; }
             if(interfaces.length > 0) { thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces = interfaces; }
@@ -860,10 +883,26 @@ export class VMPoolsComponent implements OnInit {
             try {
                 let data = await lastValueFrom(this.kubeVirtService.createPool(thisVirtualMachinePool));
                 this.hideComponent("modal-newpool");
-                this.reloadComponent();
+                this.fullReload();
             } catch (e: any) {
                 alert(e.error.message);
                 console.log(e);
+            }
+        }
+    }
+
+    /*
+     * New Pool: Change Firmware
+     */
+    async onChangeFirmware(firmware: string) {
+        let secureBootValueField = document.getElementById("newpool-secureboot");
+        if(firmware == "uefi") {
+            if (secureBootValueField != null) {
+                secureBootValueField.removeAttribute("disabled");
+            }
+        } else if (firmware == "bios") {
+            if (secureBootValueField != null) {
+                secureBootValueField.setAttribute("disabled", "disabled");
             }
         }
     }
@@ -959,7 +998,7 @@ export class VMPoolsComponent implements OnInit {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.scalePoolReplicas(poolNamespace, poolName, replicasSize));
                     this.hideComponent("modal-resize");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -1123,7 +1162,7 @@ export class VMPoolsComponent implements OnInit {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.scalePool(resizeNamespace, resizeName, cores, threads, sockets, memory));
                     this.hideComponent("modal-resize");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -1183,7 +1222,7 @@ export class VMPoolsComponent implements OnInit {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.changePoolType(poolNamespace, poolName, poolType));
                     this.hideComponent("modal-type");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -1624,5 +1663,15 @@ export class VMPoolsComponent implements OnInit {
         await this.getPools();
         await this.cdRef.detectChanges();
     }
+
+    /*
+     * full reload
+     */
+    fullReload(): void {
+        this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
+            this.router.navigate([`/vmpools`]);
+        })
+    }
+    
 
 }

@@ -54,6 +54,9 @@
                           <dd>CPU Cores: {{activeVm.cores || 0}} </dd>
                           <dd>CPU Threads: {{activeVm.threads || 0}} </dd>
                           <dd>Total VM Memory: {{activeVm.memory}} </dd>
+                          <br>
+                          <dd>Firmware: {{activeVm.firmware}} </dd>
+                          <dd>Secure Boot: {{activeVm.secureBoot}} </dd>
                        </div>
                        <!-- Templated VM -->
                        <ng-template #vmTemplated>
@@ -67,6 +70,9 @@
                           <dd>Instance Type: {{activeVm.instType}} </dd>
                           <dd>Total vCPU: {{activeVm.cores * activeVm.sockets * activeVm.threads || 0}}</dd>
                           <dd>Total VM Memory: {{activeVm.memory}} </dd>
+                          <br>
+                          <dd>Firmware: {{activeVm.firmware}} </dd>
+                          <dd>Secure Boot: {{activeVm.secureBoot}} </dd>
                        </ng-template>
                        <hr>
                        <div *ngIf="activeVm.vmi.running">

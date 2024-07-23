@@ -319,6 +319,22 @@
                       <select #newclustercontrolplanepc class="custom-select rounded-0" name="newcluster-controlplane-pc" id="newcluster-controlplane-pc">
                           <option>Value 1</option>
                       </select>
+                      <div class="row">
+                        <div class="col-6">
+                            <label for="newcluster-controlplane-firmware">Firmware:</label>
+                            <select #newclustercontrolplanefirmware class="custom-select rounded-0" name="newcluster-controlplane-firmware" id="newcluster-controlplane-firmware" (change)="onChangeStdControlPlaneFirmware(newclustercontrolplanefirmware.value)">
+                                <option value="bios" selected>BIOS</option>
+                                <option value="uefi">UEFI</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label for="newcluster-controlplane-secureboot">Secure Boot:</label>
+                            <select #newclustercontrolplanesecureboot class="custom-select rounded-0" name="newcluster-controlplane-secureboot" id="newcluster-controlplane-secureboot" disabled>
+                                <option value="false" selected>false</option>
+                                <option value="true">true</option>
+                            </select>
+                        </div>
+                      </div>
                       <label for="newcluster-controlplane-replicas">Number of Nodes: <i>(odd number)</i></label>
                       <input #newclustercontrolplanereplicas type="number" class="form-control" id="newcluster-controlplane-replicas" name="newcluster-controlplane-replicas">
                       <br>
@@ -388,6 +404,22 @@
                       <select #newclusternodepoolpc class="custom-select rounded-0" name="newcluster-nodepool-pc" id="newcluster-nodepool-pc">
                           <option>Value 1</option>
                       </select>
+                      <div class="row">
+                        <div class="col-6">
+                            <label for="newcluster-nodepool-firmware">Firmware:</label>
+                            <select #newclusternodepoolfirmware class="custom-select rounded-0" name="newcluster-nodepool-firmware" id="newcluster-nodepool-firmware" (change)="onChangeStdNodePoolFirmware(newclusternodepoolfirmware.value)">
+                                <option value="bios" selected>BIOS</option>
+                                <option value="uefi">UEFI</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label for="newcluster-nodepool-secureboot">Secure Boot:</label>
+                            <select #newclusternodepoolsecureboot class="custom-select rounded-0" name="newcluster-nodepool-secureboot" id="newcluster-nodepool-secureboot" disabled>
+                                <option value="false" selected>false</option>
+                                <option value="true">true</option>
+                            </select>
+                        </div>
+                      </div>
                       <div class="row">
                           <div class="col-4">
                             <label for="newcluster-nodepool-replicas">Number of Nodes:</label>
@@ -638,6 +670,22 @@
                       <select #newclustercustomcontrolplanepc class="custom-select rounded-0" name="newclustercustom-controlplane-pc" id="newclustercustom-controlplane-pc">
                           <option>Value 1</option>
                       </select>
+                      <div class="row">
+                        <div class="col-6">
+                            <label for="newclustercustom-controlplane-firmware">Firmware:</label>
+                            <select #newclustercustomontrolplanefirmware class="custom-select rounded-0" name="newclustercustom-controlplane-firmware" id="newclustercustom-controlplane-firmware" (change)="onChangeCustomControlPlaneFirmware(newclustercustomontrolplanefirmware.value)">
+                                <option value="bios" selected>BIOS</option>
+                                <option value="uefi">UEFI</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label for="newcluster-controlplane-secureboot">Secure Boot:</label>
+                            <select #newclustercustomcontrolplanesecureboot class="custom-select rounded-0" name="newclustercustom-controlplane-secureboot" id="newclustercustom-controlplane-secureboot" disabled>
+                                <option value="false" selected>false</option>
+                                <option value="true">true</option>
+                            </select>
+                        </div>
+                      </div>
                       <label for="newclustercustom-controlplane-replicas">Number of Nodes: <i>(odd number)</i></label>
                       <input #newclustercustomcontrolplanereplicas type="number" class="form-control" id="newclustercustom-controlplane-replicas" name="newclustercustom-controlplane-replicas">
                       <br>
@@ -695,6 +743,22 @@
                       <select #newclustercustomnodepoolpc class="custom-select rounded-0" name="newclustercustom-nodepool-pc" id="newclustercustom-nodepool-pc">
                           <option>Value 1</option>
                       </select>
+                      <div class="row">
+                        <div class="col-6">
+                            <label for="newclustercustom-nodepool-firmware">Firmware:</label>
+                            <select #newclustercustomnodepoolfirmware class="custom-select rounded-0" name="newclustercustom-nodepool-firmware" id="newclustercustom-nodepool-firmware" (change)="onChangeCustomNodePoolFirmware(newclustercustomnodepoolfirmware.value)">
+                                <option value="bios" selected>BIOS</option>
+                                <option value="uefi">UEFI</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label for="newclustercustom-nodepool-secureboot">Secure Boot:</label>
+                            <select #newclustercustomnodepoolsecureboot class="custom-select rounded-0" name="newclustercustom-nodepool-secureboot" id="newclustercustom-nodepool-secureboot" disabled>
+                                <option value="false" selected>false</option>
+                                <option value="true">true</option>
+                            </select>
+                        </div>
+                      </div>
                       <label for="newclustercustom-nodepool-replicas">Number of Nodes:</label>
                       <input #newclustercustomnodepoolreplicas type="number" class="form-control" id="newclustercustom-nodepool-replicas" name="newclustercustom-nodepool-replicas">
                       <br>

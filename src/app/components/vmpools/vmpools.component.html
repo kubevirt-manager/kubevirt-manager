@@ -213,6 +213,16 @@
                       <select #newpoolpc class="custom-select rounded-0" name="newpool-pc" id="newpool-pc">
                           <option>Value 1</option>
                       </select>
+                      <label for="newpool-firmware">Firmware:</label>
+                    <select #newpoolfirmware class="custom-select rounded-0" name="newpool-firmware" id="newpool-firmware" (change)="onChangeFirmware(newpoolfirmware.value)">
+                        <option value="bios" selected>BIOS</option>
+                        <option value="uefi">UEFI</option>
+                    </select>
+                    <label for="newpool-secureboot">Secure Boot:</label>
+                    <select #newpoolsecureboot class="custom-select rounded-0" name="newpool-secureboot" id="newpool-secureboot" disabled>
+                        <option value="false" selected>false</option>
+                        <option value="true">true</option>
+                    </select>
                     </div>
                     <!-- DISK TAB -->
                     <div class="tab-pane fade" id="newpool-disks" role="tabpanel" aria-labelledby="newpool-disks-tab">
@@ -403,7 +413,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-newpool")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)="applyNewPool(newpoolname.value, newpoolnamespace.value, newpoolreplicas.value, newpoollabelkeyone.value, newpoollabelvalueone.value, newpoollabelkeytwo.value, newpoollabelvaluetwo.value, newpoollabelkeythree.value, newpoollabelvaluethree.value, newpoollabelkeyfour.value, newpoollabelvaluefour.value, newpoollabelkeyfive.value, newpoollabelvaluefive.value, newpooltype.value, newpoolcpumemsockets.value, newpoolcpumemcores.value, newpoolcpumemthreads.value, newpoolcpumemmemory.value, newpoolpc.value, newpooldiskonetype.value, newpooldiskonevalue.value, newpooldiskonesize.value, newpooldiskonesc.value, newpooldiskoneam.value, newpooldiskonecm.value, newpooldisktwotype.value, newpooldisktwovalue.value, newpooldisktwosize.value, newpooldisktwosc.value, newpooldisktwoam.value, newpooldisktwocm.value, newpoolnetwork.value, newpoolnetworktype.value, newpoollivenessenable.value, newpoollivenesstype.value, newpoollivenesspath.value, newpoollivenessport.value, newpoollivenessinitialdelay.value, newpoollivenessinterval.value, newpoollivenesstimeout.value, newpoollivenessfailure.value, newpoollivenesssuccess.value, newpoolreadinessenable.value, newpoolreadinesstype.value, newpoolreadinesspath.value, newpoolreadinessport.value, newpoolreadinessinitialdelay.value, newpoolreadinessinterval.value, newpoolreadinesstimeout.value, newpoolreadinessfailure.value, newpoolreadinesssuccess.value, newpooluserdatausername.value, newpooluserdataauth.value, newpooluserdatapassword.value, newpooluserdatassh.value, newpoolinitscript.value)">Create</button>
+              <button type="button" class="btn btn-primary" (click)="applyNewPool(newpoolname.value, newpoolnamespace.value, newpoolreplicas.value, newpoollabelkeyone.value, newpoollabelvalueone.value, newpoollabelkeytwo.value, newpoollabelvaluetwo.value, newpoollabelkeythree.value, newpoollabelvaluethree.value, newpoollabelkeyfour.value, newpoollabelvaluefour.value, newpoollabelkeyfive.value, newpoollabelvaluefive.value, newpooltype.value, newpoolcpumemsockets.value, newpoolcpumemcores.value, newpoolcpumemthreads.value, newpoolcpumemmemory.value, newpoolpc.value, newpoolfirmware.value, newpoolsecureboot.value, newpooldiskonetype.value, newpooldiskonevalue.value, newpooldiskonesize.value, newpooldiskonesc.value, newpooldiskoneam.value, newpooldiskonecm.value, newpooldisktwotype.value, newpooldisktwovalue.value, newpooldisktwosize.value, newpooldisktwosc.value, newpooldisktwoam.value, newpooldisktwocm.value, newpoolnetwork.value, newpoolnetworktype.value, newpoollivenessenable.value, newpoollivenesstype.value, newpoollivenesspath.value, newpoollivenessport.value, newpoollivenessinitialdelay.value, newpoollivenessinterval.value, newpoollivenesstimeout.value, newpoollivenessfailure.value, newpoollivenesssuccess.value, newpoolreadinessenable.value, newpoolreadinesstype.value, newpoolreadinesspath.value, newpoolreadinessport.value, newpoolreadinessinitialdelay.value, newpoolreadinessinterval.value, newpoolreadinesstimeout.value, newpoolreadinessfailure.value, newpoolreadinesssuccess.value, newpooluserdatausername.value, newpooluserdataauth.value, newpooluserdatapassword.value, newpooluserdatassh.value, newpoolinitscript.value)">Create</button>
             </div>
           </form>
           </div>
