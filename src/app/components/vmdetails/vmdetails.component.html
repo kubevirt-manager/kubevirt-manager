@@ -158,9 +158,8 @@
                         <br>
                         <div id="log-viewer" class="log-viewer">
                             <div id="log-stream" class="log-stream">
-                                <div *ngFor="let thisMessage of consoleMessages">
-                                    <span>{{thisMessage}}</span>
-                                </div>
+                                <span *ngFor="let message of newConsoleMessages" [style]="message.style" [innerHtml]="message.text">
+                                </span>
                             </div>
                         </div>
                      </div>

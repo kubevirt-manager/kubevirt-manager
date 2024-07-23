@@ -97,6 +97,7 @@ export class VmdetailsComponent implements OnInit {
 
     /* Console Reader */
     consoleMessages: Array<string> = new Array();
+    newConsoleMessages: { text: string, style: string }[] = [];
 
     constructor(
         private router: Router,
@@ -131,11 +132,61 @@ export class VmdetailsComponent implements OnInit {
             let data = await lastValueFrom(this.kubeVirtService.findVMPod(this.vmNamespace, this.activeVm.vmi.uid));
             podName = data.items[0].metadata["name"];
             data = await lastValueFrom(this.kubeVirtService.getVMSerialLog(this.vmNamespace, podName));
+            data = data.replace(/\n/g, '<br />\n');
             for (const line of data.split(/[\r\n]+/)){
-                this.consoleMessages.push(line);
+                this.parseAnsiLog(line);
             }
+            
         } catch (e: any) {
             console.log(e);
+        }
+    }
+
+    private parseAnsiLog(log: string) {
+        const ansiRegex = /\x1b\[((?:\d|;)*)([a-zA-Z])/g;
+        let lastIndex = 0;
+        let currentStyle = 'color:#dadada;';
+        
+        log.replace(ansiRegex, (match, codes, letter, offset) => {
+            // Push the text before the ANSI code
+            this.newConsoleMessages.push({
+                text: log.substring(lastIndex, offset),
+                style: currentStyle
+            });
+            
+            lastIndex = offset + match.length;
+            
+            // Process ANSI codes
+            const codeList = codes.split(';').map(Number);
+            for (const code of codeList) {
+                currentStyle = this.applyAnsiCode(code, currentStyle);
+            }
+            return ''; // This is just to satisfy the replace function
+        });
+        
+        // Push the remaining text after the last ANSI code
+        this.newConsoleMessages.push({
+            text: log.substring(lastIndex),
+            style: currentStyle
+        });
+    }
+    
+    private applyAnsiCode(code: number, currentStyle: string): string {
+        switch (code) {
+            case 0: return 'color:#dadada;'; // Reset
+            case 1: return currentStyle + 'font-weight:bold;'; // Bold
+            case 3: return currentStyle + 'font-style:italic;'; // Italic
+            case 4: return currentStyle + 'text-decoration:underline;'; // Underline
+            case 30: return 'color:black;';
+            case 31: return 'color:red;';
+            case 32: return 'color:green;';
+            case 33: return 'color:yellow;';
+            case 34: return 'color:blue;';
+            case 35: return 'color:magenta;';
+            case 36: return 'color:cyan;';
+            case 37: return 'color:white;';
+            // Add more codes as needed
+            default: return currentStyle;
         }
     }
 
