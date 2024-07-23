@@ -29,6 +29,21 @@ export interface KubevirtMachineTemplate {
                             spec: {
                                 priorityClassName?: string,
                                 domain: {
+                                    firmware?: {
+                                        bootloader?: {
+                                            efi?: {
+                                                secureBoot?: false;
+                                            };
+                                            bios?: {
+                                                useSerial?: false;
+                                            };
+                                        }
+                                    };
+                                    features?: {
+                                        smm?: {
+                                            enabled?: false;
+                                        }
+                                    };
                                     cpu?: {
                                         cores: number;
                                         sockets: number;
