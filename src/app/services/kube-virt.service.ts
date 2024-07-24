@@ -158,17 +158,17 @@ export class KubeVirtService {
     }
 
     getClusterInstanceTypes(): Observable<any> {
-        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1beta1';
         return this.http.get(`${baseUrl}/virtualmachineclusterinstancetypes`);
     }
 
     getClusterInstanceType(instType: string): Observable<any> {
-        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1beta1';
         return this.http.get(`${baseUrl}/virtualmachineclusterinstancetypes/${instType}`);
     }
 
     deleteClusterInstanceType(typeName: string): Observable<any> {
-        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1beta1';
         return this.http.delete(`${baseUrl}/virtualmachineclusterinstancetypes/${typeName}`);
     }
 
@@ -179,11 +179,11 @@ export class KubeVirtService {
             'content-type': 'application/json',
             'accept': 'application/json'
         };
-        return this.http.post(`${baseUrl}/virtualmachineclusterinstancetypes/${name}`, clusterInstanceType, { 'headers': headers } );
+        return this.http.post(`${baseUrl}/virtualmachineclusterinstancetypes`, clusterInstanceType, { 'headers': headers } );
     }
 
     editClusterInstanceType(typeName: string, typeCPU: string, typeMemory: string): Observable<any> {
-        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1alpv1beta1ha1';
         const headers = {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'

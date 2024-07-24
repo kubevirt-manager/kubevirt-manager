@@ -185,7 +185,7 @@ export class DashboardComponent implements OnInit {
         let data = response.data.result[0].values;
 
         /* prepare Data for Graph */
-        let cpuData = data.map(function(value: any[],index: any) { return value[1]; });
+        let cpuData = data.map(function(value: any[],index: any) { return value[1] * 10; });
         let labelData = Array(cpuData.length).fill("");
 
         this.cpuChart.data.labels = labelData;
@@ -203,7 +203,7 @@ export class DashboardComponent implements OnInit {
         let data = response.data.result[0].values;
 
         /* prepare Data for Graph */
-        let cpuData = data.map(function(value: any[],index: any) { return value[1]; });
+        let cpuData = data.map(function(value: any[],index: any) { return value[1] * 10; });
         let labelData = Array(cpuData.length).fill("");
 
         this.cpuChart = new Chart("CpuChart", {
@@ -243,7 +243,7 @@ export class DashboardComponent implements OnInit {
                   },
                   y: {
                     min: 0,
-                    max: (this.cpuInfo / 10) + 1,
+                    max: this.cpuInfo + 1,
                     grid: {
                       display: true
                     }

@@ -169,7 +169,7 @@ export class ClusterInstanceTypeListComponent implements OnInit {
     async applyNew(typeName: string, typeCPU: string, typeMemory: string): Promise<void> {
         if(typeName != "" && typeCPU != "" && typeMemory != "") {
             let myCITTemplate: VirtualMachineClusterInstanceType = {
-                apiVersion: 'instancetype.kubevirt.io/v1alpha1',
+                apiVersion: 'instancetype.kubevirt.io/v1beta1',
                 kind: 'VirtualMachineClusterInstancetype',
                 metadata: {
                     name: typeName

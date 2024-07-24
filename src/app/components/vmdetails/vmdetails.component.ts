@@ -142,6 +142,9 @@ export class VmdetailsComponent implements OnInit {
         }
     }
 
+    /*
+     * Ansi chars parser
+     */
     private parseAnsiLog(log: string) {
         const ansiRegex = /\x1b\[((?:\d|;)*)([a-zA-Z])/g;
         let lastIndex = 0;
@@ -171,6 +174,9 @@ export class VmdetailsComponent implements OnInit {
         });
     }
     
+    /*
+     * ANSI to CSS codes
+     */
     private applyAnsiCode(code: number, currentStyle: string): string {
         switch (code) {
             case 0: return 'color:#dadada;'; // Reset
@@ -251,7 +257,7 @@ export class VmdetailsComponent implements OnInit {
         let data = response.data.result[0].values;
 
         /* prepare Data for Graph */
-        let cpuData = data.map(function(value: any[],index: any) { return value[1]; });
+        let cpuData = data.map(function(value: any[],index: any) { return value[1] * 10; });
         let labelData = Array(cpuData.length).fill("");
 
         this.cpuChart.data.labels = labelData;
@@ -271,7 +277,8 @@ export class VmdetailsComponent implements OnInit {
         let data = response.data.result[0].values;
 
         /* prepare Data for Graph */
-        let cpuData = data.map(function(value: any[],index: any) { return value[1]; });
+        let cpuData = data.map(function(value: any[],index: any) { return value[1] * 10; });
+
         let labelData = Array(cpuData.length).fill("");
 
         this.cpuChart = new Chart("CpuChart", {
@@ -311,7 +318,7 @@ export class VmdetailsComponent implements OnInit {
                   },
                   y: {
                     min: 0,
-                    max: maxCpu,
+                    max: maxCpu + 1,
                     grid: {
                       display: true
                     }
@@ -390,7 +397,7 @@ export class VmdetailsComponent implements OnInit {
                   },
                   y: {
                     min: 0,
-                    max: Number.parseInt(this.activeVm.memory.split("Gi")[0]) * 1024,
+                    max: (Number.parseInt(this.activeVm.memory.split("Gi")[0]) * 1024) + 1024,
                     grid: {
                       display: true
                     }
