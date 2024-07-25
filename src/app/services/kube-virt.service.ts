@@ -179,7 +179,7 @@ export class KubeVirtService {
             'content-type': 'application/json',
             'accept': 'application/json'
         };
-        return this.http.post(`${baseUrl}/virtualmachineclusterinstancetypes`, clusterInstanceType, { 'headers': headers } );
+        return this.http.post(`${baseUrl}/virtualmachineclusterinstancetypes/${name}`, clusterInstanceType, { 'headers': headers } );
     }
 
     editClusterInstanceType(typeName: string, typeCPU: string, typeMemory: string): Observable<any> {

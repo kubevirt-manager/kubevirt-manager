@@ -1325,7 +1325,7 @@ export class KClusterComponent implements OnInit {
         }
 
         /* Firmware and Secure Boot */
-        if(controlplanefirmware.toLowerCase() == "bios") {
+        /* if(controlplanefirmware.toLowerCase() == "bios") {
             let firmware = { 'bootloader': { 'bios': {}}};
             kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.firmware = firmware;
         } else if (controlplanefirmware.toLowerCase() == "uefi") {
@@ -1341,7 +1341,7 @@ export class KClusterComponent implements OnInit {
         } else {
             let firmware = { 'bootloader': { 'bios': {}}};
             kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.firmware = firmware;
-        }
+        } */
 
         /* Placeholders */
         let devices = [];
@@ -1624,7 +1624,7 @@ export class KClusterComponent implements OnInit {
         }
 
         /* Firmware and Secure Boot */
-        if(nodepoolfirmware.toLowerCase() == "bios") {
+        /* if(nodepoolfirmware.toLowerCase() == "bios") {
             let firmware = { 'bootloader': { 'bios': {}}};
             kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.firmware = firmware;
         } else if (nodepoolfirmware.toLowerCase() == "uefi") {
@@ -1640,7 +1640,7 @@ export class KClusterComponent implements OnInit {
         } else {
             let firmware = { 'bootloader': { 'bios': {}}};
             kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.firmware = firmware;
-        }
+        } */
 
         /* Placeholders */
         let devices = [];

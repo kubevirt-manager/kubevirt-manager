@@ -48,7 +48,7 @@ export class DashboardComponent implements OnInit {
     promStartTime = 0;
     promEndTime = 0;
     promInterval = 3600; // Prometheus Window 30 minutes
-    promStep = 30;       // Prometheus Step 20 seconds
+    promStep = 30;       // Prometheus Step 30 seconds
 
     /* Chart.JS placeholder */
     cpuChart: any;
@@ -243,7 +243,7 @@ export class DashboardComponent implements OnInit {
                   },
                   y: {
                     min: 0,
-                    max: this.cpuInfo + 1,
+                    max: this.cpuInfo + (this.cpuInfo / 10),
                     grid: {
                       display: true
                     }

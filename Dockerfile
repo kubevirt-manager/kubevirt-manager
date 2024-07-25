@@ -1,5 +1,5 @@
 # Node/Angular Builder
-FROM node:22.2.0-bookworm as builder
+FROM node:22.5.1-bookworm as builder
 
 LABEL org.opencontainers.image.authors="marcelo@feitoza.com.br"
 LABEL description="Kubevirt Manager 1.4.1 - Builder"
