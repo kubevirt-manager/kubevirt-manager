@@ -63,7 +63,6 @@
                           <dd>CPU Cores: {{activePool.cores || 0}} </dd>
                           <dd>CPU Threads: {{activePool.threads || 0}} </dd>
                           <dd>Total VM Memory: {{activePool.memory}} </dd>
-                          <br>
                           <dd>Firmware: {{activePool.firmware}} </dd>
                           <dd>Secure Boot: {{activePool.secureBoot}} </dd>
                        </div>
@@ -79,7 +78,6 @@
                           <dd>Instance Type: {{activePool.instType}} </dd>
                           <dd>Total vCPU: {{activePool.cores * activePool.sockets * activePool.threads || 0}}</dd>
                           <dd>Total VM Memory: {{activePool.memory}} </dd>
-                          <br>
                           <dd>Firmware: {{activePool.firmware}} </dd>
                           <dd>Secure Boot: {{activePool.secureBoot}} </dd>
                        </ng-template>

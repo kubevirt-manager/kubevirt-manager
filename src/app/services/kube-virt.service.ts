@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { VirtualMachineClusterInstanceType } from '../interfaces/virtual-machine-cluster-instance-type';
 import { VirtualMachine } from '../interfaces/virtual-machine';
 import { VirtualMachinePool } from '../interfaces/virtual-machine-pool';
+import { addVolumeOptions } from '../interfaces/addVolumeOptions';
+import { removeVolumeOptions } from '../interfaces/removeVolumeOptions';
 
 
 @Injectable({
@@ -320,6 +322,22 @@ export class KubeVirtService {
         };
 
         return this.http.get(`${myUrl}`, {'headers': headers, 'responseType': "text"});
+    }
+
+    plugVolume(namespace: string, name: string, spec: addVolumeOptions): Observable<any> {
+        var baseUrl ='./k8s/apis/subresources.kubevirt.io/v1';
+        const headers = {
+            'accept': '*/*'
+        };
+        return this.http.put(`${baseUrl}/namespaces/${namespace}/virtualmachineinstances/${name}/addvolume`, spec, { 'headers': headers } );
+    }
+
+    unplugVolume(namespace: string, name: string, spec: removeVolumeOptions): Observable<any> {
+        var baseUrl ='./k8s/apis/subresources.kubevirt.io/v1';
+        const headers = {
+            'accept': '*/*'
+        };
+        return this.http.put(`${baseUrl}/namespaces/${namespace}/virtualmachineinstances/${name}/removevolume`, spec,  { 'headers': headers } );
     }
 
 }

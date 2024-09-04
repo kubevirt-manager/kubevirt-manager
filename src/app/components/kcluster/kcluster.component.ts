@@ -25,6 +25,7 @@ import { RoleBinding } from 'src/app/interfaces/role-binding';
 import { ConfigMap } from 'src/app/interfaces/config-map';
 import { Deployment } from 'src/app/interfaces/deployment';
 import { ClusterRoleBinding } from 'src/app/interfaces/cluster-role-binding';
+import { FirewallLabels } from 'src/app/models/firewall-labels.model';
 
 @Component({
   selector: 'app-kcluster',
@@ -38,6 +39,7 @@ export class KClusterComponent implements OnInit {
     cniList: any;
     featureList: any;
     charDot = '.';
+    firewallLabels: FirewallLabels = new FirewallLabels;
 
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
@@ -1083,6 +1085,7 @@ export class KClusterComponent implements OnInit {
             Object.assign(tmpLabels, thisCNIVXLANPortLabel);
         }
 
+
         /* Load Annotations */
         let tmpAnnotations = {};
         if(controlplaneepannotationskeyone != "") {
@@ -1148,6 +1151,7 @@ export class KClusterComponent implements OnInit {
         };
 
         /* Assigning Labels and Annotations */
+        Object.assign(tmpLabels, { [this.firewallLabels.Cluster]: name });
         cluster.metadata.labels = tmpLabels;
         kubevirtCluster.metadata.labels = tmpLabels;
         kubevirtCluster.spec.controlPlaneServiceTemplate.metadata.labels = tmpLabels;
@@ -1212,6 +1216,8 @@ export class KClusterComponent implements OnInit {
         Object.assign(machineTemplateLabels, { 'capk.kubevirt-manager.io/flavor-version': controlplaneosversion });
         Object.assign(machineTemplateLabels, { 'capk.kubevirt-manager.io/kube-version' : version });
         Object.assign(machineTemplateLabels, { 'kubevirt.io/domain': name + "-control-plane" });
+        Object.assign(machineTemplateLabels, { [this.firewallLabels.Cluster]: name });
+        Object.assign(machineTemplateLabels, { [this.firewallLabels.ClusterMasterPool]: name + "-control-plane" });
 
         /* KubeadmControlPlane */
         let kubeadmControlPlane: KubeadmControlPlane = {
@@ -1487,6 +1493,8 @@ export class KClusterComponent implements OnInit {
         Object.assign(machineTemplateLabels, { 'capk.kubevirt-manager.io/flavor-version': nodepoolosversion });
         Object.assign(machineTemplateLabels, { 'capk.kubevirt-manager.io/kube-version' : version });
         Object.assign(machineTemplateLabels, { 'kubevirt.io/domain': name + "-" + nodepoolname });
+        Object.assign(machineTemplateLabels, { [this.firewallLabels.Cluster]: name });
+        Object.assign(machineTemplateLabels, { [this.firewallLabels.ClusterWorkerPool]: name + "-" + nodepoolname });
 
 
         /* KubeadmConfig */

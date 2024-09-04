@@ -14,6 +14,8 @@
                   <ul class="nav nav-pills">
                     <li class="nav-item"><a class="nav-link active" href="#overview" data-toggle="tab">Overview</a></li>
                     <li class="nav-item"><a class="nav-link" href="#details" data-toggle="tab">Details</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#networking" data-toggle="tab">Networking</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#disks" data-toggle="tab">Disks</a></li>
                     <li class="nav-item"><a class="nav-link" href="#logging" data-toggle="tab">Logs</a></li>
                     <li class="nav-item"><a class="nav-link" href="#vmmonitoring" data-toggle="tab" *ngIf="promCheck">Monitoring</a></li>
                     <li class="nav-item"><a class="nav-link" href="#vmconsole" data-toggle="tab">Console</a></li>
@@ -54,7 +56,6 @@
                           <dd>CPU Cores: {{activeVm.cores || 0}} </dd>
                           <dd>CPU Threads: {{activeVm.threads || 0}} </dd>
                           <dd>Total VM Memory: {{activeVm.memory}} </dd>
-                          <br>
                           <dd>Firmware: {{activeVm.firmware}} </dd>
                           <dd>Secure Boot: {{activeVm.secureBoot}} </dd>
                        </div>
@@ -70,7 +71,6 @@
                           <dd>Instance Type: {{activeVm.instType}} </dd>
                           <dd>Total vCPU: {{activeVm.cores * activeVm.sockets * activeVm.threads || 0}}</dd>
                           <dd>Total VM Memory: {{activeVm.memory}} </dd>
-                          <br>
                           <dd>Firmware: {{activeVm.firmware}} </dd>
                           <dd>Secure Boot: {{activeVm.secureBoot}} </dd>
                        </ng-template>
@@ -95,67 +95,67 @@
                        <br>
                        <dd>Priority Class: {{activeVm.priorityClass}}</dd>
                        <hr>
+                    </div>
+                    <!-- Networking -->
+                    <div class="tab-pane" id="networking">
+                       <dt>Networking</dt>
+                       <br>
+                       <div class="card" *ngFor="let actualNet of activeVm.networkList">
+                            <div class="card-header">
+                                <div class="card-title">
+                                    <i class="fas fa-network-wired"></i>&nbsp;&nbsp;{{actualNet.name}}
+                                </div>
+                                <div class="card-tools">
+                                    <a class="btn float-right" title="Unplug..." *ngIf="actualNet.hotplug">
+                                        <i class="fas fa-minus" (click)="showResize(activeVm.sockets, activeVm.cores, activeVm.threads, activeVm.memory)"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                    <li>Name: {{actualNet.name}}</li>
+                                    <li>Type: {{actualNet.type}}</li>
+                                    <li>Network: {{actualNet.network}}</li>
+                                    <li>IP Address: {{actualNet.ip}}</li>
+                            </div>
+                       </div>
+                    </div>
+                    <!-- Disks -->
+                    <div class="tab-pane" id="disks">
                        <dt>
-                        Networking
-                        <!-- <a class="btn float-right" title="Edit...">
-                            <i class="fas fa-pen"></i>
-                        </a> -->
-                       </dt>
+                            Disks
+                            <a class="btn float-right" title="Hotplug...">
+                                <i class="fas fa-plus" (click)="showHotplug()"></i>
+                            </a>
+                            
+                        </dt>
                        <br>
-                       <div *ngIf="hasNet1">
-                            <dd>NIC 1:</dd>
-                            <ul>
-                                <li>Name: {{vmNetwork1.name}}</li>
-                                <li>Type: {{vmNetwork1.type}}</li>
-                                <li>Network: {{vmNetwork1.network}}</li>
-                                <li>IP Address: {{vmNetwork1.ip}}</li>
-                            </ul>
-                       </div>
-                       <div *ngIf="hasNet2">
-                            <dd>NIC 2:</dd>
-                            <ul>
-                                <li>Name: {{vmNetwork2.name}}</li>
-                                <li>Type: {{vmNetwork2.type}}</li>
-                                <li>Network: {{vmNetwork2.network}}</li>
-                                <li>IP Address: {{vmNetwork2.ip}}</li>
-                            </ul>
-                       </div>
-                       <hr>
-                       <dt>Disks</dt>
-                       <br>
-                       <div *ngIf="hasDisk1">
-                            <dd>Disk 1:</dd>
-                            <ul>
-                                <li>Name: {{disk1Info.name}} </li>
-                                <li>Namespace: {{disk1Info.namespace}} </li>
-                                <li>Type: {{disk1Info.type}} </li>
-                                <li>Backend: {{disk1Info.backend}} </li>
-                                <li>Data Volume Name: {{disk1Info.dataVolumeName}} </li>
-                                <li>Data Volume Namespace: {{disk1Info.dataVolumeNamespace}} </li>
-                                <li>Source Type: {{disk1Info.dataVolumeSource}} </li>
-                                <li>Source Value: {{disk1Info.dataVolumeSourceValue}} </li>
-                                <li>Access Mode: {{disk1Info.accessMode}}</li>
-                                <li>Cache Mode: {{disk1Info.cacheMode || ""}} </li>
-                                <li>Capacity: {{disk1Info.capacity}} </li>
-                                <li>Storage Class: {{disk1Info.storageClass}}</li>
-                            </ul>
-                       </div>
-                       <div *ngIf="hasDisk2">
-                            <dd>Disk 2:</dd>
-                            <ul>
-                                <li>Name: {{disk2Info.name}} </li>
-                                <li>Namespace: {{disk2Info.namespace}} </li>
-                                <li>Type: {{disk2Info.type}} </li>
-                                <li>Backend: {{disk2Info.backend}} </li>
-                                <li>Data Volume Name: {{disk2Info.dataVolumeName}} </li>
-                                <li>Data Volume Namespace: {{disk2Info.dataVolumeNamespace}} </li>
-                                <li>Source Type: {{disk2Info.dataVolumeSource}} </li>
-                                <li>Source Value: {{disk2Info.dataVolumeSourceValue}} </li>
-                                <li>Access Mode: {{disk2Info.accessMode}}</li>
-                                <li>Cache Mode: {{disk2Info.cacheMode || ""}} </li>
-                                <li>Capacity: {{disk2Info.capacity}} </li>
-                                <li>Storage Class: {{disk2Info.storageClass}}</li>
-                            </ul>
+                       <div class="card" *ngFor="let actualDisk of activeVm.diskList">
+                            <div class="card-header">
+                                <div class="card-title">
+                                    <i class="fas fa-hdd"></i>&nbsp;&nbsp;{{actualDisk.name}}
+                                </div>
+                                <div class="card-tools">
+                                    <a class="btn btn-tool" title="Unplug..." *ngIf="actualDisk.hotplug">
+                                        <i class="fas fa-minus" (click)="showUnplug(actualDisk.name)"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <li>Name: {{actualDisk.name}} </li>
+                                <li>Namespace: {{actualDisk.namespace}} </li>
+                                <li>Type: {{actualDisk.type}} </li>
+                                <li>BUS: {{actualDisk.bus}} </li>
+                                <li>Backend: {{actualDisk.backend}} </li>
+                                <li>Data Volume Name: {{actualDisk.dataVolume.name}} </li>
+                                <li>Data Volume Namespace: {{actualDisk.dataVolume.namespace}} </li>
+                                <li>Data Volume Source Type: {{actualDisk.dataVolume.source}} </li>
+                                <li>Data Volume Source Value: {{actualDisk.dataVolume.sourceValue}} </li>
+                                <li>Access Mode: {{actualDisk.accessMode}}</li>
+                                <li>Cache Mode: {{actualDisk.cacheMode}} </li>
+                                <li>Capacity: {{actualDisk.size}} </li>
+                                <li>Storage Class: {{actualDisk.storageClass}}</li>
+                                <li>Hotplugged: {{actualDisk.hotplug}}</li>
+                            </div>
                        </div>
                     </div>
                     <!-- VM Logging -->
@@ -250,7 +250,7 @@
                     <div class="tab-pane" id="vmconsole">  
                         <iframe width="100%" height="100%" frameBorder="0" style="height: 600px" [src]="urlSafe"></iframe>
                         <br>
-                        <p><a href="#" (click)='openNoVNC(activeVm.namespace, activeVm.name)' title="Open console...">Open Full noVNC Client</a></p>
+                        <p><a href="#" (click)='openNoVNC()' title="Open console...">Open Full noVNC Client</a></p>
                     </div>
                   </div>
                 </div>
@@ -281,7 +281,78 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-type")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)="applyType(activeVm.namespace, activeVm.name, changevmtype.value)">Save changes</button>
+              <button type="button" class="btn btn-primary" (click)="applyType( changevmtype.value)">Save changes</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!--                -->
+    <!-- Modal: Hotplug -->
+    <!--                -->
+    <div class="modal fade" id="modal-hotplug" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="hotplug-title">Hotplug: {{activeVm.namespace}} - {{activeVm.name}}</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-hotplug")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="hotplug-value">
+              <label for="hotplugVolume">Volumes:</label>
+              <select #hotplugvolume class="custom-select rounded-0" name="hotplug-volume" id="hotplug-volume">
+                  <option>Value 1</option>
+              </select>
+              <label for="hotplugType">Type:</label>
+              <select #hotplugtype class="custom-select rounded-0" name="hotplug-type" id="hotplug-type">
+                  <option selected value=disk>Disk</option>
+                  <!-- <option value=cdrom>CDROM</option> not supported yet -->
+                  <option value=lun>LUN</option>
+              </select>
+              <label for="hotplugCache">Type:</label>
+              <select #hotplugcache class="custom-select rounded-0" name="hotplug-cache" id="hotplug-cache">
+                  <option selected value=none>CacheNone</option>
+                  <option value=writethrough>CacheWriteThrough</option>
+                  <option value=writeback>CacheWriteBack</option>
+              </select>
+              <label for="hotplugReadOnly">Read Only:</label>
+              <select #hotplugreadonly class="custom-select rounded-0" name="hotplug-readonly" id="hotplug-readonly">
+                <option selected value="no">No</option>
+                <option value="yes">Yes</option>
+            </select>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-hotplug")'>Close</button>
+              <button type="button" class="btn btn-primary" (click)="applyHotplug(hotplugvolume.value, hotplugtype.value, hotplugcache.value, hotplugreadonly.value)">Plug</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!--                      -->
+    <!-- Modal: Unplug Volume -->
+    <!--                      -->
+    <div class="modal fade" id="modal-unplug" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="unplug-title">Unplug Volume</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-unplug")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <input type="hidden" id="unplug-volume" name="unplug-volume" value="">
+            <div class="modal-body" id="unplug-value">
+              <p>BODY_TEMPLATE</p>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-unplug")'>Close</button>
+              <button type="button" class="btn btn-danger" (click)='applyUnplug()'>Unplug</button>
             </div>
           </div>
           <!-- /.modal-content -->
@@ -313,7 +384,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-resize")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)="applyResize(activeVm.namespace, activeVm.name, resizeSockets.value, resizeCores.value, resizeThreads.value, resizeMemory.value)">Save changes</button>
+              <button type="button" class="btn btn-primary" (click)="applyResize(resizeSockets.value, resizeCores.value, resizeThreads.value, resizeMemory.value)">Save changes</button>
             </div>
           </div>
           <!-- /.modal-content -->
@@ -341,7 +412,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-pc")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)="applyPc(activeVm.namespace, activeVm.name, changevmpc.value)">Save changes</button>
+              <button type="button" class="btn btn-primary" (click)="applyPc(changevmpc.value)">Save changes</button>
             </div>
           </div>
           <!-- /.modal-content -->

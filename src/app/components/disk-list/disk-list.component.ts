@@ -89,11 +89,11 @@ export class DiskListComponent implements OnInit {
                 currentDisk["status"] = disks[i].status["phase"];
                 currentDisk["progress"] = disks[i].status["progress"];
                 try {                
-                    currentDisk["storageclass"] = disks[i].spec.pvc["storageClassName"];
-                    currentDisk["accessmode"] = disks[i].spec.pvc.accessModes[0];
+                    currentDisk["storageClass"] = disks[i].spec.pvc["storageClassName"];
+                    currentDisk["accessMode"] = disks[i].spec.pvc.accessModes[0];
                 } catch (e: any) {
-                    currentDisk["storageclass"] = disks[i].spec.storage["storageClassName"];
-                    currentDisk["accessmode"] = disks[i].spec.storage.accessModes[0];
+                    currentDisk["storageClass"] = disks[i].spec.storage["storageClassName"];
+                    currentDisk["accessMode"] = disks[i].spec.storage.accessModes[0];
                 }
                 currentDisk["bound"] = false;
                 if(disks[i].status["phase"].toLowerCase() == "succeeded") {

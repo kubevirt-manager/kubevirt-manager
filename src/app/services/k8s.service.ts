@@ -158,4 +158,9 @@ export class K8sService {
         return this.http.delete(`${baseUrl}/namespaces/${namespace}/serviceaccounts/${name}`);
     }
 
+    getNetworkPolicies(): Observable<any> {
+        let baseUrl = './k8s/apis/networking.k8s.io/v1'
+        return this.http.get(`${baseUrl}/networkpolicies?labelSelector=kubevirt-manager.io/managed%3Dtrue`);
+    }
+
 }

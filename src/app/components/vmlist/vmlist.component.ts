@@ -13,6 +13,7 @@ import { DataVolumesService } from 'src/app/services/data-volumes.service';
 import { DataVolume } from 'src/app/interfaces/data-volume';
 import { VirtualMachine } from 'src/app/interfaces/virtual-machine';
 import { KubevirtMgrService } from 'src/app/services/kubevirt-mgr.service';
+import { FirewallLabels } from 'src/app/models/firewall-labels.model';
 
 
 @Component({
@@ -29,6 +30,7 @@ export class VmlistComponent implements OnInit {
     networkList: NetworkAttach[] = [];
     netAttachList: NetworkAttach[] = []
     networkCheck: boolean = false;
+    firewallLabels: FirewallLabels = new FirewallLabels;
 
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
@@ -453,15 +455,13 @@ export class VmlistComponent implements OnInit {
                 Object.assign(tmpLabels, thisLabel);
             }
 
-            /* Load other labels OPTIONAL */
-            let thisLabel = {'kubevirt.io/domain': newvmname};
-            Object.assign(tmpLabels, thisLabel);
-
-            let kubevirtManagerLabel = {'kubevirt-manager.io/managed': "true"};
-            Object.assign(tmpLabels, kubevirtManagerLabel);
-
             /* Populate our VM with our Labels */
+            Object.assign(tmpLabels, { 'kubevirt.io/domain': newvmname });
+            Object.assign(tmpLabels, { 'kubevirt-manager.io/managed': "true" });
+            Object.assign(tmpLabels, { [this.firewallLabels.VirtualMachine]: newvmname });
             thisVirtualMachine.metadata.labels = tmpLabels;
+            thisVirtualMachine.spec.template.metadata.labels = tmpLabels;
+
 
             /* Node Selector */
             if(newvmnode != "auto-select") {
@@ -726,6 +726,7 @@ export class VmlistComponent implements OnInit {
             /* UserData Setup */
             if(newvmuserdatausername != "") {
                 Object.assign(thisVirtualMachine.metadata.labels, { "cloud-init.kubevirt-manager.io/username" : newvmuserdatausername });
+                Object.assign(thisVirtualMachine.spec.template.metadata.labels, { "cloud-init.kubevirt-manager.io/username" : newvmuserdatausername });
             }
             if(newvmuserdataauth.toLowerCase() == "ssh") {
                 if (newvmuserdatassh != "") {
@@ -809,7 +810,9 @@ export class VmlistComponent implements OnInit {
             let net1 = {};
             let iface1 = {};
             if(newvmnetworkone != "podNetwork") {
-                net1 = {'name': "net1", 'multus': {'networkName': newvmnetworkone}};    
+                net1 = {'name': "net1", 'multus': {'networkName': newvmnetworkone}};
+                Object.assign(thisVirtualMachine.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworkone});
+                Object.assign(thisVirtualMachine.spec.template.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworkone});
             } else {
                 net1 = {'name': "net1", 'pod': {}};
             }
@@ -827,15 +830,22 @@ export class VmlistComponent implements OnInit {
                 let net2 = {};
                 let iface2 = {};
                 if(newvmnetworktwo != "podNetwork") {
-                    net2 = {'name': "net2", 'multus': {'networkName': newvmnetworktwo}}; 
+                    net2 = {'name': "net2", 'multus': {'networkName': newvmnetworktwo}};
+                    if(newvmnetworkone != "podNetwork") {
+                        Object.assign(thisVirtualMachine.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworkone, newvmnetworktwo});
+                        Object.assign(thisVirtualMachine.spec.template.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworkone, newvmnetworktwo});
+                    } else {
+                        Object.assign(thisVirtualMachine.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworktwo});
+                        Object.assign(thisVirtualMachine.spec.template.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworktwo});
+                    }
                 } else {
                     net2 = {'name': "net2", 'pod': {}};
                 }
                 networks.push(net2);
                 if(newvmnetworktypetwo == "bridge") {
-                    let iface2 = {'name': "net2", 'bridge': {}};
+                    iface2 = {'name': "net2", 'bridge': {}};
                 } else {
-                    let iface2 = {'name': "net2", 'masquerade': {}};
+                    iface2 = {'name': "net2", 'masquerade': {}};
                 }
                 interfaces.push(iface2);
             }
@@ -1448,7 +1458,7 @@ export class VmlistComponent implements OnInit {
      */
     openNoVNC(namespace: string, name: string): void {
         let url = "/assets/noVNC/vnc.html?resize=scale&autoconnect=1&path=";
-        let path = "k8s/apis/subresources.kubevirt.io/v1alpha3/namespaces/" + namespace + "/virtualmachineinstances/" + name + "/vnc";
+        let path = "/k8s/apis/subresources.kubevirt.io/v1alpha3/namespaces/" + namespace + "/virtualmachineinstances/" + name + "/vnc";
         let fullpath = url + path;
         window.open(fullpath, "kubevirt-manager.io: CONSOLE", "width=800,height=600,location=no,toolbar=no,menubar=no,resizable=yes");
     }

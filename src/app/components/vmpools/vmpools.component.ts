@@ -13,6 +13,7 @@ import { DataVolume } from 'src/app/interfaces/data-volume';
 import { VirtualMachinePool } from 'src/app/interfaces/virtual-machine-pool';
 import { Probe } from 'src/app/interfaces/probe';
 import { KubevirtMgrService } from 'src/app/services/kubevirt-mgr.service';
+import { FirewallLabels } from 'src/app/models/firewall-labels.model';
 
 @Component({
   selector: 'app-vmpools',
@@ -27,6 +28,7 @@ export class VMPoolsComponent implements OnInit {
     networkList: NetworkAttach[] = [];
     netAttachList: NetworkAttach[] = []
     networkCheck: boolean = false;
+    firewallLabels: FirewallLabels = new FirewallLabels;
 
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
@@ -486,12 +488,10 @@ export class VMPoolsComponent implements OnInit {
                 Object.assign(tmpLabels, thisLabel);
             }
 
-            /* Load other labels */
-            let thisLabel = {'kubevirt.io/vmpool': newpoolname};
-            Object.assign(tmpLabels, thisLabel);
-
-            let kubevirtManagerLabel = {'kubevirt-manager.io/managed': "true"};
-            Object.assign(tmpLabels, kubevirtManagerLabel);
+            /* Populate our VM with our Labels */
+            Object.assign(tmpLabels, { 'kubevirt.io/vmpool': newpoolname });
+            Object.assign(tmpLabels, { 'kubevirt-manager.io/managed': "true" });
+            Object.assign(tmpLabels, { [this.firewallLabels.VirtualMachinePool]: newpoolname });
 
             /* Populate our Pool with our Labels */
             thisVirtualMachinePool.metadata.labels = tmpLabels;
