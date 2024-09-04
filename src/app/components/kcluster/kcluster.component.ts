@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Buffer } from 'buffer';
 import { lastValueFrom } from 'rxjs';
@@ -25,6 +25,7 @@ import { RoleBinding } from 'src/app/interfaces/role-binding';
 import { ConfigMap } from 'src/app/interfaces/config-map';
 import { Deployment } from 'src/app/interfaces/deployment';
 import { ClusterRoleBinding } from 'src/app/interfaces/cluster-role-binding';
+import { FirewallLabels } from 'src/app/models/firewall-labels.model';
 
 @Component({
   selector: 'app-kcluster',
@@ -38,10 +39,12 @@ export class KClusterComponent implements OnInit {
     cniList: any;
     featureList: any;
     charDot = '.';
+    firewallLabels: FirewallLabels = new FirewallLabels;
 
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
+        private cdRef: ChangeDetectorRef,
         private router: Router,
         private kubevirtMgrCapk: KubevirtMgrCapk,
         private k8sService: K8sService,
@@ -102,6 +105,7 @@ export class KClusterComponent implements OnInit {
      * Load Cluster List
      */
      async getClusters(): Promise<void> {
+        this.clusterList = [];
         const data = await lastValueFrom(this.xK8sService.getClusters());
         let clusters = data.items;
         for(let i = 0; i < clusters.length; i++) {
@@ -352,7 +356,7 @@ export class KClusterComponent implements OnInit {
                 try {
                     let clusterData = await lastValueFrom(this.xK8sService.deleteCluster(clusterNamespace, clusterName));
                     this.hideComponent("modal-delete");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     console.log(e);
                     alert(e.error.message);
@@ -590,6 +594,8 @@ export class KClusterComponent implements OnInit {
         clustercontrolplanecpumemthreads: string,
         clustercontrolplanecpumemmemory: string,
         clustercontrolplanepc: string,
+        clustercontrolplanefirmware: string,
+        clustercontrolplanesecureboot: string,
         clustercontrolplanereplicas: string,
         clustercontrolplanedisksize: string,
         clustercontrolplanedisksc: string,
@@ -604,6 +610,8 @@ export class KClusterComponent implements OnInit {
         clusternodepoolcpumemthreads: string,
         clusternodepoolcpumemmemory: string,
         clusternodepoolpc: string,
+        clusternodepoolfirmware: string,
+        clusternodepoolsecureboot: string,
         clusternodepoolreplicas: string,
         clusternodepoolminreplicas: string,
         clusternodepoolmaxreplicas: string,
@@ -730,6 +738,8 @@ export class KClusterComponent implements OnInit {
                                             clustercontrolplanecpumemthreads,
                                             clustercontrolplanecpumemmemory,
                                             clustercontrolplanepc,
+                                            clustercontrolplanefirmware,
+                                            clustercontrolplanesecureboot,
                                             clustercontrolplanereplicas,
                                             clustercontrolplanedisksize,
                                             clustercontrolplanedisksc,
@@ -752,6 +762,8 @@ export class KClusterComponent implements OnInit {
                                             clusternodepoolcpumemthreads,
                                             clusternodepoolcpumemmemory,
                                             clusternodepoolpc,
+                                            clusternodepoolfirmware,
+                                            clusternodepoolsecureboot,
                                             clusternodepoolreplicas,
                                             clusternodepoolminreplicas,
                                             clusternodepoolmaxreplicas,
@@ -780,7 +792,7 @@ export class KClusterComponent implements OnInit {
                 }
 
                 this.hideComponent("modal-newcluster");
-                this.reloadComponent();
+                this.fullReload();
             } catch (e: any) {
                 console.log(e);
                 alert(e.error.message);
@@ -818,6 +830,8 @@ export class KClusterComponent implements OnInit {
         clustercontrolplanecpumemthreads: string,
         clustercontrolplanecpumemmemory: string,
         clustercontrolplanepc: string,
+        clustercontrolplanefirmware: string,
+        clustercontrolplanesecureboot: string,
         clustercontrolplanereplicas: string,
         clustercontrolplaneimageurl: string,
         clustercontrolplanedisksize: string,
@@ -831,6 +845,8 @@ export class KClusterComponent implements OnInit {
         clusternodepoolcpumemthreads: string,
         clusternodepoolcpumemmemory: string,
         clusternodepoolpc: string,
+        clusternodepoolfirmware: string,
+        clusternodepoolsecureboot: string,
         clusternodepoolreplicas: string,
         clusternodepoolimageurl: string,
         clusternodepooldisksize: string,
@@ -953,6 +969,8 @@ export class KClusterComponent implements OnInit {
                                             clustercontrolplanecpumemthreads,
                                             clustercontrolplanecpumemmemory,
                                             clustercontrolplanepc,
+                                            clustercontrolplanefirmware,
+                                            clustercontrolplanesecureboot,
                                             clustercontrolplanereplicas,
                                             clustercontrolplanedisksize,
                                             clustercontrolplanedisksc,
@@ -975,6 +993,8 @@ export class KClusterComponent implements OnInit {
                                             clusternodepoolcpumemthreads,
                                             clusternodepoolcpumemmemory,
                                             clusternodepoolpc,
+                                            clusternodepoolfirmware, 
+                                            clusternodepoolsecureboot,
                                             clusternodepoolreplicas,
                                             "0",
                                             "0",
@@ -988,7 +1008,7 @@ export class KClusterComponent implements OnInit {
                 this.loadKubevirtCloudControllerManager(clusternamespace, clustername);
 
                 this.hideComponent("modal-newclustercustom");
-                this.reloadComponent();
+                this.fullReload();
             } catch (e: any) {
                 console.log(e);
                 alert(e.error.message);
@@ -1065,6 +1085,7 @@ export class KClusterComponent implements OnInit {
             Object.assign(tmpLabels, thisCNIVXLANPortLabel);
         }
 
+
         /* Load Annotations */
         let tmpAnnotations = {};
         if(controlplaneepannotationskeyone != "") {
@@ -1130,6 +1151,7 @@ export class KClusterComponent implements OnInit {
         };
 
         /* Assigning Labels and Annotations */
+        Object.assign(tmpLabels, { [this.firewallLabels.Cluster]: name });
         cluster.metadata.labels = tmpLabels;
         kubevirtCluster.metadata.labels = tmpLabels;
         kubevirtCluster.spec.controlPlaneServiceTemplate.metadata.labels = tmpLabels;
@@ -1166,6 +1188,8 @@ export class KClusterComponent implements OnInit {
         controlplanecpumemthreads: string,
         controlplanecpumemmemory: string,
         controlplanepc: string,
+        controlplanefirmware: string,
+        controlplanesecureboot: string,
         controlplanereplicas: string,
         controlplanedisksize: string,
         controlplanedisksc: string,
@@ -1192,6 +1216,8 @@ export class KClusterComponent implements OnInit {
         Object.assign(machineTemplateLabels, { 'capk.kubevirt-manager.io/flavor-version': controlplaneosversion });
         Object.assign(machineTemplateLabels, { 'capk.kubevirt-manager.io/kube-version' : version });
         Object.assign(machineTemplateLabels, { 'kubevirt.io/domain': name + "-control-plane" });
+        Object.assign(machineTemplateLabels, { [this.firewallLabels.Cluster]: name });
+        Object.assign(machineTemplateLabels, { [this.firewallLabels.ClusterMasterPool]: name + "-control-plane" });
 
         /* KubeadmControlPlane */
         let kubeadmControlPlane: KubeadmControlPlane = {
@@ -1304,6 +1330,25 @@ export class KClusterComponent implements OnInit {
             };
         }
 
+        /* Firmware and Secure Boot */
+        /* if(controlplanefirmware.toLowerCase() == "bios") {
+            let firmware = { 'bootloader': { 'bios': {}}};
+            kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.firmware = firmware;
+        } else if (controlplanefirmware.toLowerCase() == "uefi") {
+            let firmware = {};
+            if(controlplanesecureboot == "true") {
+                firmware = { 'bootloader': { 'efi': { 'secureBoot': true }}};
+            } else {
+                firmware = { 'bootloader': { 'efi': { 'secureBoot': false }}};
+            }
+            let features = { 'smm': { 'enabled': true }};
+            kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.firmware = firmware;
+            kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.features = features;
+        } else {
+            let firmware = { 'bootloader': { 'bios': {}}};
+            kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.firmware = firmware;
+        } */
+
         /* Placeholders */
         let devices = [];
         let disks = [];
@@ -1410,6 +1455,8 @@ export class KClusterComponent implements OnInit {
         nodepoolcpumemthreads: string,
         nodepoolcpumemmemory: string,
         nodepoolpc: string,
+        nodepoolfirmware: string,
+        nodepoolsecureboot: string,
         nodepoolreplicas: string,
         nodepoolminreplicas: string,
         nodepoolmaxreplicas: string,
@@ -1446,6 +1493,8 @@ export class KClusterComponent implements OnInit {
         Object.assign(machineTemplateLabels, { 'capk.kubevirt-manager.io/flavor-version': nodepoolosversion });
         Object.assign(machineTemplateLabels, { 'capk.kubevirt-manager.io/kube-version' : version });
         Object.assign(machineTemplateLabels, { 'kubevirt.io/domain': name + "-" + nodepoolname });
+        Object.assign(machineTemplateLabels, { [this.firewallLabels.Cluster]: name });
+        Object.assign(machineTemplateLabels, { [this.firewallLabels.ClusterWorkerPool]: name + "-" + nodepoolname });
 
 
         /* KubeadmConfig */
@@ -1581,6 +1630,25 @@ export class KClusterComponent implements OnInit {
             };
 
         }
+
+        /* Firmware and Secure Boot */
+        /* if(nodepoolfirmware.toLowerCase() == "bios") {
+            let firmware = { 'bootloader': { 'bios': {}}};
+            kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.firmware = firmware;
+        } else if (nodepoolfirmware.toLowerCase() == "uefi") {
+            let firmware = {};
+            if(nodepoolsecureboot == "true") {
+                firmware = { 'bootloader': { 'efi': { 'secureBoot': true }}};
+            } else {
+                firmware = { 'bootloader': { 'efi': { 'secureBoot': false }}};
+            }
+            let features = { 'smm': { 'enabled': true }};
+            kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.firmware = firmware;
+            kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.features = features;
+        } else {
+            let firmware = { 'bootloader': { 'bios': {}}};
+            kubevirtMachineTemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.firmware = firmware;
+        } */
 
         /* Placeholders */
         let devices = [];
@@ -2396,6 +2464,30 @@ export class KClusterComponent implements OnInit {
     }
 
     /*
+     * Custom Cluster: Control Plane Type
+     */
+    async onChangeCustomControlPlaneType(vmType: string) {
+        let modalDiv = document.getElementById("newclustercustom-controlplane-custom-cpu-memory");
+        if(vmType.toLowerCase() == "custom") {
+            if(modalDiv != null) {
+                modalDiv.setAttribute("class", "modal fade show");
+                modalDiv.setAttribute("aria-modal", "true");
+                modalDiv.setAttribute("role", "dialog");
+                modalDiv.setAttribute("aria-hidden", "false");
+                modalDiv.setAttribute("style","display: contents;");
+            }
+        } else {
+            if(modalDiv != null) {
+                modalDiv.setAttribute("class", "modal fade");
+                modalDiv.setAttribute("aria-modal", "false");
+                modalDiv.setAttribute("role", "");
+                modalDiv.setAttribute("aria-hidden", "true");
+                modalDiv.setAttribute("style","display: none;");
+            }
+        }
+    }
+
+    /*
      * Node Pool Type
      */
     async onChangeNodePoolType(vmType: string) {
@@ -2420,9 +2512,105 @@ export class KClusterComponent implements OnInit {
     }
 
     /*
+     * Custom Cluster: Node Pool Type
+     */
+    async onChangeCustomNodePoolType(vmType: string) {
+        let modalDiv = document.getElementById("newclustercustom-nodepool-custom-cpu-memory");
+        if(vmType.toLowerCase() == "custom") {
+            if(modalDiv != null) {
+                modalDiv.setAttribute("class", "modal fade show");
+                modalDiv.setAttribute("aria-modal", "true");
+                modalDiv.setAttribute("role", "dialog");
+                modalDiv.setAttribute("aria-hidden", "false");
+                modalDiv.setAttribute("style","display: contents;");
+            }
+        } else {
+            if(modalDiv != null) {
+                modalDiv.setAttribute("class", "modal fade");
+                modalDiv.setAttribute("aria-modal", "false");
+                modalDiv.setAttribute("role", "");
+                modalDiv.setAttribute("aria-hidden", "true");
+                modalDiv.setAttribute("style","display: none;");
+            }
+        }
+    }
+
+    /*
+     * Control Plane: Firmware
+     */
+    async onChangeStdControlPlaneFirmware(firmware: string) {
+        let secureBootValueField = document.getElementById("newcluster-controlplane-secureboot");
+        if(firmware == "uefi") {
+            if (secureBootValueField != null) {
+                secureBootValueField.removeAttribute("disabled");
+            }
+        } else if (firmware == "bios") {
+            if (secureBootValueField != null) {
+                secureBootValueField.setAttribute("disabled", "disabled");
+            }
+        }
+    }
+
+    /*
+     * Node Pool: Firmware
+     */
+    async onChangeStdNodePoolFirmware(firmware: string) {
+        let secureBootValueField = document.getElementById("newcluster-nodepool-secureboot");
+        if(firmware == "uefi") {
+            if (secureBootValueField != null) {
+                secureBootValueField.removeAttribute("disabled");
+            }
+        } else if (firmware == "bios") {
+            if (secureBootValueField != null) {
+                secureBootValueField.setAttribute("disabled", "disabled");
+            }
+        }
+    }
+
+    /*
+     * Control Plane: Firmware
+     */
+    async onChangeCustomControlPlaneFirmware(firmware: string) {
+        let secureBootValueField = document.getElementById("newclustercustom-controlplane-secureboot");
+        if(firmware == "uefi") {
+            if (secureBootValueField != null) {
+                secureBootValueField.removeAttribute("disabled");
+            }
+        } else if (firmware == "bios") {
+            if (secureBootValueField != null) {
+                secureBootValueField.setAttribute("disabled", "disabled");
+            }
+        }
+    }
+
+    /*
+     * Node Pool: Firmware
+     */
+    async onChangeCustomNodePoolFirmware(firmware: string) {
+        let secureBootValueField = document.getElementById("newclustercustom-nodepool-secureboot");
+        if(firmware == "uefi") {
+            if (secureBootValueField != null) {
+                secureBootValueField.removeAttribute("disabled");
+            }
+        } else if (firmware == "bios") {
+            if (secureBootValueField != null) {
+                secureBootValueField.setAttribute("disabled", "disabled");
+            }
+        }
+    }
+
+    /*
      * Reload this component
      */
-    reloadComponent(): void {
+    async reloadComponent(): Promise<void> {
+        await this.getClusters();
+        await this.cdRef.detectChanges();
+    }
+
+    /*
+     * full reload
+     */
+    fullReload(): void {
         this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
             this.router.navigate([`/kcluster`]);
         })

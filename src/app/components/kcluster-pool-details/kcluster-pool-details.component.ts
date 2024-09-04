@@ -178,6 +178,34 @@ export class KClusterPoolDetailsComponent implements OnInit {
             }
         }
 
+        /* try {
+            if(workertemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.firmware.bootloader.bios != null) {
+                thisWorkerTemplate.firmware = "bios";
+            }
+        } catch (e: any) {
+            thisWorkerTemplate.firmware = "";
+        }
+
+        try {
+            if(workertemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.firmware.bootloader.efi != null) {
+                thisWorkerTemplate.firmware = "efi";
+            }
+        } catch (e: any) {
+            thisWorkerTemplate.firmware = "";
+        }
+
+        if(thisWorkerTemplate.firmware == "efi") {
+            try {
+                if(workertemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.firmware.bootloader.efi.secureBoot == true) {
+                    thisWorkerTemplate.secureBoot = true;
+                } else {
+                    thisWorkerTemplate.secureBoot = false;
+                }
+            } catch(e: any) {
+                thisWorkerTemplate.secureBoot = false;
+            }
+        } */
+
         thisWorkerTemplate.clusterName = workertemplate.metadata.ownerReferences[0].name;
         try {
             thisWorkerTemplate.priorityClass = workertemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.priorityClassName;

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { K8sNode } from 'src/app/models/k8s-node.model';
@@ -22,10 +22,11 @@ export class DiskListComponent implements OnInit {
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
+        private cdRef: ChangeDetectorRef,
+        private router: Router,
         private k8sService: K8sService,
         private k8sApisService: K8sApisService,
-        private dataVolumesService: DataVolumesService,
-        private router: Router
+        private dataVolumesService: DataVolumesService
     ) { }
 
     async ngOnInit(): Promise<void> {
@@ -76,6 +77,7 @@ export class DiskListComponent implements OnInit {
      * Get DataVolumes
      */
     async getDVs(): Promise<void> {
+        this.diskList = [];
         try {
             const data = await lastValueFrom(this.dataVolumesService.getDataVolumes());
             let disks = data.items;
@@ -87,11 +89,11 @@ export class DiskListComponent implements OnInit {
                 currentDisk["status"] = disks[i].status["phase"];
                 currentDisk["progress"] = disks[i].status["progress"];
                 try {                
-                    currentDisk["storageclass"] = disks[i].spec.pvc["storageClassName"];
-                    currentDisk["accessmode"] = disks[i].spec.pvc.accessModes[0];
+                    currentDisk["storageClass"] = disks[i].spec.pvc["storageClassName"];
+                    currentDisk["accessMode"] = disks[i].spec.pvc.accessModes[0];
                 } catch (e: any) {
-                    currentDisk["storageclass"] = disks[i].spec.storage["storageClassName"];
-                    currentDisk["accessmode"] = disks[i].spec.storage.accessModes[0];
+                    currentDisk["storageClass"] = disks[i].spec.storage["storageClassName"];
+                    currentDisk["accessMode"] = disks[i].spec.storage.accessModes[0];
                 }
                 currentDisk["bound"] = false;
                 if(disks[i].status["phase"].toLowerCase() == "succeeded") {
@@ -154,7 +156,7 @@ export class DiskListComponent implements OnInit {
                     let newSize = diskSize.trim() + "Gi";
                     const data = await lastValueFrom(this.k8sService.resizePersistentVolumeClaims(diskNamespace, diskName, newSize));
                     this.hideComponent("modal-resize");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -293,7 +295,7 @@ export class DiskListComponent implements OnInit {
             try {
                 const data = await lastValueFrom(this.dataVolumesService.createDataVolume(thisDv));
                 this.hideComponent("modal-new");
-                this.reloadComponent();
+                this.fullReload();
             } catch (e: any) {
                 alert(e.error.message);
                 console.log(e);
@@ -350,7 +352,7 @@ export class DiskListComponent implements OnInit {
                     }
                     let deleteDataVolume = await lastValueFrom(this.dataVolumesService.deleteDataVolume(diskNamespace, diskName));
                     this.hideComponent("modal-delete");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -377,7 +379,16 @@ export class DiskListComponent implements OnInit {
     /*
      * Reload this component
      */
-    reloadComponent(): void {
+    async reloadComponent(): Promise<void> {
+        await this.getDVs();
+        await this.getStorageClasses();
+        await this.cdRef.detectChanges();
+    }
+
+    /*
+     * full reload
+     */
+    fullReload(): void {
         this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
             this.router.navigate([`/dsklist`]);
         })

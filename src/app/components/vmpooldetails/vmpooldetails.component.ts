@@ -222,6 +222,34 @@ export class VmpooldetailsComponent implements OnInit {
             console.log(e);
         }
 
+        try {
+            if(data.spec.virtualMachineTemplate.spec.template.spec.domain.firmware.bootloader.bios != null) {
+                this.activePool.firmware = "bios";
+            }
+        } catch (e: any) {
+            this.activePool.firmware = "";
+        }
+
+        try {
+            if(data.spec.virtualMachineTemplate.spec.template.spec.domain.firmware.bootloader.efi != null) {
+                this.activePool.firmware = "efi";
+            }
+        } catch (e: any) {
+            this.activePool.firmware = "";
+        }
+
+        if(this.activePool.firmware == "efi") {
+            try {
+                if(data.spec.virtualMachineTemplate.spec.template.spec.domain.firmware.bootloader.efi.secureBoot == true) {
+                    this.activePool.secureBoot = true;
+                } else {
+                    this.activePool.secureBoot = false;
+                }
+            } catch(e: any) {
+                this.activePool.secureBoot = false;
+            }
+        }
+
         this.poolNetwork.name = data.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces[0].name;
         try {
             this.poolNetwork.network = data.spec.virtualMachineTemplate.spec.template.spec.networks[0].multus.networkName;

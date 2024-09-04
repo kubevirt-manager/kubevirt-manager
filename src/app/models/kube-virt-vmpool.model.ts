@@ -16,6 +16,8 @@ export class KubeVirtVMPool {
     memory:                 string  = "";
     instType:               string  = "";
     priorityClass:          string  = "";
+    firmware:               string  = "";
+    secureBoot:            boolean  = false;
     labels:                   [{}]  = [{}];
     vmlist:           KubeVirtVM[]  = [];
     hasLiveness:           boolean  = false;

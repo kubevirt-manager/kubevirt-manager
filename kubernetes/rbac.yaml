@@ -5,7 +5,7 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.4.0
+    kubevirt-manager.io/version: 1.4.1
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -14,11 +14,17 @@ metadata:
   name: kubevirt-manager
 rules:
   - apiGroups: [""]
-    resources: ["nodes", "namespaces"]
+    resources: ["nodes", "namespaces", "pods"]
     verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
   - apiGroups: [""]
     resources: ["customresourcedefinitions"]
     verbs: ["get", "list"]
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies"]
+    verbs: ["*"]
   - apiGroups: [""]
     resources: ["persistentvolumeclaims", "persistentvolumes", "services", "secrets", "serviceaccounts", "configmaps"]
     verbs: ["*"]
@@ -26,7 +32,10 @@ rules:
     resources: ["deployments"]
     verbs: ["*"]
   - apiGroups: ["rbac.authorization.k8s.io"]
-    resources: ["rolebindings"]
+    resources: ["role", "clusterrole"]
+    verbs: ["get", "list"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["rolebindings", "clusterrolebindings"]
     verbs: ["*"]
   - apiGroups: ["storage.k8s.io"]
     resources: ["storageclasses"]
@@ -84,7 +93,7 @@ metadata:
   name: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.4.0
+    kubevirt-manager.io/version: 1.4.1
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -120,7 +129,7 @@ metadata:
   name: kubevirt-manager-kccm
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.4.0
+    kubevirt-manager.io/version: 1.4.1
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -136,100 +145,36 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: kubevirt-manager-cas-workload
 rules:
-  - apiGroups:
-    - ""
-    resources:
-    - namespaces
-    - persistentvolumeclaims
-    - persistentvolumes
-    - pods
-    - replicationcontrollers
-    - services
-    verbs:
-    - get
-    - list
-    - watch
-  - apiGroups:
-    - ""
-    resources:
-    - nodes
-    verbs:
-    - get
-    - list
-    - update
-    - watch
-  - apiGroups:
-    - ""
-    resources:
-    - pods/eviction
-    verbs:
-    - create
-  - apiGroups:
-    - policy
-    resources:
-    - poddisruptionbudgets
-    verbs:
-    - list
-    - watch
-  - apiGroups:
-    - storage.k8s.io
-    resources:
-    - csinodes
-    - storageclasses
-    - csidrivers
-    - csistoragecapacities
-    verbs:
-    - get
-    - list
-    - watch
-  - apiGroups:
-    - batch
-    resources:
-    - jobs
-    verbs:
-    - list
-    - watch
-  - apiGroups:
-    - apps
-    resources:
-    - daemonsets
-    - replicasets
-    - statefulsets
-    verbs:
-    - list
-    - watch
-  - apiGroups:
-    - ""
-    resources:
-    - events
-    verbs:
-    - create
-    - patch
-  - apiGroups:
-    - ""
-    resources:
-    - configmaps
-    verbs:
-    - create
-    - delete
-    - get
-    - update
-  - apiGroups:
-    - coordination.k8s.io
-    resources:
-    - leases
-    verbs:
-    - create
-    - get
-    - update
-  - apiGroups:
-    - ""
-    resources:
-    - secrets
-    verbs:
-    - get
-    - list
-    - watch
+  - apiGroups: [""]
+    resources: ["namespaces", "persistentvolumeclaims", "persistentvolumes", "pods", "replicationcontrollers", "services", "secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch", "udate"]
+  - apiGroups: [""]
+    resources: ["pods/eviction"]
+    verbs: ["create"]
+  - apiGroups: ["policy"]
+    resources: ["poddisruptionbudgets"]
+    verbs: ["list", "watch"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["csinodes", "storageclasses", "csidrivers", "csistoragecapacities"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["daemonsets", "replicasets", "statefulsets"]
+    verbs: ["list", "watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create", "delete", "get", "update"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["create", "get", "update"]
 
 ---
 kind: ClusterRole
@@ -237,27 +182,43 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: kubevirt-manager-cas-management
 rules:
-  - apiGroups:
-    - cluster.x-k8s.io
-    resources:
-    - machinedeployments
-    - machinedeployments/scale
-    - machines
-    - machinesets
-    - machinepools
-    verbs:
-    - get
-    - list
-    - update
-    - watch
-  - apiGroups:
-    - infrastructure.cluster.x-k8s.io
-    resources:
-    - kubevirtcluster
-    - kubevirtmachinetemplate
-    - kubevirtmachinetemplates
-    verbs:
-    - get
-    - list
-    - update
-    - watch
+  - apiGroups: ["cluster.x-k8s.io"]
+    resources: ["machinedeployments", "machinedeployments/scale", "machines", "machinesets", "machinepools"]
+    verbs: ["get", "list", "watch", "udate"]
+  - apiGroups: ["infrastructure.cluster.x-k8s.io"]
+    resources: ["kubevirtcluster", "kubevirtmachinetemplate", "kubevirtmachinetemplates"]
+    verbs: ["get", "list", "watch", "udate"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubevirt-manager-cas-workload
+  labels:
+    app: kubevirt-manager
+    kubevirt-manager.io/version: 1.4.1
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubevirt-manager-cas-workload
+subjects:
+- kind: ServiceAccount
+  name: kubevirt-manager
+  namespace: kubevirt-manager
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubevirt-manager-cas-management
+  labels:
+    app: kubevirt-manager
+    kubevirt-manager.io/version: 1.4.1
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubevirt-manager-cas-management
+subjects:
+- kind: ServiceAccount
+  name: kubevirt-manager
+  namespace: kubevirt-manager

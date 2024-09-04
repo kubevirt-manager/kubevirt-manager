@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { Image } from 'src/app/interfaces/image';
@@ -18,6 +18,7 @@ export class ImagesComponent implements OnInit {
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
+        private cdRef: ChangeDetectorRef,
         private router: Router,
         private k8sService: K8sService,
         private kubevirtMgrService: KubevirtMgrService
@@ -40,6 +41,7 @@ export class ImagesComponent implements OnInit {
      * Get the list of Images
      */
     async getImages(): Promise<void> {
+        this.imageList = [];
         let currentImage = new Images;
         const data = await lastValueFrom(this.kubevirtMgrService.getImages());
         let images = data.items;
@@ -104,8 +106,8 @@ export class ImagesComponent implements OnInit {
             } else {
                 try {
                     const data = await lastValueFrom(this.kubevirtMgrService.createImage(myImage));
-                    this.hideComponent("model-new");
-                    this.reloadComponent(); 
+                    this.hideComponent("modalnew");
+                    this.fullReload(); 
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -229,7 +231,7 @@ export class ImagesComponent implements OnInit {
                 try {
                     let deleteImage = await lastValueFrom(this.kubevirtMgrService.deleteImage(imageNamespace, imageName));
                     this.hideComponent("modal-delete");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -414,8 +416,8 @@ export class ImagesComponent implements OnInit {
                 }
                 try {
                     const data = await lastValueFrom(this.kubevirtMgrService.editImage(myImage));
-                    this.hideComponent("model-edit");
-                    this.reloadComponent();
+                    this.hideComponent("modaledit");
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -442,7 +444,15 @@ export class ImagesComponent implements OnInit {
     /*
      * Reload this component
      */
-    reloadComponent(): void {
+    async reloadComponent(): Promise<void> {
+        await this.getImages();
+        await this.cdRef.detectChanges();
+    }
+
+    /*
+     * full reload
+     */
+    fullReload(): void {
         this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
             this.router.navigate([`/imagelist`]);
         })

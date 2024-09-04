@@ -61,6 +61,11 @@
                           <dd>CPU Cores: {{activePool.machineTemplate.cores}} </dd>
                           <dd>CPU Threads: {{activePool.machineTemplate.threads}} </dd>
                           <dd>Total VM Memory: {{activePool.machineTemplate.memory}} </dd>
+                          <!-- BIOS / UEFI / Secure Boot
+                          <br>
+                          <dd>Firmware: {{activePool.machineTemplate.firmware}} </dd>
+                          <dd>Secure Boot: {{activePool.machineTemplate.secureBoot}} </dd> 
+                          -->
                        </div>
                        <!-- Templated VM -->
                        <ng-template #vmTemplated>
@@ -71,6 +76,11 @@
                           <dd>Instance Type: {{activePool.machineTemplate.instType}} </dd>
                           <dd>Total vCPU: {{activePool.machineTemplate.cores}} </dd>
                           <dd>Total VM Memory: {{activePool.machineTemplate.memory}} </dd>
+                          <!-- BIOS / UEFI / Secure Boot
+                          <br>
+                          <dd>Firmware: {{activePool.machineTemplate.firmware}} </dd>
+                          <dd>Secure Boot: {{activePool.machineTemplate.secureBoot}} </dd> 
+                          -->
                        </ng-template>
                        <hr>
                        <dt>

@@ -24,6 +24,7 @@ import { KClusterDetailsComponent } from './components/kcluster-details/kcluster
 import { KClusterPoolDetailsComponent } from './components/kcluster-pool-details/kcluster-pool-details.component';
 import { ImagesComponent } from './components/images/images.component';
 import { SSHKeysComponent } from './components/sshkeys/sshkeys.component';
+import { FirewallListComponent } from './components/firewall-list/firewall-list.component';
 
 @NgModule({ declarations: [
         AppComponent,
@@ -47,6 +48,7 @@ import { SSHKeysComponent } from './components/sshkeys/sshkeys.component';
         KClusterPoolDetailsComponent,
         ImagesComponent,
         SSHKeysComponent,
+        FirewallListComponent
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
         AppRoutingModule,

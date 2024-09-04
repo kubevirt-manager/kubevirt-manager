@@ -22,6 +22,21 @@ export interface VirtualMachine {
                 nodeSelector?: {};
                 priorityClassName?: string;
                 domain: {
+                    firmware?: {
+                        bootloader?: {
+                            efi?: {
+                                secureBoot?: false|true;
+                            };
+                            bios?: {
+                                useSerial?: false|true;
+                            };
+                        }
+                    };
+                    features?: {
+                        smm?: {
+                            enabled?: false|true;
+                        }
+                    };
                     cpu?: {
                         sockets: number;
                         threads: number;

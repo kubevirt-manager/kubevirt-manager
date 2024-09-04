@@ -29,6 +29,21 @@ export interface VirtualMachinePool {
                     };
                     spec: {
                         domain: {
+                            firmware?: {
+                                bootloader?: {
+                                    efi?: {
+                                        secureBoot?: false|true;
+                                    };
+                                    bios?: {
+                                        useSerial?: false|true;
+                                    };
+                                }
+                            };
+                            features?: {
+                                smm?: {
+                                    enabled?: false|true;
+                                }
+                            };
                             cpu?: {
                                 cores: number;
                                 sockets: number;

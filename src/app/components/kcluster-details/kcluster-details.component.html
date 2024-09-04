@@ -501,6 +501,22 @@
                           <option>Value 1</option>
                       </select>
                       <div class="row">
+                        <div class="col-6">
+                            <label for="newnodepool-firmware">Firmware:</label>
+                            <select #newnodepoolfirmware class="custom-select rounded-0" name="newnodepool-firmware" id="newnodepool-firmware">
+                                <option value="bios" selected>BIOS</option>
+                                <option value="uefi">UEFI</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label for="newnodepool-secureboot">Secure Boot:</label>
+                            <select #newnodepoolsecureboot class="custom-select rounded-0" name="newnodepool-secureboot" id="newnodepool-secureboot" disabled>
+                                <option value="false" selected>false</option>
+                                <option value="true">true</option>
+                            </select>
+                        </div>
+                      </div>
+                      <div class="row">
                           <div class="col-4">
                             <label for="newnodepool-replicas">Number of Nodes:</label>
                             <input #newnodepoolreplicas type="number" class="form-control" id="newnodepool-replicas" name="newnodepool-replicas">

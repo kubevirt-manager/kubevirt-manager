@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { K8sService } from 'src/app/services/k8s.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
 import { K8sNode } from 'src/app/models/k8s-node.model';
@@ -13,7 +13,7 @@ import { DataVolumesService } from 'src/app/services/data-volumes.service';
 import { DataVolume } from 'src/app/interfaces/data-volume';
 import { VirtualMachine } from 'src/app/interfaces/virtual-machine';
 import { KubevirtMgrService } from 'src/app/services/kubevirt-mgr.service';
-import { Images } from 'src/app/models/images.model';
+import { FirewallLabels } from 'src/app/models/firewall-labels.model';
 
 
 @Component({
@@ -30,12 +30,14 @@ export class VmlistComponent implements OnInit {
     networkList: NetworkAttach[] = [];
     netAttachList: NetworkAttach[] = []
     networkCheck: boolean = false;
+    firewallLabels: FirewallLabels = new FirewallLabels;
 
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
-        private k8sService: K8sService,
+        private cdRef: ChangeDetectorRef,
         private router: Router,
+        private k8sService: K8sService,
         private dataVolumesService: DataVolumesService,
         private k8sApisService: K8sApisService,
         private kubeVirtService: KubeVirtService,
@@ -60,6 +62,7 @@ export class VmlistComponent implements OnInit {
      * Load Nodes
      */
     async getNodes(): Promise<void> {
+        this.nodeList = [];
         try {
             let currentNode = new K8sNode;
             const data = await lastValueFrom(this.k8sService.getNodes());
@@ -90,6 +93,7 @@ export class VmlistComponent implements OnInit {
      * Load VM List
      */
     async getVMs(): Promise<void> {
+        this.vmList = [];
         let currentVm = new KubeVirtVM;
         const data = await lastValueFrom(this.kubeVirtService.getVMs());
         let vms = data.items;
@@ -338,6 +342,8 @@ export class VmlistComponent implements OnInit {
         newvmcpumemthreads: string,
         newvmcpumemmemory: string,
         newvmpriorityclass: string,
+        newvmfirmware: string,
+        newvmsecureboot: string,
         newvmdiskonetype: string,
         newvmdiskonevalue: string,
         newvmdiskonesize: string,
@@ -449,15 +455,13 @@ export class VmlistComponent implements OnInit {
                 Object.assign(tmpLabels, thisLabel);
             }
 
-            /* Load other labels OPTIONAL */
-            let thisLabel = {'kubevirt.io/domain': newvmname};
-            Object.assign(tmpLabels, thisLabel);
-
-            let kubevirtManagerLabel = {'kubevirt-manager.io/managed': "true"};
-            Object.assign(tmpLabels, kubevirtManagerLabel);
-
             /* Populate our VM with our Labels */
+            Object.assign(tmpLabels, { 'kubevirt.io/domain': newvmname });
+            Object.assign(tmpLabels, { 'kubevirt-manager.io/managed': "true" });
+            Object.assign(tmpLabels, { [this.firewallLabels.VirtualMachine]: newvmname });
             thisVirtualMachine.metadata.labels = tmpLabels;
+            thisVirtualMachine.spec.template.metadata.labels = tmpLabels;
+
 
             /* Node Selector */
             if(newvmnode != "auto-select") {
@@ -468,6 +472,7 @@ export class VmlistComponent implements OnInit {
             let cloudconfig  = "#cloud-config\n";
                 cloudconfig += "manage_etc_hosts: true\n";
                 cloudconfig += "hostname: " + newvmname + "\n";
+                cloudconfig += "ssh_pwauth: true\n";
             let netconfig  ="version: 1\n";
                 netconfig += "config:\n";
                 netconfig += "    - type: physical\n";
@@ -720,8 +725,8 @@ export class VmlistComponent implements OnInit {
 
             /* UserData Setup */
             if(newvmuserdatausername != "") {
-                cloudconfig += "user: " + newvmuserdatausername + "\n";
                 Object.assign(thisVirtualMachine.metadata.labels, { "cloud-init.kubevirt-manager.io/username" : newvmuserdatausername });
+                Object.assign(thisVirtualMachine.spec.template.metadata.labels, { "cloud-init.kubevirt-manager.io/username" : newvmuserdatausername });
             }
             if(newvmuserdataauth.toLowerCase() == "ssh") {
                 if (newvmuserdatassh != "") {
@@ -732,8 +737,15 @@ export class VmlistComponent implements OnInit {
                     try {
                         let sshSecret = await lastValueFrom(this.k8sService.getSecret(newvmnamespace, newvmuserdatassh));
                         let sshKey = sshSecret.data["ssh-privatekey"];
-                        cloudconfig += "ssh_authorized_keys:\n";
-                        cloudconfig += "  - " + atob(sshKey) + "\n";
+                        cloudconfig += "chpasswd:\n";
+                        cloudconfig += "  expire: true\n";
+                        cloudconfig += "users:\n";
+                        cloudconfig += "  - name: " + newvmuserdatausername + "\n";
+                        cloudconfig += "    lock_passwd: false\n";
+                        cloudconfig += "    sudo: ALL=(ALL) NOPASSWD:ALL\n";
+                        cloudconfig += "    shell: /bin/bash\n";
+                        cloudconfig += "    ssh_authorized_keys:\n";
+                        cloudconfig += "      - " + atob(sshKey) + "\n";
                     } catch (e: any) {
                         alert(e.error.message);
                         console.log(e.error.message);
@@ -741,7 +753,16 @@ export class VmlistComponent implements OnInit {
                 }
             } else {
                 if (newvmuserdatapassword != "") {
-                    cloudconfig += "password: " + newvmuserdatapassword + "\n";
+                    cloudconfig += "chpasswd:\n";
+                    cloudconfig += "  expire: true\n";
+                    cloudconfig += "  users:\n";
+                    cloudconfig += "    - {name: " + newvmuserdatausername + ", password: " + newvmuserdatapassword + ", type: text}\n"
+                    cloudconfig += "users:\n";
+                    cloudconfig += "  - name: " + newvmuserdatausername + "\n";
+                    cloudconfig += "    lock_passwd: false\n";
+                    cloudconfig += "    sudo: ALL=(ALL) NOPASSWD:ALL\n";
+                    cloudconfig += "    shell: /bin/bash\n";
+                    cloudconfig += "    plain_text_passwd: " + newvmuserdatapassword + "\n";
                 }
             }
 
@@ -789,7 +810,9 @@ export class VmlistComponent implements OnInit {
             let net1 = {};
             let iface1 = {};
             if(newvmnetworkone != "podNetwork") {
-                net1 = {'name': "net1", 'multus': {'networkName': newvmnetworkone}};    
+                net1 = {'name': "net1", 'multus': {'networkName': newvmnetworkone}};
+                Object.assign(thisVirtualMachine.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworkone});
+                Object.assign(thisVirtualMachine.spec.template.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworkone});
             } else {
                 net1 = {'name': "net1", 'pod': {}};
             }
@@ -807,15 +830,22 @@ export class VmlistComponent implements OnInit {
                 let net2 = {};
                 let iface2 = {};
                 if(newvmnetworktwo != "podNetwork") {
-                    net2 = {'name': "net2", 'multus': {'networkName': newvmnetworktwo}}; 
+                    net2 = {'name': "net2", 'multus': {'networkName': newvmnetworktwo}};
+                    if(newvmnetworkone != "podNetwork") {
+                        Object.assign(thisVirtualMachine.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworkone, newvmnetworktwo});
+                        Object.assign(thisVirtualMachine.spec.template.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworkone, newvmnetworktwo});
+                    } else {
+                        Object.assign(thisVirtualMachine.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworktwo});
+                        Object.assign(thisVirtualMachine.spec.template.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworktwo});
+                    }
                 } else {
                     net2 = {'name': "net2", 'pod': {}};
                 }
                 networks.push(net2);
                 if(newvmnetworktypetwo == "bridge") {
-                    let iface2 = {'name': "net2", 'bridge': {}};
+                    iface2 = {'name': "net2", 'bridge': {}};
                 } else {
-                    let iface2 = {'name': "net2", 'masquerade': {}};
+                    iface2 = {'name': "net2", 'masquerade': {}};
                 }
                 interfaces.push(iface2);
             }
@@ -825,6 +855,25 @@ export class VmlistComponent implements OnInit {
             if(disks.length > 0) { thisVirtualMachine.spec.template.spec.domain.devices.disks = disks; }
             if(interfaces.length > 0) { thisVirtualMachine.spec.template.spec.domain.devices.interfaces = interfaces; }
             if(volumes.length > 0) { thisVirtualMachine.spec.template.spec.volumes = volumes; }
+
+            /* Firmware and Secure Boot */
+            if(newvmfirmware.toLowerCase() == "bios") {
+                let firmware = { 'bootloader': { 'bios': {}}};
+                thisVirtualMachine.spec.template.spec.domain.firmware = firmware;
+            } else if (newvmfirmware.toLowerCase() == "uefi") {
+                let firmware = {};
+                if(newvmsecureboot == "true") {
+                    firmware = { 'bootloader': { 'efi': { 'secureBoot': true }}};
+                } else {
+                    firmware = { 'bootloader': { 'efi': { 'secureBoot': false }}};
+                }
+                let features = { 'smm': { 'enabled': true }};
+                thisVirtualMachine.spec.template.spec.domain.firmware = firmware;
+                thisVirtualMachine.spec.template.spec.domain.features = features;
+            } else {
+                let firmware = { 'bootloader': { 'bios': {}}};
+                thisVirtualMachine.spec.template.spec.domain.firmware = firmware;
+            }
 
             /* Create the VM */
             if(newvmtype.toLowerCase() == "custom") {
@@ -848,7 +897,7 @@ export class VmlistComponent implements OnInit {
             try {
                 let data = await lastValueFrom(this.kubeVirtService.createVm(thisVirtualMachine));
                 this.hideComponent("modal-newvm");
-                this.reloadComponent();
+                this.fullReload();
             } catch (e: any) {
                 alert(e.error.message);
                 console.log(e.error.message);
@@ -909,7 +958,7 @@ export class VmlistComponent implements OnInit {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.scaleVm(resizeNamespace, resizeName, cores, threads, sockets, memory));
                     this.hideComponent("modal-resize");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e.error.message);
@@ -960,7 +1009,7 @@ export class VmlistComponent implements OnInit {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
                     this.hideComponent("modal-delete");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e.error.message);
@@ -1021,7 +1070,7 @@ export class VmlistComponent implements OnInit {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.changeVmType(vmNamespace, vmName, vmType));
                     this.hideComponent("modal-type");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e.error.message);
@@ -1053,6 +1102,22 @@ export class VmlistComponent implements OnInit {
         } else if (vmOperation == "delete") {
             const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
             this.reloadComponent();
+        }
+    }
+
+    /*
+     * New VM: Change Firmware
+     */
+    async onChangeFirmware(firmware: string) {
+        let secureBootValueField = document.getElementById("newvm-secureboot");
+        if(firmware == "uefi") {
+            if (secureBootValueField != null) {
+                secureBootValueField.removeAttribute("disabled");
+            }
+        } else if (firmware == "bios") {
+            if (secureBootValueField != null) {
+                secureBootValueField.setAttribute("disabled", "disabled");
+            }
         }
     }
 
@@ -1393,7 +1458,7 @@ export class VmlistComponent implements OnInit {
      */
     openNoVNC(namespace: string, name: string): void {
         let url = "/assets/noVNC/vnc.html?resize=scale&autoconnect=1&path=";
-        let path = "k8s/apis/subresources.kubevirt.io/v1alpha3/namespaces/" + namespace + "/virtualmachineinstances/" + name + "/vnc";
+        let path = "/k8s/apis/subresources.kubevirt.io/v1alpha3/namespaces/" + namespace + "/virtualmachineinstances/" + name + "/vnc";
         let fullpath = url + path;
         window.open(fullpath, "kubevirt-manager.io: CONSOLE", "width=800,height=600,location=no,toolbar=no,menubar=no,resizable=yes");
     }
@@ -1401,7 +1466,16 @@ export class VmlistComponent implements OnInit {
     /*
      * Reload this component
      */
-    reloadComponent(): void {
+    async reloadComponent(): Promise<void> {
+        await this.getVMs();
+        await this.getNodes();
+        this.cdRef.detectChanges();
+    }
+
+    /*
+     * Full Reload
+     */
+    fullReload(): void {
         this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
             this.router.navigate([`/vmlist`]);
         })

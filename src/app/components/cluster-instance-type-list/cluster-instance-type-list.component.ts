@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { KubeVMClusterInstanceType } from 'src/app/models/kube-vmcluster-instance-type.model';
@@ -17,6 +17,7 @@ export class ClusterInstanceTypeListComponent implements OnInit {
     myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
 
     constructor(
+        private cdRef: ChangeDetectorRef,
         private router: Router,
         private kubeVirtService: KubeVirtService
     ) { }
@@ -37,6 +38,7 @@ export class ClusterInstanceTypeListComponent implements OnInit {
      * Get the list of Instance Types
      */
     async getClusterInstanceTypes(): Promise<void> {
+        this.clusterInstanceTypeList = [];
         let currentClusterInstanceType = new KubeVMClusterInstanceType;
         const data = await lastValueFrom(this.kubeVirtService.getClusterInstanceTypes());
         let types = data.items;
@@ -85,8 +87,8 @@ export class ClusterInstanceTypeListComponent implements OnInit {
             if(typeName != null) {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.editClusterInstanceType(typeName, cpuSize, memorySize));
-                    this.hideComponent("model-edit");
-                    this.reloadComponent();
+                    this.hideComponent("modal-edit");
+                    this.fullReload(); 
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -132,8 +134,8 @@ export class ClusterInstanceTypeListComponent implements OnInit {
             if(typeName != null) {
                 try {
                     const data = await lastValueFrom(await this.kubeVirtService.deleteClusterInstanceType(typeName));
-                    this.hideComponent("model-delete");
-                    this.reloadComponent();
+                    this.hideComponent("modal-delete");
+                    this.fullReload(); 
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -167,7 +169,7 @@ export class ClusterInstanceTypeListComponent implements OnInit {
     async applyNew(typeName: string, typeCPU: string, typeMemory: string): Promise<void> {
         if(typeName != "" && typeCPU != "" && typeMemory != "") {
             let myCITTemplate: VirtualMachineClusterInstanceType = {
-                apiVersion: 'instancetype.kubevirt.io/v1alpha1',
+                apiVersion: 'instancetype.kubevirt.io/v1beta1',
                 kind: 'VirtualMachineClusterInstancetype',
                 metadata: {
                     name: typeName
@@ -177,14 +179,14 @@ export class ClusterInstanceTypeListComponent implements OnInit {
                         guest: Number(typeCPU)
                     },
                     memory: {
-                        guest: typeMemory
+                        guest: typeMemory + "Gi"
                     }
                 }
             };
             try {
                 const data = await lastValueFrom(this.kubeVirtService.createClusterInstanceType(myCITTemplate));
-                this.hideComponent("model-new");
-                this.reloadComponent(); 
+                this.hideComponent("modal-new");
+                this.fullReload(); 
             } catch (e: any) {
                 alert(e.error.message);
                 console.log(e);
@@ -212,7 +214,14 @@ export class ClusterInstanceTypeListComponent implements OnInit {
     /*
      * Reload this component
      */
-    reloadComponent(): void {
+    async reloadComponent(): Promise<void> {
+        await this.getClusterInstanceTypes();
+        await this.cdRef.detectChanges();
+    }
+
+    /*full reloadReload this component
+     */
+    fullReload(): void {
         this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
             this.router.navigate([`/citlist`]);
         })

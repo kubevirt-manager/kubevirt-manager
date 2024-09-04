@@ -7,16 +7,36 @@
     width: 80%;
     /* padding: 6px 5px 4px 5px; */
     /* border-bottom: 1px outset; */
-  }
+}
   
-  #status {
+#status {
     text-align: center;
-  }
+}
   
-  #screen {
+#screen {
     flex: 1; /* fill remaining space */
     overflow: hidden;
     /* position: fixed; */
     width: 80%;
     height: 80%;
-  }
+}
+
+.log-viewer {
+    height: 800px;
+    width: 1600px;
+}
+
+.log-stream {
+    height: calc(100% - 8px);
+    padding: 12px;
+    font-family: monospace;
+    line-height: 18px;
+    background-color: #0F171C;
+    color: #dadada;
+    overflow-y: scroll;
+    scroll-behavior: smooth;
+
+    span {
+        margin-left: 6px;
+    }
+}

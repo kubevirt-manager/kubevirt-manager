@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { lastValueFrom } from 'rxjs';
 import { LoadBalancerPort } from 'src/app/models/load-balancer-port.model';
@@ -20,8 +20,9 @@ export class LoadBalancersComponent implements OnInit {
     charDot = '.';
 
     constructor(
-        private k8sService: K8sService,
+        private cdRef: ChangeDetectorRef,
         private router: Router,
+        private k8sService: K8sService,
         private kubeVirtService: KubeVirtService
     ) { }
 
@@ -41,6 +42,7 @@ export class LoadBalancersComponent implements OnInit {
      * Get Services from Kubernetes
      */
     async getLoadBalancers(): Promise<void> {
+        this.loadBalancerList = [];
         let currentLoadBalancer = new LoadBalancer;
         try {
             const data = await lastValueFrom(this.k8sService.getServices());
@@ -227,7 +229,7 @@ export class LoadBalancersComponent implements OnInit {
                 try {
                     let newTypeData = await lastValueFrom(this.k8sService.changeServiceType(lbNamespace, lbName, newType));
                     this.hideComponent("modal-type");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -392,7 +394,7 @@ export class LoadBalancersComponent implements OnInit {
             try {
                 let newLbData = await lastValueFrom(this.k8sService.createService(myService));
                 this.hideComponent("modal-new");
-                this.reloadComponent();
+                this.fullReload();
             } catch (e: any) {
                 alert(e.error.message);
                 console.log(e);
@@ -448,7 +450,15 @@ export class LoadBalancersComponent implements OnInit {
     /*
      * Reload this component
      */
-    reloadComponent(): void {
+    async reloadComponent(): Promise<void> {
+        await this.getLoadBalancers();
+        await this.cdRef.detectChanges();
+    }
+
+    /*
+     * full reload
+     */
+    fullReload(): void {
         this.router.navigateByUrl('/refresh',{skipLocationChange:true}).then(()=>{
             this.router.navigate([`/lblist`]);
         })

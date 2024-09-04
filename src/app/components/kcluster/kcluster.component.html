@@ -319,6 +319,24 @@
                       <select #newclustercontrolplanepc class="custom-select rounded-0" name="newcluster-controlplane-pc" id="newcluster-controlplane-pc">
                           <option>Value 1</option>
                       </select>
+                      <!-- HIDE EFI/UEFI/BIOS & Secure Boot
+                      <div class="row">
+                        <div class="col-6">
+                            <label for="newcluster-controlplane-firmware">Firmware:</label>
+                            <select #newclustercontrolplanefirmware class="custom-select rounded-0" name="newcluster-controlplane-firmware" id="newcluster-controlplane-firmware" (change)="onChangeStdControlPlaneFirmware(newclustercontrolplanefirmware.value)">
+                                <option value="bios" selected>BIOS</option>
+                                <option value="uefi">UEFI</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label for="newcluster-controlplane-secureboot">Secure Boot:</label>
+                            <select #newclustercontrolplanesecureboot class="custom-select rounded-0" name="newcluster-controlplane-secureboot" id="newcluster-controlplane-secureboot" disabled>
+                                <option value="false" selected>false</option>
+                                <option value="true">true</option>
+                            </select>
+                        </div>
+                      </div> 
+                      -->
                       <label for="newcluster-controlplane-replicas">Number of Nodes: <i>(odd number)</i></label>
                       <input #newclustercontrolplanereplicas type="number" class="form-control" id="newcluster-controlplane-replicas" name="newcluster-controlplane-replicas">
                       <br>
@@ -388,6 +406,24 @@
                       <select #newclusternodepoolpc class="custom-select rounded-0" name="newcluster-nodepool-pc" id="newcluster-nodepool-pc">
                           <option>Value 1</option>
                       </select>
+                      <!-- HIDE EFI/UEFI/BIOS & Secure Boot
+                      <div class="row">
+                        <div class="col-6">
+                            <label for="newcluster-nodepool-firmware">Firmware:</label>
+                            <select #newclusternodepoolfirmware class="custom-select rounded-0" name="newcluster-nodepool-firmware" id="newcluster-nodepool-firmware" (change)="onChangeStdNodePoolFirmware(newclusternodepoolfirmware.value)">
+                                <option value="bios" selected>BIOS</option>
+                                <option value="uefi">UEFI</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label for="newcluster-nodepool-secureboot">Secure Boot:</label>
+                            <select #newclusternodepoolsecureboot class="custom-select rounded-0" name="newcluster-nodepool-secureboot" id="newcluster-nodepool-secureboot" disabled>
+                                <option value="false" selected>false</option>
+                                <option value="true">true</option>
+                            </select>
+                        </div>
+                      </div>
+                      -->
                       <div class="row">
                           <div class="col-4">
                             <label for="newcluster-nodepool-replicas">Number of Nodes:</label>
@@ -468,7 +504,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-newcluster")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)='applyNewCluster(newclustername.value, newclusternamespace.value, newclusterlabelkeyone.value, newclusterlabelvalueone.value, newclusterlabelkeytwo.value, newclusterlabelvaluetwo.value, newclusterlabelkeythree.value, newclusterlabelvaluethree.value, newclusterversion.value, newclustercni.value, newclustercniversion.value, newclusterautoscaler.value, newclusterdns.value, newclusterpodcidr.value, newclustersvccidr.value, newclusternetwork.value, newclusternetworktype.value, newclustercontrolplaneeptype.value, newclustercontrolplaneepannotationskeyone.value, newclustercontrolplaneepannotationsvalueone.value, newclustercontrolplaneepannotationskeytwo.value, newclustercontrolplaneepannotationsvaluetwo.value, newclustercontrolplaneosdist.value, newclustercontrolplaneosversion.value, newclustercontrolplanetype.value, newclustercontrolplanecpumemsockets.value, newclustercontrolplanecpumemcores.value, newclustercontrolplanecpumemthreads.value, newclustercontrolplanecpumemmemory.value, newclustercontrolplanepc.value, newclustercontrolplanereplicas.value, newclustercontrolplanedisksize.value, newclustercontrolplanedisksc.value, newclustercontrolplanediskam.value, newclustercontrolplanediskcm.value,  newclusternodepoolname.value, newclusternodepoolosdist.value, newclusternodepoolosversion.value, newclusternodepooltype.value, newclusternodepoolcpumemsockets.value, newclusternodepoolcpumemcores.value, newclusternodepoolcpumemthreads.value, newclusternodepoolcpumemmemory.value, newclusternodepoolpc.value, newclusternodepoolreplicas.value, newclusternodepoolminreplicas.value, newclusternodepoolmaxreplicas.value, newclusternodepooldisksize.value, newclusternodepooldisksc.value, newclusternodepooldiskam.value, newclusternodepooldiskcm.value, newclusterfeaturescertmanager.checked, newclusterfeaturesdashboard.checked, newclusterfeaturesmetrics.checked, newclusterfeatureshaproxyingress.checked, newclusterfeaturesnginxingress.checked, newclusterfeaturestekton.checked)'>Create</button>
+              <button type="button" class="btn btn-primary" (click)='applyNewCluster(newclustername.value, newclusternamespace.value, newclusterlabelkeyone.value, newclusterlabelvalueone.value, newclusterlabelkeytwo.value, newclusterlabelvaluetwo.value, newclusterlabelkeythree.value, newclusterlabelvaluethree.value, newclusterversion.value, newclustercni.value, newclustercniversion.value, newclusterautoscaler.value, newclusterdns.value, newclusterpodcidr.value, newclustersvccidr.value, newclusternetwork.value, newclusternetworktype.value, newclustercontrolplaneeptype.value, newclustercontrolplaneepannotationskeyone.value, newclustercontrolplaneepannotationsvalueone.value, newclustercontrolplaneepannotationskeytwo.value, newclustercontrolplaneepannotationsvaluetwo.value, newclustercontrolplaneosdist.value, newclustercontrolplaneosversion.value, newclustercontrolplanetype.value, newclustercontrolplanecpumemsockets.value, newclustercontrolplanecpumemcores.value, newclustercontrolplanecpumemthreads.value, newclustercontrolplanecpumemmemory.value, newclustercontrolplanepc.value, "newclustercontrolplanefirmware.value", "newclustercontrolplanesecureboot.value", newclustercontrolplanereplicas.value, newclustercontrolplanedisksize.value, newclustercontrolplanedisksc.value, newclustercontrolplanediskam.value, newclustercontrolplanediskcm.value,  newclusternodepoolname.value, newclusternodepoolosdist.value, newclusternodepoolosversion.value, newclusternodepooltype.value, newclusternodepoolcpumemsockets.value, newclusternodepoolcpumemcores.value, newclusternodepoolcpumemthreads.value, newclusternodepoolcpumemmemory.value, newclusternodepoolpc.value, "newclusternodepoolfirmware.value", "newclusternodepoolsecureboot.value", newclusternodepoolreplicas.value, newclusternodepoolminreplicas.value, newclusternodepoolmaxreplicas.value, newclusternodepooldisksize.value, newclusternodepooldisksc.value, newclusternodepooldiskam.value, newclusternodepooldiskcm.value, newclusterfeaturescertmanager.checked, newclusterfeaturesdashboard.checked, newclusterfeaturesmetrics.checked, newclusterfeatureshaproxyingress.checked, newclusterfeaturesnginxingress.checked, newclusterfeaturestekton.checked)'>Create</button>
             </div>
           </form>
           </div>
@@ -621,10 +657,10 @@
                     <!-- CONTROL PLANE TAB -->
                     <div class="tab-pane fade" id="newclustercustom-controlplane" role="tabpanel" aria-labelledby="newclustercustom-controlplane-tab"> 
                       <label for="newclustercustom-controlplane-type">Virtual Machine Type:</label>
-                      <select #newclustercustomcontrolplanetype class="custom-select rounded-0" name="newclustercustom-controlplane-type" id="newclustercustom-controlplane-type" (change)="onChangeControlPlaneType(newclustercustomcontrolplanetype.value)">
+                      <select #newclustercustomcontrolplanetype class="custom-select rounded-0" name="newclustercustom-controlplane-type" id="newclustercustom-controlplane-type" (change)="onChangeCustomControlPlaneType(newclustercustomcontrolplanetype.value)">
                           <option>Value 1</option>
                       </select>
-                      <div class="pane fade" id="controlplane-custom-cpu-memory" name="controlplane-custom-cpu-memory" style="display: none;" aria-hidden="true">
+                      <div class="pane fade" id="newclustercustom-controlplane-custom-cpu-memory" name="controlplane-custom-cpu-memory" style="display: none;" aria-hidden="true">
                           <label for="newclustercustom-controlplane-cpumem-sockets">Sockets:</label>
                           <input #newclustercustomcontrolplanecpumemsockets type="number" class="form-control" id="newclustercustom-controlplane-cpumem-sockets" name="newclustercustom-controlplane-cpumem-sockets">
                           <label for="newclustercustom-controlplane-cpumem-cores">Cores:</label>
@@ -638,6 +674,24 @@
                       <select #newclustercustomcontrolplanepc class="custom-select rounded-0" name="newclustercustom-controlplane-pc" id="newclustercustom-controlplane-pc">
                           <option>Value 1</option>
                       </select>
+                      <!-- HIDE EFI/UEFI/BIOS & Secure Boot
+                      <div class="row">
+                        <div class="col-6">
+                            <label for="newclustercustom-controlplane-firmware">Firmware:</label>
+                            <select #newclustercustomontrolplanefirmware class="custom-select rounded-0" name="newclustercustom-controlplane-firmware" id="newclustercustom-controlplane-firmware" (change)="onChangeCustomControlPlaneFirmware(newclustercustomontrolplanefirmware.value)">
+                                <option value="bios" selected>BIOS</option>
+                                <option value="uefi">UEFI</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label for="newclustercustom-controlplane-secureboot">Secure Boot:</label>
+                            <select #newclustercustomcontrolplanesecureboot class="custom-select rounded-0" name="newclustercustom-controlplane-secureboot" id="newclustercustom-controlplane-secureboot" disabled>
+                                <option value="false" selected>false</option>
+                                <option value="true">true</option>
+                            </select>
+                        </div>
+                      </div>
+                      -->
                       <label for="newclustercustom-controlplane-replicas">Number of Nodes: <i>(odd number)</i></label>
                       <input #newclustercustomcontrolplanereplicas type="number" class="form-control" id="newclustercustom-controlplane-replicas" name="newclustercustom-controlplane-replicas">
                       <br>
@@ -678,10 +732,10 @@
                         <label for="newclustercustom-nodepool-name">Pool Name:</label>
                         <input #newclustercustomnodepoolname type="text" class="form-control" id="newclustercustom-nodepool-name" name="newclustercustom-nodepool-name" value="default-pool">
                       <label for="newclustercustom-nodepool-type">Virtual Machine Type:</label>
-                      <select #newclustercustomnodepooltype class="custom-select rounded-0" name="newclustercustom-nodepool-type" id="newclustercustom-nodepool-type" (change)="onChangeNodePoolType(newclustercustomnodepooltype.value)">
+                      <select #newclustercustomnodepooltype class="custom-select rounded-0" name="newclustercustom-nodepool-type" id="newclustercustom-nodepool-type" (change)="onChangeCustomNodePoolType(newclustercustomnodepooltype.value)">
                           <option>Value 1</option>
                       </select>
-                      <div class="pane fade" id="nodepool-custom-cpu-memory" name="nodepool-custom-cpu-memory" style="display: none;" aria-hidden="true">
+                      <div class="pane fade" id="newclustercustom-nodepool-custom-cpu-memory" name="nodepool-custom-cpu-memory" style="display: none;" aria-hidden="true">
                           <label for="newclustercustom-nodepool-cpumem-sockets">Sockets:</label>
                           <input #newclustercustomnodepoolcpumemsockets type="number" class="form-control" id="newclustercustom-nodepool-cpumem-sockets" name="newclustercustom-nodepool-cpumem-sockets">
                           <label for="newclustercustom-nodepool-cpumem-cores">Cores:</label>
@@ -695,6 +749,24 @@
                       <select #newclustercustomnodepoolpc class="custom-select rounded-0" name="newclustercustom-nodepool-pc" id="newclustercustom-nodepool-pc">
                           <option>Value 1</option>
                       </select>
+                      <!-- HIDE EFI/UEFI/BIOS & Secure Boot
+                      <div class="row">
+                        <div class="col-6">
+                            <label for="newclustercustom-nodepool-firmware">Firmware:</label>
+                            <select #newclustercustomnodepoolfirmware class="custom-select rounded-0" name="newclustercustom-nodepool-firmware" id="newclustercustom-nodepool-firmware" (change)="onChangeCustomNodePoolFirmware(newclustercustomnodepoolfirmware.value)">
+                                <option value="bios" selected>BIOS</option>
+                                <option value="uefi">UEFI</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label for="newclustercustom-nodepool-secureboot">Secure Boot:</label>
+                            <select #newclustercustomnodepoolsecureboot class="custom-select rounded-0" name="newclustercustom-nodepool-secureboot" id="newclustercustom-nodepool-secureboot" disabled>
+                                <option value="false" selected>false</option>
+                                <option value="true">true</option>
+                            </select>
+                        </div>
+                      </div>
+                      -->
                       <label for="newclustercustom-nodepool-replicas">Number of Nodes:</label>
                       <input #newclustercustomnodepoolreplicas type="number" class="form-control" id="newclustercustom-nodepool-replicas" name="newclustercustom-nodepool-replicas">
                       <br>
@@ -737,7 +809,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-newclustercustom")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)='applyNewClusterCustom(newclustercustomname.value, newclustercustomnamespace.value, newclustercustomlabelkeyone.value, newclustercustomlabelvalueone.value, newclustercustomlabelkeytwo.value, newclustercustomlabelvaluetwo.value, newclustercustomlabelkeythree.value, newclustercustomlabelvaluethree.value, newclustercustomversion.value, newclustercustomdns.value, newclustercustompodcidr.value, newclustercustomsvccidr.value, newclustercustomnetwork.value, newclustercustomnetworktype.value, newclustercustomcontrolplaneeptype.value, newclustercustomcontrolplaneepannotationskeyone.value, newclustercustomcontrolplaneepannotationsvalueone.value, newclustercustomcontrolplaneepannotationskeytwo.value, newclustercustomcontrolplaneepannotationsvaluetwo.value, newclustercustomcontrolplanetype.value, newclustercustomcontrolplanecpumemsockets.value, newclustercustomcontrolplanecpumemcores.value, newclustercustomcontrolplanecpumemthreads.value, newclustercustomcontrolplanecpumemmemory.value, newclustercustomcontrolplanepc.value, newclustercustomcontrolplanereplicas.value, newclustercustomcpdiskurl.value, newclustercustomcontrolplanedisksize.value, newclustercustomcontrolplanedisksc.value, newclustercustomcontrolplanediskam.value, newclustercustomcontrolplanediskcm.value,  newclustercustomnodepoolname.value, newclustercustomnodepooltype.value, newclustercustomnodepoolcpumemsockets.value, newclustercustomnodepoolcpumemcores.value, newclustercustomnodepoolcpumemthreads.value, newclustercustomnodepoolcpumemmemory.value, newclustercustomnodepoolpc.value, newclustercustomnodepoolreplicas.value, newclustercustomnpdiskurl.value, newclustercustomnodepooldisksize.value, newclustercustomnodepooldisksc.value, newclustercustomnodepooldiskam.value, newclustercustomnodepooldiskcm.value)'>Create</button>
+              <button type="button" class="btn btn-primary" (click)='applyNewClusterCustom(newclustercustomname.value, newclustercustomnamespace.value, newclustercustomlabelkeyone.value, newclustercustomlabelvalueone.value, newclustercustomlabelkeytwo.value, newclustercustomlabelvaluetwo.value, newclustercustomlabelkeythree.value, newclustercustomlabelvaluethree.value, newclustercustomversion.value, newclustercustomdns.value, newclustercustompodcidr.value, newclustercustomsvccidr.value, newclustercustomnetwork.value, newclustercustomnetworktype.value, newclustercustomcontrolplaneeptype.value, newclustercustomcontrolplaneepannotationskeyone.value, newclustercustomcontrolplaneepannotationsvalueone.value, newclustercustomcontrolplaneepannotationskeytwo.value, newclustercustomcontrolplaneepannotationsvaluetwo.value, newclustercustomcontrolplanetype.value, newclustercustomcontrolplanecpumemsockets.value, newclustercustomcontrolplanecpumemcores.value, newclustercustomcontrolplanecpumemthreads.value, newclustercustomcontrolplanecpumemmemory.value, newclustercustomcontrolplanepc.value, "newclustercustomontrolplanefirmware.value", "newclustercustomcontrolplanesecureboot.value", newclustercustomcontrolplanereplicas.value, newclustercustomcpdiskurl.value, newclustercustomcontrolplanedisksize.value, newclustercustomcontrolplanedisksc.value, newclustercustomcontrolplanediskam.value, newclustercustomcontrolplanediskcm.value,  newclustercustomnodepoolname.value, newclustercustomnodepooltype.value, newclustercustomnodepoolcpumemsockets.value, newclustercustomnodepoolcpumemcores.value, newclustercustomnodepoolcpumemthreads.value, newclustercustomnodepoolcpumemmemory.value, newclustercustomnodepoolpc.value, "newclustercustomnodepoolfirmware.value", "newclustercustomnodepoolsecureboot.value", newclustercustomnodepoolreplicas.value, newclustercustomnpdiskurl.value, newclustercustomnodepooldisksize.value, newclustercustomnodepooldisksc.value, newclustercustomnodepooldiskam.value, newclustercustomnodepooldiskcm.value)'>Create</button>
             </div>
           </form>
           </div>

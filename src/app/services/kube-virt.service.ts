@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { VirtualMachineClusterInstanceType } from '../interfaces/virtual-machine-cluster-instance-type';
 import { VirtualMachine } from '../interfaces/virtual-machine';
 import { VirtualMachinePool } from '../interfaces/virtual-machine-pool';
+import { addVolumeOptions } from '../interfaces/addVolumeOptions';
+import { removeVolumeOptions } from '../interfaces/removeVolumeOptions';
 
 
 @Injectable({
@@ -158,17 +160,17 @@ export class KubeVirtService {
     }
 
     getClusterInstanceTypes(): Observable<any> {
-        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1beta1';
         return this.http.get(`${baseUrl}/virtualmachineclusterinstancetypes`);
     }
 
     getClusterInstanceType(instType: string): Observable<any> {
-        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1beta1';
         return this.http.get(`${baseUrl}/virtualmachineclusterinstancetypes/${instType}`);
     }
 
     deleteClusterInstanceType(typeName: string): Observable<any> {
-        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1beta1';
         return this.http.delete(`${baseUrl}/virtualmachineclusterinstancetypes/${typeName}`);
     }
 
@@ -183,7 +185,7 @@ export class KubeVirtService {
     }
 
     editClusterInstanceType(typeName: string, typeCPU: string, typeMemory: string): Observable<any> {
-        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1alpha1';
+        var baseUrl ='./k8s/apis/instancetype.kubevirt.io/v1alpv1beta1ha1';
         const headers = {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'
@@ -289,7 +291,7 @@ export class KubeVirtService {
     }
 
     removePoolReadiness(namespace: string, name: string): Observable<any> {
-        var baseUrl ='./k8s/apis/pool.kubevirt.io/v1alpha1';
+        var baseUrl = './k8s/apis/pool.kubevirt.io/v1alpha1';
         const headers = {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'
@@ -298,12 +300,44 @@ export class KubeVirtService {
     }
 
     updatePoolReadiness(namespace: string, name: string, readiness: string): Observable<any> {
-        var baseUrl ='./k8s/apis/pool.kubevirt.io/v1alpha1';
+        var baseUrl = './k8s/apis/pool.kubevirt.io/v1alpha1';
         const headers = {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'
         };
         return this.http.patch(`${baseUrl}/namespaces/${namespace}/virtualmachinepools/${name}`, '{"spec":{"virtualMachineTemplate":{"spec":{"template":{"spec":{"readinessProbe":'+ readiness +'}}}}}}', { 'headers': headers } );
+    }
+
+    findVMPod(namespace: string, uid: string): Observable<any> {
+        var myUrl = "./k8s/api/v1/namespaces/" + namespace + "/pods?labelSelector=kubevirt.io%2Fcreated-by%3D" + uid + "&limit=1";
+
+        return this.http.get(`${myUrl}`);
+    }
+
+    getVMSerialLog(namespace: string, name: string): Observable<any> {
+        var myUrl = "./k8s/api/v1/namespaces/" + namespace + "/pods/" + name + "/log?container=guest-console-log";
+
+        const headers = {
+            'accept': 'application/json, */*'
+        };
+
+        return this.http.get(`${myUrl}`, {'headers': headers, 'responseType': "text"});
+    }
+
+    plugVolume(namespace: string, name: string, spec: addVolumeOptions): Observable<any> {
+        var baseUrl ='./k8s/apis/subresources.kubevirt.io/v1';
+        const headers = {
+            'accept': '*/*'
+        };
+        return this.http.put(`${baseUrl}/namespaces/${namespace}/virtualmachineinstances/${name}/addvolume`, spec, { 'headers': headers } );
+    }
+
+    unplugVolume(namespace: string, name: string, spec: removeVolumeOptions): Observable<any> {
+        var baseUrl ='./k8s/apis/subresources.kubevirt.io/v1';
+        const headers = {
+            'accept': '*/*'
+        };
+        return this.http.put(`${baseUrl}/namespaces/${namespace}/virtualmachineinstances/${name}/removevolume`, spec,  { 'headers': headers } );
     }
 
 }

@@ -1,5 +1,3 @@
-import { ServiceAccount } from "./service-account";
-
 export interface RoleBinding {
     apiVersion: "rbac.authorization.k8s.io/v1";
     kind: "RoleBinding";
