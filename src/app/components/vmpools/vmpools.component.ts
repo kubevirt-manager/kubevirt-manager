@@ -788,12 +788,16 @@ export class VMPoolsComponent implements OnInit {
             let iface1 = {};
             if(newpoolnetwork != "podNetwork") {
                 net1 = {'name': "net1", 'multus': {'networkName': newpoolnetwork}};
+                Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newpoolnetwork});
+                Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newpoolnetwork});
             } else {
                 net1 = {'name': "net1", 'pod': {}};
             }
             networks.push(net1);
             if(newpoolnetworktype == "bridge") {
                 iface1 = {'name': "net1", 'bridge': {}};
+            } else if(newpoolnetworktype == "macvtap") {
+                iface1 = {'name': "net1", 'binding': {'name': 'macvtap'}};
             } else {
                 iface1 = {'name': "net1", 'masquerade': {}};
             }
@@ -1476,7 +1480,9 @@ export class VMPoolsComponent implements OnInit {
         let networkTypeSelectorOptions = "<option value=bridge>bridge</option>\n";
         if(thisNetwork.toLowerCase() == "podnetwork") {
             networkTypeSelectorOptions += "<option value=masquerade>masquerade</option>\n";
-        } 
+        } else {
+            networkTypeSelectorOptions += "<option value=macvtap>macvtap</option>\n";
+        }
         if(selectorNetworkTypeField != null) {
             selectorNetworkTypeField.innerHTML = networkTypeSelectorOptions;
         }

@@ -818,7 +818,9 @@ export class VmlistComponent implements OnInit {
             }
             networks.push(net1);
             if(newvmnetworktypeone == "bridge") {
-                iface1 = {'name': "net1", 'bridge': {}};    
+                iface1 = {'name': "net1", 'bridge': {}}; 
+            } else if(newvmnetworktypeone == "macvtap") {
+                iface1 = {'name': "net1", 'binding': {'name': 'macvtap'}};
             } else {
                 iface1 = {'name': "net1", 'masquerade': {}};
             }
@@ -844,6 +846,8 @@ export class VmlistComponent implements OnInit {
                 networks.push(net2);
                 if(newvmnetworktypetwo == "bridge") {
                     iface2 = {'name': "net2", 'bridge': {}};
+                } else if(newvmnetworktypetwo == "macvtap") {
+                    iface2 = {'name': "net2", 'binding': {'name': 'macvtap'}};
                 } else {
                     iface2 = {'name': "net2", 'masquerade': {}};
                 }
@@ -1380,6 +1384,7 @@ export class VmlistComponent implements OnInit {
         let selectorNetworkTypeField = document.getElementById("newvm-networktypeone");
         let networkTypeSelectorOptions = "<option value=bridge>bridge</option>\n";
         if(netData != null && thisNetwork.toLowerCase() != "podnetwork") {
+            networkTypeSelectorOptions += "<option value=macvtap>macvtap</option>\n";
             netData.setAttribute("style","display: flex;");
 
         } else {
@@ -1402,6 +1407,8 @@ export class VmlistComponent implements OnInit {
         let networkTypeSelectorOptions = "<option value=bridge>bridge</option>\n";
         if(thisNetwork.toLowerCase() == "podnetwork") {
             networkTypeSelectorOptions += "<option value=masquerade>masquerade</option>\n";
+        } else {
+            networkTypeSelectorOptions += "<option value=macvtap>macvtap</option>\n";
         }
 
         if(selectorNetworkTypeField != null) {

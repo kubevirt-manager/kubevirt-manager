@@ -23,6 +23,10 @@ export class K8sApisService {
         return this.http.get(`${baseUrl}/k8s.cni.cncf.io/v1/network-attachment-definitions`);
     }
 
+    getNetworkAttach(namespace: string, name: string): Observable<any> {
+        return this.http.get(`${baseUrl}/k8s.cni.cncf.io/v1/namespaces/${namespace}/network-attachment-definitions/${name}`);
+    }
+
     getStorageClasses(): Observable<any> {
         return this.http.get(`${baseUrl}/storage.k8s.io/v1/storageclasses`);
     }
