@@ -19,6 +19,7 @@ export interface VirtualMachine {
                 labels?: {};
             },
             spec: {
+                evictionStrategy?: string,
                 nodeSelector?: {};
                 priorityClassName?: string;
                 domain: {

@@ -65,6 +65,14 @@ export class VmlistComponent implements OnInit {
         this.nodeList = [];
         try {
             let currentNode = new K8sNode;
+            /* auto-selects node when power on vm */
+            currentNode.name = "auto-select";
+            for(let j = 0; j < this.vmList.length; j++) {
+                if (this.vmList[j].nodeSel == currentNode.name)
+                    currentNode.vmlist.push(this.vmList[j]);
+            }
+            this.nodeList.push(currentNode);
+            currentNode = new K8sNode();
             const data = await lastValueFrom(this.k8sService.getNodes());
             let nodes = data.items;
             for (let i = 0; i < nodes.length; i++) {
@@ -76,14 +84,6 @@ export class VmlistComponent implements OnInit {
                 }
                 this.nodeList.push(currentNode);
             }
-            /* auto-selects node when power on vm */
-            currentNode = new K8sNode();
-            currentNode.name = "auto-select";
-            for(let j = 0; j < this.vmList.length; j++) {
-                if (this.vmList[j].nodeSel == currentNode.name)
-                    currentNode.vmlist.push(this.vmList[j]);
-            }
-            this.nodeList.push(currentNode);
         } catch (e: any) {
             console.log(e.error.message);
         }
@@ -466,6 +466,8 @@ export class VmlistComponent implements OnInit {
             /* Node Selector */
             if(newvmnode != "auto-select") {
                 thisVirtualMachine.spec.template.spec.nodeSelector = {"kubernetes.io/hostname": newvmnode};
+            } else {
+                thisVirtualMachine.spec.template.spec.evictionStrategy = "LiveMigrate";
             }
 
 
@@ -811,8 +813,9 @@ export class VmlistComponent implements OnInit {
             let iface1 = {};
             if(newvmnetworkone != "podNetwork") {
                 net1 = {'name': "net1", 'multus': {'networkName': newvmnetworkone}};
-                Object.assign(thisVirtualMachine.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworkone});
-                Object.assign(thisVirtualMachine.spec.template.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworkone});
+                let network_split = newvmnetworkone.split("/")
+                Object.assign(thisVirtualMachine.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': network_split[1]});
+                Object.assign(thisVirtualMachine.spec.template.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': network_split[1]});
             } else {
                 net1 = {'name': "net1", 'pod': {}};
             }
@@ -833,12 +836,15 @@ export class VmlistComponent implements OnInit {
                 let iface2 = {};
                 if(newvmnetworktwo != "podNetwork") {
                     net2 = {'name': "net2", 'multus': {'networkName': newvmnetworktwo}};
+                    let network_split1 = newvmnetworkone.split("/")
+                    let network_split2 = newvmnetworktwo.split("/")
                     if(newvmnetworkone != "podNetwork") {
-                        Object.assign(thisVirtualMachine.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworkone, newvmnetworktwo});
-                        Object.assign(thisVirtualMachine.spec.template.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworkone, newvmnetworktwo});
+                        let networks = [network_split1[1], network_split2[1]].join(",")
+                        Object.assign(thisVirtualMachine.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': networks});
+                        Object.assign(thisVirtualMachine.spec.template.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': networks});
                     } else {
-                        Object.assign(thisVirtualMachine.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworktwo});
-                        Object.assign(thisVirtualMachine.spec.template.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newvmnetworktwo});
+                        Object.assign(thisVirtualMachine.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': network_split2[1]});
+                        Object.assign(thisVirtualMachine.spec.template.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': network_split2[1]});
                     }
                 } else {
                     net2 = {'name': "net2", 'pod': {}};
@@ -1106,6 +1112,9 @@ export class VmlistComponent implements OnInit {
         } else if (vmOperation == "delete") {
             const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
             this.reloadComponent();
+        } else if (vmOperation == "migrate") {
+            const data = await lastValueFrom(this.kubeVirtService.migrateVm(vmNamespace, vmName));
+            this.reloadComponent();
         }
     }
 
@@ -1268,7 +1277,7 @@ export class VmlistComponent implements OnInit {
                     currentAttach.namespace = netAttach[i].metadata["namespace"];
                     currentAttach.config = JSON.parse(netAttach[i].spec["config"]);
                     this.netAttachList.push(currentAttach);
-                    networkSelectorOptions += "<option value=" + netAttach[i].metadata["name"] + ">" + netAttach[i].metadata["name"] + "</option>\n";
+                    networkSelectorOptions += "<option value=" + netAttach[i].metadata["namespace"] + "/" + netAttach[i].metadata["name"] + ">" + netAttach[i].metadata["name"] + "</option>\n";
                 }
             }
         }

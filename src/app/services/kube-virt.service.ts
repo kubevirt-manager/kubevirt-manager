@@ -147,7 +147,24 @@ export class KubeVirtService {
         var baseUrl ='./k8s/apis/kubevirt.io/v1alpha3';
         return this.http.delete(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`);
     }
-
+    migrateVm(namespace: string, name: string): Observable<any> {
+        var baseUrl ='./k8s/apis/kubevirt.io/v1';
+        const headers = {
+            'content-type': 'application/json',
+            'accept': 'application/json'
+        };
+        return this.http.post(`${baseUrl}/namespaces/${namespace}/virtualmachineinstancemigrations/`, {
+            "apiVersion": "kubevirt.io/v1",
+            "kind": "VirtualMachineInstanceMigration",
+            "metadata": {
+                "name": `${name}-lm-${Date.now()}`,
+                "namespace": namespace
+            },
+            "spec": {
+                "vmiName": name
+            }
+        }, { 'headers': headers } );
+    }
     createVm(virtualMachine: VirtualMachine): Observable<any> {
         var baseUrl ='./k8s/apis/' + virtualMachine.apiVersion;
         let name = virtualMachine.metadata.name;
