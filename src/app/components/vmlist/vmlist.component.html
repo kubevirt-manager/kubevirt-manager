@@ -135,6 +135,15 @@
                         <i class="fas fa-redo disabled"></i>
                       </a>
                     </span>
+                    <!--- LIVEMIGRATE BUTTON -->
+                    <span [ngSwitch]="thisVM.running">
+                      <a class="btn" (click)='vmOperations("migrate", thisVM.namespace, thisVM.name)' title="Live Migrate..." *ngSwitchCase="true">
+                        <i class="fas fa-angle-double-right"></i>
+                      </a>
+                      <a class="btn disabled" (click)='vmOperations("migrate", thisVM.namespace, thisVM.name)' title="Live Migrate..." *ngSwitchDefault>
+                        <i class="fas fa-angle-double-right disabled"></i>
+                      </a>
+                    </span>
                      <!--- DELETE BUTTON -->
                      <span [ngSwitch]="thisVM.running">
                       <a class="btn disabled" (click)="showDelete(thisVM.name, thisVM.namespace)" title="Delete..." *ngSwitchCase="true">
