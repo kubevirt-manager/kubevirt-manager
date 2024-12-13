@@ -5,6 +5,7 @@ import { By } from '@angular/platform-browser';
 
 import { KClusterComponent } from './kcluster.component';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { ReactiveFormsModule } from '@angular/forms';
 
 describe('KClusterComponent', () => {
   let component: KClusterComponent;
@@ -13,7 +14,7 @@ describe('KClusterComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
     declarations: [KClusterComponent],
-    imports: [],
+    imports: [ReactiveFormsModule],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

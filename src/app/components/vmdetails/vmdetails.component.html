@@ -105,11 +105,6 @@
                                 <div class="card-title">
                                     <i class="fas fa-network-wired"></i>&nbsp;&nbsp;{{actualNet.name}}
                                 </div>
-                                <div class="card-tools">
-                                    <a class="btn float-right" title="Unplug..." *ngIf="actualNet.hotplug">
-                                        <i class="fas fa-minus" (click)="showResize(activeVm.sockets, activeVm.cores, activeVm.threads, activeVm.memory)"></i>
-                                    </a>
-                                </div>
                             </div>
                             <div class="card-body">
                                     <li>Name: {{actualNet.name}}</li>

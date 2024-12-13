@@ -15,6 +15,7 @@ export interface VirtualMachinePool {
         virtualMachineTemplate: {
             metadata: {
                 labels?: {};
+                annotations?: {};
             };
             spec: {
                 dataVolumeTemplates: {};
@@ -26,6 +27,7 @@ export interface VirtualMachinePool {
                 template: {
                     metadata: {
                         labels?: {}
+                        annotations?: {}
                     };
                     spec: {
                         domain: {

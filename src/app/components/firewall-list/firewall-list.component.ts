@@ -18,7 +18,7 @@ export class FirewallListComponent implements OnInit {
     namespacesList: string[] = [];
     firewallRuleList: FirewallRule[] = [];
     firewallLabels: FirewallLabels = new FirewallLabels;
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
+    myInterval = setInterval(() =>{ this.reloadComponent(); }, 120000);
 
     constructor(
         private cdRef: ChangeDetectorRef,

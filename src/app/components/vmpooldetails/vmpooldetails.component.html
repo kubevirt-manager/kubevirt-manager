@@ -14,6 +14,8 @@
                   <ul class="nav nav-pills">
                     <li class="nav-item"><a class="nav-link active" href="#overview" data-toggle="tab">Overview</a></li>
                     <li class="nav-item"><a class="nav-link" href="#template" data-toggle="tab">Pool Template</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#networking" data-toggle="tab">Networking</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#disks" data-toggle="tab">Disks</a></li>
                     <li class="nav-item"><a class="nav-link" href="#liveness" data-toggle="tab">Liveness Probe</a></li>
                     <li class="nav-item"><a class="nav-link" href="#readiness" data-toggle="tab">Readiness Probe</a></li>
                     <li class="nav-item"><a class="nav-link" href="#virtualmachines" data-toggle="tab">Instances</a></li>
@@ -90,7 +92,9 @@
                        </dt>
                        <br>
                        <dd>Priority Class: {{activePool.priorityClass}}</dd>
-                       <hr>
+                    </div>
+                    <!-- Disks Tab -->
+                    <div class="tab-pane" id="networking">
                        <dt>
                         Networking
                         <!-- <a class="btn float-right" title="Edit...">
@@ -98,45 +102,45 @@
                         </a> -->
                        </dt>
                        <br>
-                       <dd>NIC: {{poolNetwork.name}}</dd>
-                       <dd>NIC Type: {{poolNetwork.type}}</dd>
-                       <dd>Network: {{poolNetwork.network}}</dd>
-                       <hr>
+                       <div class="card" *ngFor="let actualNet of activePool.networkList">
+                            <div class="card-header">
+                                <div class="card-title">
+                                    <i class="fas fa-network-wired"></i>&nbsp;&nbsp;{{actualNet.name}}
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                    <li>Name: {{actualNet.name}}</li>
+                                    <li>Type: {{actualNet.type}}</li>
+                                    <li>Network: {{actualNet.network}}</li>
+                            </div>
+                       </div>
+                    </div>
+                    <!-- Disks Tab -->
+                    <div class="tab-pane" id="disks">
                        <dt>Disks</dt>
                        <br>
-                       <div *ngIf="hasDisk1">
-                            <dd>Disk 1:</dd>
-                            <ul>
-                                <li>Name: {{disk1Info.name}} </li>
-                                <li>Namespace: {{disk1Info.namespace}} </li>
-                                <li>Type: {{disk1Info.type}} </li>
-                                <li>Backend: {{disk1Info.backend}} </li>
-                                <li>Data Volume Name: {{disk1Info.dataVolumeName}} </li>
-                                <li>Data Volume Namespace: {{disk1Info.dataVolumeNamespace}} </li>
-                                <li>Source Type: {{disk1Info.dataVolumeSource}} </li>
-                                <li>Source Value: {{disk1Info.dataVolumeSourceValue}} </li>
-                                <li>Access Mode: {{disk1Info.accessMode}}</li>
-                                <li>Cache Mode: {{disk1Info.cacheMode || ""}} </li>
-                                <li>Capacity: {{disk1Info.capacity}} </li>
-                                <li>Storage Class: {{disk1Info.storageClass}}</li>
-                            </ul>
-                       </div>
-                       <div *ngIf="hasDisk2">
-                            <dd>Disk 2:</dd>
-                            <ul>
-                                <li>Name: {{disk2Info.name}} </li>
-                                <li>Namespace: {{disk2Info.namespace}} </li>
-                                <li>Type: {{disk2Info.type}} </li>
-                                <li>Backend: {{disk2Info.backend}} </li>
-                                <li>Data Volume Name: {{disk2Info.dataVolumeName}} </li>
-                                <li>Data Volume Namespace: {{disk2Info.dataVolumeNamespace}} </li>
-                                <li>Source Type: {{disk2Info.dataVolumeSource}} </li>
-                                <li>Source Value: {{disk2Info.dataVolumeSourceValue}} </li>
-                                <li>Access Mode: {{disk2Info.accessMode}}</li>
-                                <li>Cache Mode: {{disk2Info.cacheMode || ""}} </li>
-                                <li>Capacity: {{disk2Info.capacity}} </li>
-                                <li>Storage Class: {{disk2Info.storageClass}}</li>
-                            </ul>
+                       <div class="card" *ngFor="let actualDisk of diskList">
+                            <div class="card-header">
+                                <div class="card-title">
+                                    <i class="fas fa-hdd"></i>&nbsp;&nbsp;{{actualDisk.name}}
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <ul>
+                                    <li>Name: {{actualDisk.name}} </li>
+                                    <li>Namespace: {{actualDisk.namespace}} </li>
+                                    <li>Type: {{actualDisk.type}} </li>
+                                    <li>Backend: {{actualDisk.backend}} </li>
+                                    <li>Data Volume Name: {{actualDisk.dataVolumeName}} </li>
+                                    <li>Data Volume Namespace: {{actualDisk.dataVolumeNamespace}} </li>
+                                    <li>Source Type: {{actualDisk.dataVolumeSource}} </li>
+                                    <li>Source Value: {{actualDisk.dataVolumeSourceValue}} </li>
+                                    <li>Access Mode: {{actualDisk.accessMode}}</li>
+                                    <li>Cache Mode: {{actualDisk.cacheMode || ""}} </li>
+                                    <li>Capacity: {{actualDisk.capacity}} </li>
+                                    <li>Storage Class: {{actualDisk.storageClass}}</li>
+                                </ul>
+                            </div>
                        </div>
                     </div>
                     <!-- Liveness Probe -->

@@ -19,7 +19,7 @@ export class DiskListComponent implements OnInit {
     diskList: VMDisk[] = [];
     storageClassesList: string[] = [];
     namespacesList: string[] = [];
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
+    myInterval = setInterval(() =>{ this.reloadComponent(); }, 120000);
 
     constructor(
         private cdRef: ChangeDetectorRef,

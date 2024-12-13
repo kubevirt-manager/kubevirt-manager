@@ -156,6 +156,9 @@
                       <a class="nav-link active" id="newcluster-home-tab" data-toggle="pill" href="#newcluster-home" role="tab" aria-controls="newcluster-home" aria-selected="false">General</a>
                     </li>
                     <li class="nav-item">
+                      <a class="nav-link" id="newcluster-meta-tab" data-toggle="pill" href="#newcluster-meta" role="tab" aria-controls="newcluster-meta" aria-selected="false">Metadata</a>
+                    </li>
+                    <li class="nav-item">
                       <a class="nav-link" id="newcluster-labels-tab" data-toggle="pill" href="#newcluster-details" role="tab" aria-controls="newcluster-details" aria-selected="false">Details</a>
                     </li>
                     <li class="nav-item">
@@ -182,31 +185,71 @@
                       <select #newclusternamespace class="custom-select rounded-0" name="newcluster-namespace" id="newcluster-namespace">
                         <option>Value 1</option>
                       </select>
-                      <br><br>
-                      <label for="newcluster-labels">Labels</label>
-                        <br>
-                        <table class="table table-sm" style="vertical-align: middle !important;">
-                            <thead>
-                                <tr>
-                                <th style="width: 250px">Key</th>
-                                <th style="width: 250px">Value</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                  <td style="line-height: 2.2 !important;"><input #newclusterlabelkeyone type="text" class="form-control" id="newcluster-labelkey-one" name="newcluster-labelkey-one"></td>
-                                  <td style="line-height: 2.2 !important;"><input #newclusterlabelvalueone type="text" class="form-control" id="newcluster-labelvalue-one" name="newcluster-labelvalue-one"></td>
-                                </tr>
-                                <tr>
-                                  <td style="line-height: 2.2 !important;"><input #newclusterlabelkeytwo type="text" class="form-control" id="newcluster-labelkey-two" name="newcluster-labelkey-two"></td>
-                                  <td style="line-height: 2.2 !important;"><input #newclusterlabelvaluetwo type="text" class="form-control" id="newcluster-labelvalue-two" name="newcluster-labelvalue-two"></td>
-                                </tr>
-                                <tr>
-                                  <td style="line-height: 2.2 !important;"><input #newclusterlabelkeythree type="text" class="form-control" id="newcluster-labelkey-three" name="newcluster-labelkey-three"></td>
-                                  <td style="line-height: 2.2 !important;"><input #newclusterlabelvaluethree type="text" class="form-control" id="newcluster-labelvalue-three" name="newcluster-labelvalue-three"></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    </div>
+                    <!-- METADATA TAB -->
+                    <div class="tab-pane fade" id="newcluster-meta" role="tabpanel" aria-labelledby="newcluster-meta-tab">
+                      <div class="row">
+                            <label for="newvm-labels">Labels:&nbsp;
+                            <a class="btn" (click)="addLabel()" title="Add new label...">
+                                <i class="fas fa-plus"></i>
+                            </a>
+                            </label>
+                      </div>
+                      <div class="row">
+                            <form [formGroup]="labelList">
+                                <table class="table table-sm" style="vertical-align: middle !important;">
+                                    <thead>
+                                        <tr>
+                                        <th style="width: 500px">Key</th>
+                                        <th style="width: 500px">Value</th>
+                                        <th style="width: 100px">&nbsp;</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody formArrayName="labels"> 
+                                        <tr *ngFor="let label of labels?.controls; let i = index" [formGroupName]="i">
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newcluster-labelkey" id="labelKey{{i}}" formControlName="labelKey"></td>
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newcluster-labelvalue" id="labelValue{{i}}" formControlName="labelValue"></td>
+                                        <td style="line-height: 2.2 !important;">
+                                            <a class="btn" (click)="removeLabel(i)" title="Remove label...">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </form>
+                      </div>
+                      <div class="row">
+                            <label for="newvm-annotations">Annotations:&nbsp;
+                            <a class="btn" (click)="addAnnotation()" title="Add new annotation...">
+                                <i class="fas fa-plus"></i>
+                            </a>
+                            </label>
+                      </div>
+                      <div class="row">
+                            <form [formGroup]="annotationList">
+                                <table class="table table-sm" style="vertical-align: middle !important;">
+                                    <thead>
+                                        <tr>
+                                        <th style="width: 500px">Key</th>
+                                        <th style="width: 500px">Value</th>
+                                        <th style="width: 100px">&nbsp;</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody formArrayName="annotations"> 
+                                        <tr *ngFor="let annotation of annotations?.controls; let i = index" [formGroupName]="i">
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newcluster-annotationkey" id="annotKey{{i}}" formControlName="annotKey"></td>
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newcluster-annotationvalue" id="annotValue{{i}}" formControlName="annotValue"></td>
+                                        <td style="line-height: 2.2 !important;">
+                                            <a class="btn" (click)="removeAnnotation(i)" title="Remove annotation...">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </form>
+                      </div>
                     </div>
                     <!-- DETAILS TAB -->
                     <div class="tab-pane fade" id="newcluster-details" role="tabpanel" aria-labelledby="newcluster-details-tab">
@@ -264,26 +307,37 @@
                           <option>NodePort</option>
                       </select>
                       <br><br>
-                      <label for="newcluster-controlplane-epannotations">Endpoint Service Annotations</label>
-                      <br>
-                      <table class="table table-sm" style="vertical-align: middle !important;">
-                        <thead>
-                            <tr>
-                            <th style="width: 250px">Annotation</th>
-                            <th style="width: 250px">Value</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                              <td style="line-height: 2.2 !important;"><input #newclustercontrolplaneepannotationskeyone type="text" class="form-control" id="newcluster-controlplane-epannotationskey-one" name="newcluster-controlplane-epannotationskey-one"></td>
-                              <td style="line-height: 2.2 !important;"><input #newclustercontrolplaneepannotationsvalueone type="text" class="form-control" id="newcluster-controlplane-epannotationsvalue-one" name="newcluster-controlplane-epannotationsvalue-one"></td>
-                            </tr>
-                            <tr>
-                                <td style="line-height: 2.2 !important;"><input #newclustercontrolplaneepannotationskeytwo type="text" class="form-control" id="newcluster-controlplane-epannotationskey-two" name="newcluster-controlplane-epannotationskey-two"></td>
-                                <td style="line-height: 2.2 !important;"><input #newclustercontrolplaneepannotationsvaluetwo type="text" class="form-control" id="newcluster-controlplane-epannotationsvalue-two" name="newcluster-controlplane-epannotationsvalue-two"></td>
-                            </tr>
-                        </tbody>
-                      </table>
+                      <div class="row">
+                            <label for="newcluster-crtlannotations">Endpoint Service Annotations:&nbsp;
+                            <a class="btn" (click)="addCtrlAnnotation()" title="Add new annotation...">
+                                <i class="fas fa-plus"></i>
+                            </a>
+                            </label>
+                      </div>
+                      <div class="row">
+                            <form [formGroup]="ctrlPlaneAnnotationList"> 
+                                <table class="table table-sm" style="vertical-align: middle !important;">
+                                    <thead>
+                                        <tr>
+                                        <th style="width: 500px">Key</th>
+                                        <th style="width: 500px">Value</th>
+                                        <th style="width: 100px">&nbsp;</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody formArrayName="ctrlannotations"> 
+                                        <tr *ngFor="let ctrlannotation of ctrlannotations?.controls; let i = index" [formGroupName]="i">
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newcluster-svc-annotationkey" id="ctrlAnnotKey{{i}}" formControlName="ctrlAnnotKey"></td>
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newcluster-svc-annotationvalue" id="ctrlAnnotValue{{i}}" formControlName="ctrlAnnotValue"></td>
+                                        <td style="line-height: 2.2 !important;">
+                                            <a class="btn" (click)="removeCtrlAnnotation(i)" title="Remove annotation...">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </form>
+                      </div>
                     </div>
                     <!-- CONTROL PLANE TAB -->
                     <div class="tab-pane fade" id="newcluster-controlplane" role="tabpanel" aria-labelledby="newcluster-controlplane-tab">
@@ -504,7 +558,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-newcluster")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)='applyNewCluster(newclustername.value, newclusternamespace.value, newclusterlabelkeyone.value, newclusterlabelvalueone.value, newclusterlabelkeytwo.value, newclusterlabelvaluetwo.value, newclusterlabelkeythree.value, newclusterlabelvaluethree.value, newclusterversion.value, newclustercni.value, newclustercniversion.value, newclusterautoscaler.value, newclusterdns.value, newclusterpodcidr.value, newclustersvccidr.value, newclusternetwork.value, newclusternetworktype.value, newclustercontrolplaneeptype.value, newclustercontrolplaneepannotationskeyone.value, newclustercontrolplaneepannotationsvalueone.value, newclustercontrolplaneepannotationskeytwo.value, newclustercontrolplaneepannotationsvaluetwo.value, newclustercontrolplaneosdist.value, newclustercontrolplaneosversion.value, newclustercontrolplanetype.value, newclustercontrolplanecpumemsockets.value, newclustercontrolplanecpumemcores.value, newclustercontrolplanecpumemthreads.value, newclustercontrolplanecpumemmemory.value, newclustercontrolplanepc.value, "newclustercontrolplanefirmware.value", "newclustercontrolplanesecureboot.value", newclustercontrolplanereplicas.value, newclustercontrolplanedisksize.value, newclustercontrolplanedisksc.value, newclustercontrolplanediskam.value, newclustercontrolplanediskcm.value,  newclusternodepoolname.value, newclusternodepoolosdist.value, newclusternodepoolosversion.value, newclusternodepooltype.value, newclusternodepoolcpumemsockets.value, newclusternodepoolcpumemcores.value, newclusternodepoolcpumemthreads.value, newclusternodepoolcpumemmemory.value, newclusternodepoolpc.value, "newclusternodepoolfirmware.value", "newclusternodepoolsecureboot.value", newclusternodepoolreplicas.value, newclusternodepoolminreplicas.value, newclusternodepoolmaxreplicas.value, newclusternodepooldisksize.value, newclusternodepooldisksc.value, newclusternodepooldiskam.value, newclusternodepooldiskcm.value, newclusterfeaturescertmanager.checked, newclusterfeaturesdashboard.checked, newclusterfeaturesmetrics.checked, newclusterfeatureshaproxyingress.checked, newclusterfeaturesnginxingress.checked, newclusterfeaturestekton.checked)'>Create</button>
+              <button type="button" class="btn btn-primary" (click)='applyNewCluster(newclustername.value, newclusternamespace.value, newclusterversion.value, newclustercni.value, newclustercniversion.value, newclusterautoscaler.value, newclusterdns.value, newclusterpodcidr.value, newclustersvccidr.value, newclusternetwork.value, newclusternetworktype.value, newclustercontrolplaneeptype.value, newclustercontrolplaneosdist.value, newclustercontrolplaneosversion.value, newclustercontrolplanetype.value, newclustercontrolplanecpumemsockets.value, newclustercontrolplanecpumemcores.value, newclustercontrolplanecpumemthreads.value, newclustercontrolplanecpumemmemory.value, newclustercontrolplanepc.value, "newclustercontrolplanefirmware.value", "newclustercontrolplanesecureboot.value", newclustercontrolplanereplicas.value, newclustercontrolplanedisksize.value, newclustercontrolplanedisksc.value, newclustercontrolplanediskam.value, newclustercontrolplanediskcm.value,  newclusternodepoolname.value, newclusternodepoolosdist.value, newclusternodepoolosversion.value, newclusternodepooltype.value, newclusternodepoolcpumemsockets.value, newclusternodepoolcpumemcores.value, newclusternodepoolcpumemthreads.value, newclusternodepoolcpumemmemory.value, newclusternodepoolpc.value, "newclusternodepoolfirmware.value", "newclusternodepoolsecureboot.value", newclusternodepoolreplicas.value, newclusternodepoolminreplicas.value, newclusternodepoolmaxreplicas.value, newclusternodepooldisksize.value, newclusternodepooldisksc.value, newclusternodepooldiskam.value, newclusternodepooldiskcm.value, newclusterfeaturescertmanager.checked, newclusterfeaturesdashboard.checked, newclusterfeaturesmetrics.checked, newclusterfeatureshaproxyingress.checked, newclusterfeaturesnginxingress.checked, newclusterfeaturestekton.checked)'>Create</button>
             </div>
           </form>
           </div>
@@ -542,6 +596,9 @@
                       <a class="nav-link active" id="newclustercustom-home-tab" data-toggle="pill" href="#newclustercustom-home" role="tab" aria-controls="newclustercustom-home" aria-selected="false">General</a>
                     </li>
                     <li class="nav-item">
+                      <a class="nav-link" id="newclustercustom-labels-tab" data-toggle="pill" href="#newclustercustom-meta" role="tab" aria-controls="newclustercustom-meta" aria-selected="false">Metadata</a>
+                    </li>
+                    <li class="nav-item">
                       <a class="nav-link" id="newclustercustom-labels-tab" data-toggle="pill" href="#newclustercustom-details" role="tab" aria-controls="newclustercustom-details" aria-selected="false">Details</a>
                     </li>
                     <li class="nav-item">
@@ -565,31 +622,71 @@
                       <select #newclustercustomnamespace class="custom-select rounded-0" name="newclustercustom-namespace" id="newclustercustom-namespace">
                         <option>Value 1</option>
                       </select>
-                      <br><br>
-                      <label for="newclustercustom-labels">Labels</label>
-                        <br>
-                        <table class="table table-sm" style="vertical-align: middle !important;">
-                            <thead>
-                                <tr>
-                                <th style="width: 250px">Key</th>
-                                <th style="width: 250px">Value</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                  <td style="line-height: 2.2 !important;"><input #newclustercustomlabelkeyone type="text" class="form-control" id="newclustercustom-labelkey-one" name="newclustercustom-labelkey-one"></td>
-                                  <td style="line-height: 2.2 !important;"><input #newclustercustomlabelvalueone type="text" class="form-control" id="newclustercustom-labelvalue-one" name="newclustercustom-labelvalue-one"></td>
-                                </tr>
-                                <tr>
-                                  <td style="line-height: 2.2 !important;"><input #newclustercustomlabelkeytwo type="text" class="form-control" id="newclustercustom-labelkey-two" name="newclustercustom-labelkey-two"></td>
-                                  <td style="line-height: 2.2 !important;"><input #newclustercustomlabelvaluetwo type="text" class="form-control" id="newclustercustom-labelvalue-two" name="newclustercustom-labelvalue-two"></td>
-                                </tr>
-                                <tr>
-                                  <td style="line-height: 2.2 !important;"><input #newclustercustomlabelkeythree type="text" class="form-control" id="newclustercustom-labelkey-three" name="newclustercustom-labelkey-three"></td>
-                                  <td style="line-height: 2.2 !important;"><input #newclustercustomlabelvaluethree type="text" class="form-control" id="newclustercustom-labelvalue-three" name="newclustercustom-labelvalue-three"></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    </div>
+                    <!-- METADATA TAB -->
+                    <div class="tab-pane fade" id="newclustercustom-meta" role="tabpanel" aria-labelledby="newclustercustom-meta-tab">
+                      <div class="row">
+                            <label for="newclustercustom-labels">Labels:&nbsp;
+                            <a class="btn" (click)="addLabel()" title="Add new label...">
+                                <i class="fas fa-plus"></i>
+                            </a>
+                            </label>
+                      </div>
+                      <div class="row">
+                            <form [formGroup]="labelList">
+                                <table class="table table-sm" style="vertical-align: middle !important;">
+                                    <thead>
+                                        <tr>
+                                        <th style="width: 500px">Key</th>
+                                        <th style="width: 500px">Value</th>
+                                        <th style="width: 100px">&nbsp;</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody formArrayName="labels"> 
+                                        <tr *ngFor="let label of labels.controls; let i = index" [formGroupName]="i">
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newclustercustom-labelkey" id="labelKey{{i}}" formControlName="labelKey"></td>
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newclustercustom-labelvalue" id="labelValue{{i}}" formControlName="labelValue"></td>
+                                        <td style="line-height: 2.2 !important;">
+                                            <a class="btn" (click)="removeLabel(i)" title="Remove label...">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </form>
+                      </div>
+                      <div class="row">
+                            <label for="newclustercustom-annotations">Annotations:&nbsp;
+                            <a class="btn" (click)="addAnnotation()" title="Add new annotation...">
+                                <i class="fas fa-plus"></i>
+                            </a>
+                            </label>
+                      </div>
+                      <div class="row">
+                            <form [formGroup]="annotationList">
+                                <table class="table table-sm" style="vertical-align: middle !important;">
+                                    <thead>
+                                        <tr>
+                                        <th style="width: 500px">Key</th>
+                                        <th style="width: 500px">Value</th>
+                                        <th style="width: 100px">&nbsp;</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody formArrayName="annotations"> 
+                                        <tr *ngFor="let annotation of annotations.controls; let i = index" [formGroupName]="i">
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newclustercustom-annotationkey" id="annotKey{{i}}" formControlName="annotKey"></td>
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newclustercustom-annotationvalue" id="annotValue{{i}}" formControlName="annotValue"></td>
+                                        <td style="line-height: 2.2 !important;">
+                                            <a class="btn" (click)="removeAnnotation(i)" title="Remove annotation...">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </form>
+                      </div>
                     </div>
                     <!-- DETAILS TAB -->
                     <div class="tab-pane fade" id="newclustercustom-details" role="tabpanel" aria-labelledby="newclustercustom-details-tab">
@@ -633,26 +730,37 @@
                           <option>NodePort</option>
                       </select>
                       <br><br>
-                      <label for="newclustercustom-controlplane-epannotations">Endpoint Service Annotations</label>
-                      <br>
-                      <table class="table table-sm" style="vertical-align: middle !important;">
-                        <thead>
-                            <tr>
-                            <th style="width: 250px">Annotation</th>
-                            <th style="width: 250px">Value</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                              <td style="line-height: 2.2 !important;"><input #newclustercustomcontrolplaneepannotationskeyone type="text" class="form-control" id="newclustercustom-controlplane-epannotationskey-one" name="newclustercustom-controlplane-epannotationskey-one"></td>
-                              <td style="line-height: 2.2 !important;"><input #newclustercustomcontrolplaneepannotationsvalueone type="text" class="form-control" id="newclustercustom-controlplane-epannotationsvalue-one" name="newclustercustom-controlplane-epannotationsvalue-one"></td>
-                            </tr>
-                            <tr>
-                                <td style="line-height: 2.2 !important;"><input #newclustercustomcontrolplaneepannotationskeytwo type="text" class="form-control" id="newclustercustom-controlplane-epannotationskey-two" name="newclustercustom-controlplane-epannotationskey-two"></td>
-                                <td style="line-height: 2.2 !important;"><input #newclustercustomcontrolplaneepannotationsvaluetwo type="text" class="form-control" id="newclustercustom-controlplane-epannotationsvalue-two" name="newclustercustom-controlplane-epannotationsvalue-two"></td>
-                            </tr>
-                        </tbody>
-                      </table>
+                      <div class="row">
+                            <label for="newcluster-crtlannotations">Endpoint Service Annotations:&nbsp;
+                            <a class="btn" (click)="addCtrlAnnotation()" title="Add new annotation...">
+                                <i class="fas fa-plus"></i>
+                            </a>
+                            </label>
+                      </div>
+                      <div class="row">
+                            <form [formGroup]="ctrlPlaneAnnotationList">
+                                <table class="table table-sm" style="vertical-align: middle !important;">
+                                    <thead>
+                                        <tr>
+                                        <th style="width: 500px">Key</th>
+                                        <th style="width: 500px">Value</th>
+                                        <th style="width: 100px">&nbsp;</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody formArrayName="ctrlannotations"> 
+                                        <tr *ngFor="let ctrlannotation of ctrlannotations.controls; let i = index" [formGroupName]="i">
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newcluster-annotationkey" id="ctrlAnnotKey{{i}}" formControlName="ctrlAnnotKey"></td>
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newcluster-annotationvalue" id="ctrlAnnotValue{{i}}" formControlName="ctrlAnnotValue"></td>
+                                        <td style="line-height: 2.2 !important;">
+                                            <a class="btn" (click)="removeCtrlAnnotation(i)" title="Remove annotation...">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </form>
+                      </div>
                     </div>
                     <!-- CONTROL PLANE TAB -->
                     <div class="tab-pane fade" id="newclustercustom-controlplane" role="tabpanel" aria-labelledby="newclustercustom-controlplane-tab"> 
@@ -694,6 +802,11 @@
                       -->
                       <label for="newclustercustom-controlplane-replicas">Number of Nodes: <i>(odd number)</i></label>
                       <input #newclustercustomcontrolplanereplicas type="number" class="form-control" id="newclustercustom-controlplane-replicas" name="newclustercustom-controlplane-replicas">
+                      <label for="newclustercustom-controlplane-cloudinit">Cloud Init: </label>
+                      <select #newclustercustomcontrolplanecloudinit class="custom-select rounded-0" name="newclustercustom-controlplane-cloudinit" id="newclustercustom-controlplane-cloudinit">
+                            <option value="cloud-init">cloud-init</option>
+                            <option value="ignition">iginition</option>
+                      </select>
                       <br>
                       <label for="newclustercustom-controlplane-disk">Boot Disk</label><br>
                       <label for="newclustercustom-cpdisk-url">Image URL: <i>(only http/https)</i></label>
@@ -769,6 +882,11 @@
                       -->
                       <label for="newclustercustom-nodepool-replicas">Number of Nodes:</label>
                       <input #newclustercustomnodepoolreplicas type="number" class="form-control" id="newclustercustom-nodepool-replicas" name="newclustercustom-nodepool-replicas">
+                      <label for="newclustercustom-nodepool-cloudinit">Cloud Init: </label>
+                      <select #newclustercustomnodepoolcloudinit class="custom-select rounded-0" name="newclustercustom-nodepool-cloudinit" id="newclustercustom-nodepool-cloudinit">
+                            <option value="cloud-init">cloud-init</option>
+                            <option value="ignition">iginition</option>
+                      </select>
                       <br>
                       <label for="newclustercustom-nodepool-disk">Boot Disk</label><br>
                       <label for="newclustercustom-npdisk-url">Image URL: (only http/https)</label>
@@ -809,7 +927,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-newclustercustom")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)='applyNewClusterCustom(newclustercustomname.value, newclustercustomnamespace.value, newclustercustomlabelkeyone.value, newclustercustomlabelvalueone.value, newclustercustomlabelkeytwo.value, newclustercustomlabelvaluetwo.value, newclustercustomlabelkeythree.value, newclustercustomlabelvaluethree.value, newclustercustomversion.value, newclustercustomdns.value, newclustercustompodcidr.value, newclustercustomsvccidr.value, newclustercustomnetwork.value, newclustercustomnetworktype.value, newclustercustomcontrolplaneeptype.value, newclustercustomcontrolplaneepannotationskeyone.value, newclustercustomcontrolplaneepannotationsvalueone.value, newclustercustomcontrolplaneepannotationskeytwo.value, newclustercustomcontrolplaneepannotationsvaluetwo.value, newclustercustomcontrolplanetype.value, newclustercustomcontrolplanecpumemsockets.value, newclustercustomcontrolplanecpumemcores.value, newclustercustomcontrolplanecpumemthreads.value, newclustercustomcontrolplanecpumemmemory.value, newclustercustomcontrolplanepc.value, "newclustercustomontrolplanefirmware.value", "newclustercustomcontrolplanesecureboot.value", newclustercustomcontrolplanereplicas.value, newclustercustomcpdiskurl.value, newclustercustomcontrolplanedisksize.value, newclustercustomcontrolplanedisksc.value, newclustercustomcontrolplanediskam.value, newclustercustomcontrolplanediskcm.value,  newclustercustomnodepoolname.value, newclustercustomnodepooltype.value, newclustercustomnodepoolcpumemsockets.value, newclustercustomnodepoolcpumemcores.value, newclustercustomnodepoolcpumemthreads.value, newclustercustomnodepoolcpumemmemory.value, newclustercustomnodepoolpc.value, "newclustercustomnodepoolfirmware.value", "newclustercustomnodepoolsecureboot.value", newclustercustomnodepoolreplicas.value, newclustercustomnpdiskurl.value, newclustercustomnodepooldisksize.value, newclustercustomnodepooldisksc.value, newclustercustomnodepooldiskam.value, newclustercustomnodepooldiskcm.value)'>Create</button>
+              <button type="button" class="btn btn-primary" (click)='applyNewClusterCustom(newclustercustomname.value, newclustercustomnamespace.value, newclustercustomversion.value, newclustercustomdns.value, newclustercustompodcidr.value, newclustercustomsvccidr.value, newclustercustomnetwork.value, newclustercustomnetworktype.value, newclustercustomcontrolplaneeptype.value, newclustercustomcontrolplanetype.value, newclustercustomcontrolplanecpumemsockets.value, newclustercustomcontrolplanecpumemcores.value, newclustercustomcontrolplanecpumemthreads.value, newclustercustomcontrolplanecpumemmemory.value, newclustercustomcontrolplanepc.value, "newclustercustomontrolplanefirmware.value", "newclustercustomcontrolplanesecureboot.value", newclustercustomcontrolplanereplicas.value, newclustercustomcontrolplanecloudinit.value, newclustercustomcpdiskurl.value, newclustercustomcontrolplanedisksize.value, newclustercustomcontrolplanedisksc.value, newclustercustomcontrolplanediskam.value, newclustercustomcontrolplanediskcm.value,  newclustercustomnodepoolname.value, newclustercustomnodepooltype.value, newclustercustomnodepoolcpumemsockets.value, newclustercustomnodepoolcpumemcores.value, newclustercustomnodepoolcpumemthreads.value, newclustercustomnodepoolcpumemmemory.value, newclustercustomnodepoolpc.value, "newclustercustomnodepoolfirmware.value", "newclustercustomnodepoolsecureboot.value", newclustercustomnodepoolreplicas.value, newclustercustomnodepoolcloudinit.value, newclustercustomnpdiskurl.value, newclustercustomnodepooldisksize.value, newclustercustomnodepooldisksc.value, newclustercustomnodepooldiskam.value, newclustercustomnodepooldiskcm.value)'>Create</button>
             </div>
           </form>
           </div>

@@ -16,6 +16,7 @@ export interface VirtualMachine {
         running: false;
         template: {
             metadata: {
+                annotations?: {};
                 labels?: {};
             },
             spec: {

@@ -3,7 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MainHeaderComponent } from './components/main-header/main-header.component';
 import { SideMenuComponent } from './components/side-menu/side-menu.component';
 import { MainFooterComponent } from './components/main-footer/main-footer.component';
@@ -48,9 +48,19 @@ import { FirewallListComponent } from './components/firewall-list/firewall-list.
         KClusterPoolDetailsComponent,
         ImagesComponent,
         SSHKeysComponent,
-        FirewallListComponent
+        FirewallListComponent,
     ],
-    bootstrap: [AppComponent], imports: [BrowserModule,
+    bootstrap: [
+        AppComponent
+    ],
+    imports: [
+        BrowserModule,
         AppRoutingModule,
-        FormsModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
+        FormsModule,
+        ReactiveFormsModule
+    ],
+    providers: [
+        provideHttpClient(withInterceptorsFromDi())
+    ]
+})
 export class AppModule { }

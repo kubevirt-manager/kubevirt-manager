@@ -9,6 +9,8 @@ import { ReadinessProbe } from 'src/app/models/readiness-probe.model';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
 import { Probe } from 'src/app/interfaces/probe';
+import { VMNewtork } from 'src/app/models/vmnewtork.model';
+import { KubeVirtClusterInstanceType } from 'src/app/models/kube-virt-clusterinstancetype';
 
 @Component({
   selector: 'app-vmpooldetails',
@@ -27,6 +29,8 @@ export class VmpooldetailsComponent implements OnInit {
 
     activePool: KubeVirtVMPool = new KubeVirtVMPool;
     vmList: KubeVirtVM[] = [];
+    vmiList: KubeVirtVMI[] = [];
+    clusterInstanceTypeList: KubeVirtClusterInstanceType[] = [];
     customTemplate: boolean = false;
     thisLivenessType: string = "";
     thisReadinessType: string = "";
@@ -51,40 +55,22 @@ export class VmpooldetailsComponent implements OnInit {
     inputReadinessFailure: any;
     inputReadinessSuccess: any;
 
-    /* Disk Information */
-    hasDisk1: boolean = false;
-    hasDisk2: boolean = false;
-    disk1Info = {
-        "name": "",
-        "namespace": "",
-        "type": "",
-        "backend": "",
-        "dataVolumeName": "",
-        "dataVolumeNamespace": "",
-        "dataVolumeSource": "",
-        "dataVolumeSourceValue": "",
-        "accessMode": "",
-        "cacheMode": "",
-        "capacity":  "",
-        "storageClass": ""
-
-    };
-
-    disk2Info = {
-        "name": "",
-        "namespace": "",
-        "type": "",
-        "backend": "",
-        "dataVolumeName": "",
-        "dataVolumeNamespace": "",
-        "dataVolumeSource": "",
-        "dataVolumeSourceValue": "",
-        "accessMode": "",
-        "cacheMode": "",
-        "capacity":  "",
-        "storageClass": ""
-
-    };
+    /* All Disks */
+    diskList: {
+                "name": string;
+                "namespace": string;
+                "type": string;
+                "backend": string;
+                "dataVolumeName": string;
+                "dataVolumeNamespace": string;
+                "dataVolumeSource": string;
+                "dataVolumeSourceValue": string;
+                "accessMode": string;
+                "cacheMode": string;
+                "capacity":  string;
+                "storageClass": string;
+        
+            }[] = [];
 
     constructor(
         private router: Router,
@@ -96,6 +82,8 @@ export class VmpooldetailsComponent implements OnInit {
     async ngOnInit(): Promise<void> {
         this.poolName = this.route.snapshot.params['name'];
         this.poolNamespace = this.route.snapshot.params['namespace'];
+        await this.getClusterInstanceTypes();
+        await this.getVMIs();
         await this.loadPool();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
@@ -201,18 +189,13 @@ export class VmpooldetailsComponent implements OnInit {
             this.activePool.memory = data.spec.virtualMachineTemplate.spec.template.spec.domain.resources.requests["memory"];
         } else {
             /* load vCPU / Mem from type */
-            try {
-                const data = await lastValueFrom(this.kubeVirtService.getClusterInstanceType(this.activePool.instType));
-                this.activePool.cores = data.spec.cpu["guest"];
-                this.activePool.memory = data.spec.memory["guest"];
-                this.activePool.sockets = 1;
-                this.activePool.threads = 1;
-            } catch (e: any) {
-                this.activePool.sockets = 0;
-                this.activePool.threads = 0;
-                this.activePool.cores = 0;
-                this.activePool.memory = "";
-                console.log(e);
+            for(let j = 0; j < this.clusterInstanceTypeList.length; j++) {
+                if(this.clusterInstanceTypeList[j].name == this.activePool.instType) {
+                    this.activePool.cores = this.clusterInstanceTypeList[j].cores;
+                    this.activePool.memory = this.clusterInstanceTypeList[j].memory;
+                    this.activePool.sockets = this.clusterInstanceTypeList[j].sockets;
+                    this.activePool.threads = this.clusterInstanceTypeList[j].threads;
+                }
             }
         }
         try {
@@ -250,24 +233,8 @@ export class VmpooldetailsComponent implements OnInit {
             }
         }
 
-        this.poolNetwork.name = data.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces[0].name;
-        try {
-            this.poolNetwork.network = data.spec.virtualMachineTemplate.spec.template.spec.networks[0].multus.networkName;
-        } catch (e: any) {
-            this.poolNetwork.network = "podNetwork";
-            console.log(e);
-        }
-
-        try {
-            if(data.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces[0].masquerade != null) {
-                this.poolNetwork.type = "masquerade";
-            } else {
-                this.poolNetwork.type = "bridge";
-            }
-        } catch (e: any) {
-            this.poolNetwork.type = "bridge";
-            console.log(e);
-        }
+        /* Loading Network Info */
+        await this.loadNetInfo(data.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces, data.spec.virtualMachineTemplate.spec.template.spec.networks);
 
         /* Load Disks */
         this.loadDiskInfo(data.spec.virtualMachineTemplate);
@@ -275,6 +242,37 @@ export class VmpooldetailsComponent implements OnInit {
         await this.getPoolVM(this.activePool.namespace, this.activePool.name);
         this.activePool.vmlist = this.vmList;
         this.activePool = this.activePool;
+    }
+
+    /*
+     * Load Network Information
+     */
+    async loadNetInfo(interfaces: any, networks: any): Promise<void> {
+
+        if(interfaces != null && networks != null) {
+            for(let i = 0; i < interfaces.length; i++) {
+                let netInfo = new VMNewtork;
+                netInfo.id = i;
+                netInfo.name = interfaces[i].name;
+                netInfo.hotplug = false;
+                try {
+                    netInfo.network = networks[i].multus.networkName;
+                } catch (e: any) {
+                    netInfo.network = "podNetwork";
+                }
+
+                try {
+                    if(interfaces[i].masquerade != null) {
+                        netInfo.type = "masquerade";
+                    } else {
+                        netInfo.type = "bridge";
+                    }
+                } catch (e: any) {
+                    netInfo.type = "bridge";
+                }
+                this.activePool.networkList.push(netInfo);
+            }
+        }
     }
 
     /*
@@ -298,11 +296,10 @@ export class VmpooldetailsComponent implements OnInit {
             if (currentVm.status.toLowerCase() == "running") {
                 currentVm.running = true;
             }
-            try {
+            if (vms[i].spec.template.spec.nodeSelector !== undefined && vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"] !== undefined && vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"] != "") { 
                 currentVm.nodeSel = vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"];
-            } catch (e: any) {
+            } else {
                 currentVm.nodeSel = "auto-select";
-                console.log(e);
             }
 
             /* Getting VM Type */
@@ -321,18 +318,13 @@ export class VmpooldetailsComponent implements OnInit {
                 currentVm.memory = vms[i].spec.template.spec.domain.resources.requests["memory"];
             } else {
                 /* load vCPU / Mem from type */
-                try {
-                    const data = await lastValueFrom(this.kubeVirtService.getClusterInstanceType(currentVm.instType));
-                    currentVm.cores = data.spec.cpu["guest"];
-                    currentVm.memory = data.spec.memory["guest"];
-                    currentVm.sockets = 1;
-                    currentVm.threads = 1;
-                } catch (e: any) {
-                    currentVm.sockets = 0;
-                    currentVm.threads = 0;
-                    currentVm.cores = 0;
-                    currentVm.memory = "";
-                    console.log(e);
+                for(let j = 0; j < this.clusterInstanceTypeList.length; j++) {
+                    if(this.clusterInstanceTypeList[j].name == currentVm.instType) {
+                        currentVm.cores = this.clusterInstanceTypeList[j].cores;
+                        currentVm.memory = this.clusterInstanceTypeList[j].memory;
+                        currentVm.sockets = this.clusterInstanceTypeList[j].sockets;
+                        currentVm.threads = this.clusterInstanceTypeList[j].threads;
+                    }
                 }
             }
 
@@ -341,42 +333,79 @@ export class VmpooldetailsComponent implements OnInit {
             }
 
             if(currentVm.running && currentVm.status && vms[i].status["printableStatus"].toLowerCase() == "running") {
-                let currentVmi = new KubeVirtVMI;
-                try {
-                    const datavmi = await lastValueFrom(this.kubeVirtService.getVMi(currentVm.namespace, currentVm.name));
-                    currentVmi = new KubeVirtVMI();
-                    currentVmi.name = datavmi.metadata["name"];
-                    currentVmi.namespace = datavmi.metadata["namespace"];
-                    if(datavmi.metadata["labels"] != null) {
-                        currentVmi.labels = Object.entries(datavmi.metadata["labels"]);
+                for(let k = 0; k < this.vmiList.length; k++) {
+                    if(this.vmiList[k].namespace == currentVm.namespace && this.vmiList[k].name == currentVm.name) {
+                        currentVm.vmi = this.vmiList[k];
+                        currentVm.nodeSel = currentVm.vmi.nodeName;
                     }
-                    currentVmi.creationTimestamp = new Date(datavmi.metadata["creationTimestamp"]);
-                    currentVmi.osId = datavmi.status.guestOSInfo["id"];
-                    currentVmi.osKernRel = datavmi.status.guestOSInfo["kernelRelease"];
-                    currentVmi.osKernVer = datavmi.status.guestOSInfo["kernelVersion"];
-                    currentVmi.osName = datavmi.status.guestOSInfo["name"];
-                    currentVmi.osPrettyName = datavmi.status.guestOSInfo["prettyName"];
-                    currentVmi.osVersion = datavmi.status.guestOSInfo["version"];
-
-                    /* Only works with guest-agent installed */
-                    try {
-                        currentVm.nodeSel = datavmi.status["nodeName"];
-                        currentVmi.ifAddr = datavmi.status.interfaces[0]["ipAddress"];
-                        currentVmi.ifName = datavmi.status.interfaces[0]["name"];
-                    } catch(e: any) {
-                        currentVmi.ifAddr = "";
-                        currentVmi.ifName = "";
-                        console.log(e);
-                    }
-
-                    currentVmi.nodeName = datavmi.status["nodeName"];
-                    currentVm.vmi = currentVmi;
-                } catch (e: any) {
-                    console.log(e);
-                    console.log("ERROR Retrieving VMI: " + currentVm.name + "-" + currentVm.namespace + ":" + currentVm.status);
                 }
             }
             this.vmList.push(currentVm);
+        }
+    }
+
+    /*
+     * Load VMIs
+     */
+    async getVMIs(): Promise<void> {
+        let currentVmi = new KubeVirtVMI;
+        try {
+            const datavmi = await lastValueFrom(this.kubeVirtService.getPooledVMI(this.poolNamespace, this.poolName));
+            let vmis = datavmi.items;
+            for (let i = 0; i < vmis.length; i++) {
+                currentVmi = new KubeVirtVMI();
+                currentVmi.name = vmis[i].metadata["name"];
+                currentVmi.namespace = vmis[i].metadata["namespace"];
+
+                /* Only works with guest-agent installed if not on podNetwork */
+                try {
+                    /* In case of dual NIC, test which one is providing IP */
+                    if(vmis[i].status.interfaces[0]["ipAddress"] != null) {                        
+                        currentVmi.ifAddr = vmis[i].status.interfaces[0]["ipAddress"];
+                        currentVmi.ifName = vmis[i].status.interfaces[0]["name"];
+                    } else {
+                        currentVmi.ifAddr = vmis[i].status.interfaces[1]["ipAddress"];
+                        currentVmi.ifName = vmis[i].status.interfaces[1]["name"];
+                    }
+                } catch(e: any) {
+                    currentVmi.ifAddr = "";
+                    currentVmi.ifName = "";
+                }
+
+                currentVmi.nodeName = vmis[i].status["nodeName"];
+                this.vmiList.push(currentVmi)
+            }
+        } catch (e: any) {
+            console.log("ERROR Retrieving VMI list");
+        }
+    }
+
+    /*
+     * Load Instance Types
+     */
+    async getClusterInstanceTypes(): Promise<void> {
+        let currentClusterInstanceType = new KubeVirtClusterInstanceType;
+        try {
+            const datacit = await lastValueFrom(this.kubeVirtService.getClusterInstanceTypes());
+            let cits = datacit.items;
+            for (let i = 0; i < cits.length; i++) {
+                currentClusterInstanceType = new KubeVirtClusterInstanceType();
+                try {
+                    currentClusterInstanceType.name = cits[i].metadata.name;
+                    currentClusterInstanceType.cores = cits[i].spec.cpu["guest"];
+                    currentClusterInstanceType.memory = cits[i].spec.memory["guest"];
+                    currentClusterInstanceType.sockets = 1;
+                    currentClusterInstanceType.threads = 1;
+                } catch (e: any) {
+                    currentClusterInstanceType.sockets = 0;
+                    currentClusterInstanceType.threads = 0;
+                    currentClusterInstanceType.cores = 0;
+                    currentClusterInstanceType.memory = "";
+                }
+                this.clusterInstanceTypeList.push(currentClusterInstanceType);
+            }
+        } catch (e: any) {
+            console.log("ERROR Retrieving ClusterInstanceType list");
         }
     }
 
@@ -474,15 +503,7 @@ export class VmpooldetailsComponent implements OnInit {
                         }
                     }
                 }
-            }
-
-            /* Set the flag, and load disk info */
-            if(thisDiskInfo.name == "disk1") {
-                this.hasDisk1 = true;
-                this.disk1Info = thisDiskInfo;
-            } else if (thisDiskInfo.name == "disk2") {
-                this.hasDisk2 = true;
-                this.disk2Info = thisDiskInfo;
+                this.diskList.push(thisDiskInfo);
             }
         }
     }

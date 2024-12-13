@@ -26,6 +26,7 @@ import { ConfigMap } from 'src/app/interfaces/config-map';
 import { Deployment } from 'src/app/interfaces/deployment';
 import { ClusterRoleBinding } from 'src/app/interfaces/cluster-role-binding';
 import { FirewallLabels } from 'src/app/models/firewall-labels.model';
+import { FormGroup, FormBuilder, FormArray } from '@angular/forms';
 
 @Component({
   selector: 'app-kcluster',
@@ -41,7 +42,14 @@ export class KClusterComponent implements OnInit {
     charDot = '.';
     firewallLabels: FirewallLabels = new FirewallLabels;
 
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
+    myInterval = setInterval(() =>{ this.reloadComponent(); }, 120000);
+
+    /*
+     * Dynamic Forms
+     */
+    ctrlPlaneAnnotationList: FormGroup;
+    annotationList: FormGroup;
+    labelList: FormGroup;
 
     constructor(
         private cdRef: ChangeDetectorRef,
@@ -50,8 +58,19 @@ export class KClusterComponent implements OnInit {
         private k8sService: K8sService,
         private k8sApisService: K8sApisService,
         private kubeVirtService: KubeVirtService,
-        private xK8sService: XK8sService
-    ) { }
+        private xK8sService: XK8sService,
+        private fb: FormBuilder
+    ) {
+        this.ctrlPlaneAnnotationList = this.fb.group({
+            ctrlannotations: this.fb.array([]),
+        });
+        this.annotationList = this.fb.group({
+            annotations: this.fb.array([]),
+        });
+        this.labelList = this.fb.group({
+            labels: this.fb.array([]),
+        });
+     }
 
     async ngOnInit(): Promise<void> {
         await this.getClusters();
@@ -59,10 +78,151 @@ export class KClusterComponent implements OnInit {
         if(navTitle != null) {
             navTitle.replaceChildren("Kubernetes Clusters");
         }
+        this.ctrlPlaneAnnotationList = this.fb.group({
+            ctrlannotations: this.fb.array([]),
+        });
+        this.annotationList = this.fb.group({
+            annotations: this.fb.array([]),
+        });
+        this.labelList = this.fb.group({
+            labels: this.fb.array([]),
+        });
     }
 
     ngOnDestroy() {
         clearInterval(this.myInterval);
+    }
+
+    /* Getting the Control Plane Annotations FormArray */
+    get ctrlannotations(): FormArray {
+        return this.ctrlPlaneAnnotationList.get('ctrlannotations') as FormArray;
+    }
+
+    /* Control Plane Annotation FormGroup */
+    createCtrlAnnotationGroup(): FormGroup {
+        return this.fb.group({
+            ctrlAnnotKey: [''],
+            ctrlAnnotValue: [''],
+        })
+    }
+
+    /* Add a new Control Plane Annotation entry to the Group */
+    addCtrlAnnotation(): void {
+        this.ctrlannotations.push(this.createCtrlAnnotationGroup());
+    }
+
+    /* Remove Control Plane Annotation entry from the Group */
+    removeCtrlAnnotation(index: number): void {
+        this.ctrlannotations.removeAt(index);
+    }
+
+    /* Getting all the Control Plane annotations */
+    getCtrlAnnotations(): any[] {
+        return this.ctrlPlaneAnnotationList.value.ctrlannotations;
+    }
+
+    /*
+     * Control Plane Annotation Form Validation
+     */
+    validateCtrlAnnotations(): boolean {
+        let toValidate = this.getCtrlAnnotations();
+        if (toValidate.length > 0) {
+            for (let i = 0; i < toValidate.length; i ++) {
+                if (toValidate[i].crtlAnnotKey == "" || toValidate[i].crtlAnnotValue == "") {
+                    alert("Control Plane Service Annotation " + i + " should have Key and Value filled in.")
+                    return false;
+                } 
+            }
+        }
+        return true;
+    }
+
+    /* Getting the Annotations FormArray */
+    get annotations(): FormArray {
+        return this.annotationList.get('annotations') as FormArray;
+    }
+
+    /* Annotation FormGroup */
+    createAnnotationGroup(): FormGroup {
+        return this.fb.group({
+            annotKey: [''],
+            annotValue: [''],
+        })
+    }
+
+    /* Add a new Annotation entry to the Group */
+    addAnnotation(): void {
+        this.annotations.push(this.createAnnotationGroup());
+    }
+
+    /* Remove Annotation entry from the Group */
+    removeAnnotation(index: number): void {
+        this.annotations.removeAt(index);
+    }
+
+    /* Getting all the annotations */
+    getAnnotations(): any[] {
+        return this.annotationList.value.annotations;
+    }
+
+    /*
+     * Annotation Form Validation
+     */
+    validateAnnotations(): boolean {
+        let toValidate = this.getAnnotations();
+        if (toValidate.length > 0) {
+            for (let i = 0; i < toValidate.length; i ++) {
+                if (toValidate[i].annotKey == "" || toValidate[i].annotValue == "") {
+                    alert("Annotation " + i + " should have Key and Value filled in.")
+                    return false;
+                } 
+            }
+        }
+        return true;
+    }
+
+    /* Getting the Labels FormArray */
+    get labels(): FormArray {
+        return this.labelList.get('labels') as FormArray;
+    }
+
+    /* Label FormGroup */
+    createLabelGroup(): FormGroup {
+        return this.fb.group({
+            labelKey: [''],
+            labelValue: [''],
+        });
+    }
+
+    /* Add a new Label entry to the Group */
+    addLabel(): void {
+        this.labels.push(this.createLabelGroup());
+    }
+
+    /* Remove Label entry from the Group */
+    removeLabel(index: number): void {
+        this.labels.removeAt(index);
+    }
+
+    /* Getting all the labels */
+    getLabels(): any[] {
+        return this.labelList.value.labels;
+    }
+
+    /*
+     * Label Form Validation
+     */
+    validateLabels(): boolean {
+        let toValidate = this.getLabels();
+        if (toValidate.length > 0) {
+            for (let i = 0; i < toValidate.length; i ++) {
+                if (toValidate[i].labelKey == "" || toValidate[i].labelValue == "") {
+                    alert("Label " + i + " should have Key and Value filled in.")
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /*
@@ -118,12 +278,12 @@ export class KClusterComponent implements OnInit {
             thisCluster.cpNamespace = clusters[i].spec.controlPlaneRef.namespace;
             thisCluster.infName = clusters[i].spec.infrastructureRef.name;
             thisCluster.infNamespace = clusters[i].spec.infrastructureRef.namespace;
-            for(let j = 0; j < clusters[i].spec.clusterNetwork.pods.cidrBlocks.length; j++) {
-                thisCluster.podCidrs += clusters[i].spec.clusterNetwork.pods.cidrBlocks[j];
-            }
-            for(let j = 0; j < clusters[i].spec.clusterNetwork.services.cidrBlocks.length; j++) {
-                thisCluster.svcCidrs += clusters[i].spec.clusterNetwork.services.cidrBlocks[j];
-            }
+            //for(let j = 0; j < clusters[i].spec.clusterNetwork.pods.cidrBlocks.length; j++) {
+            //    thisCluster.podCidrs += clusters[i].spec.clusterNetwork.pods.cidrBlocks[j];
+            //}
+            //for(let j = 0; j < clusters[i].spec.clusterNetwork.services.cidrBlocks.length; j++) {
+            //    thisCluster.svcCidrs += clusters[i].spec.clusterNetwork.services.cidrBlocks[j];
+            //}
             try {
                 if(clusters[i].status.controlPlaneReady != null) {
                     thisCluster.controlPlaneReady = clusters[i].status.controlPlaneReady;
@@ -149,68 +309,69 @@ export class KClusterComponent implements OnInit {
             let workerpools = data.items;
             for(let j = 0; j < workerpools.length; j++) {
                 thisCluster.totalWorkers += workerpools[j].spec.replicas;
-                let thisWorker = workerpools[j];
-                let thisWorkerPool = new KClusterMachineDeployment();
-                thisWorkerPool.name = thisWorker.metadata.name;
-                thisWorkerPool.namespace = thisWorker.metadata.namespace;
-                thisWorkerPool.clusterName = thisWorker.spec.clusterName;
-                thisWorkerPool.replicas = thisWorker.spec.replicas;
-                thisWorkerPool.version = thisWorker.spec.template.spec.version;
-                let workertemplate = await lastValueFrom(this.xK8sService.getKubevirtMachineTemplate(thisWorker.spec.template.spec.infrastructureRef.namespace, thisWorker.spec.template.spec.infrastructureRef.name));
-                let thisWorkerTemplate = new KClusterKubevirtMachineTemplate;
-                thisWorkerTemplate.name = workertemplate.metadata.name;
-                thisWorkerTemplate.namespace = workertemplate.metadata.namespace;
-                try {
-                    thisWorkerTemplate.clusterName = workertemplate.metadata.ownerReferences[0].name;
-                } catch (e: any) {
-                    thisWorkerTemplate.clusterName = "N/A";
-                    console.log(e);
-                }
-                thisWorkerPool.machineTemplate = thisWorkerTemplate;
-                thisCluster.machineDeployments.push(thisWorkerPool);
+                //let thisWorker = workerpools[j];
+                //let thisWorkerPool = new KClusterMachineDeployment();
+                //thisWorkerPool.name = thisWorker.metadata.name;
+                //thisWorkerPool.namespace = thisWorker.metadata.namespace;
+                //thisWorkerPool.clusterName = thisWorker.spec.clusterName;
+                //thisWorkerPool.replicas = thisWorker.spec.replicas;
+                //thisWorkerPool.version = thisWorker.spec.template.spec.version;
+                //let workertemplate = await lastValueFrom(this.xK8sService.getKubevirtMachineTemplate(thisWorker.spec.template.spec.infrastructureRef.namespace, thisWorker.spec.template.spec.infrastructureRef.name));
+                //let thisWorkerTemplate = new KClusterKubevirtMachineTemplate;
+                //thisWorkerTemplate.name = workertemplate.metadata.name;
+                //thisWorkerTemplate.namespace = workertemplate.metadata.namespace;
+                //try {
+                //    thisWorkerTemplate.clusterName = workertemplate.metadata.ownerReferences[0].name;
+                //} catch (e: any) {
+                //    thisWorkerTemplate.clusterName = "N/A";
+                //    console.log(e);
+                //}
+                //thisWorkerPool.machineTemplate = thisWorkerTemplate;
+                //thisCluster.machineDeployments.push(thisWorkerPool);
                 thisCluster.workerPools += 1;
             }
 
             /* Loading Control Plane information */
             data = await lastValueFrom(this.xK8sService.getClusterControlPlane(thisCluster.namespace, thisCluster.cpName));
-            let thisControlPlane = new KClusterKubeadmControlPlane();
-            thisControlPlane.name = data.metadata.name;
-            thisControlPlane.namespace = data.metadata.namespace;
-            try {
-                thisControlPlane.clusterName = data.metadata.ownerReferences[0].name;
-            } catch (e: any) {
-                thisControlPlane.clusterName = "N/A";
-                console.log(e);
-            }
-            thisControlPlane.dnsDomain = data.spec.kubeadmConfigSpec.clusterConfiguration.networking.dnsDomain;
-            thisControlPlane.podSubnet = data.spec.kubeadmConfigSpec.clusterConfiguration.networking.podSubnet;
-            thisControlPlane.serviceSubnet = data.spec.kubeadmConfigSpec.clusterConfiguration.networking.serviceSubnet;
-            thisControlPlane.replicas = data.spec.replicas;
-            thisControlPlane.version = data.spec.version;
-            try {
-                thisControlPlane.initialized = data.status.initialized;
-            } catch (e: any) {
-                thisControlPlane.initialized = false;
-                console.log(e);
-            }
-            try {
-                thisControlPlane.ready = data.status.ready;
-            } catch (e: any) {
-                thisControlPlane.ready = false;
-                console.log(e);
-            }
-            let cptemplate = await lastValueFrom(this.xK8sService.getKubevirtMachineTemplate(data.spec.machineTemplate.infrastructureRef.namespace, data.spec.machineTemplate.infrastructureRef.name));
-            let thisCPTemplate = new KClusterKubevirtMachineTemplate;
-            thisCPTemplate.name = cptemplate.metadata.name;
-            thisCPTemplate.namespace = cptemplate.metadata.namespace;
-            try {
-                thisCPTemplate.clusterName = cptemplate.metadata.ownerReferences[0].name;
-            } catch (e: any) {
-                thisCPTemplate.clusterName = "N/A";
-                console.log(e);
-            }
-            thisControlPlane.machineTemplate = thisCPTemplate;
-            thisCluster.controlPlane = thisControlPlane;
+            //let thisControlPlane = new KClusterKubeadmControlPlane();
+            //thisControlPlane.name = data.metadata.name;
+            //thisControlPlane.namespace = data.metadata.namespace;
+            //try {
+            //    thisControlPlane.clusterName = data.metadata.ownerReferences[0].name;
+            //} catch (e: any) {
+            //    thisControlPlane.clusterName = "N/A";
+            //    console.log(e);
+            //}
+            //thisControlPlane.dnsDomain = data.spec.kubeadmConfigSpec.clusterConfiguration.networking.dnsDomain;
+            //thisControlPlane.podSubnet = data.spec.kubeadmConfigSpec.clusterConfiguration.networking.podSubnet;
+            //thisControlPlane.serviceSubnet = data.spec.kubeadmConfigSpec.clusterConfiguration.networking.serviceSubnet;
+            //thisControlPlane.replicas = data.spec.replicas;
+            //thisControlPlane.version = data.spec.version;
+            thisCluster.controlPlane.version = data.spec.version;
+            //try {
+            //    thisControlPlane.initialized = data.status.initialized;
+            //} catch (e: any) {
+            //    thisControlPlane.initialized = false;
+            //    console.log(e);
+            //}
+            //try {
+            //    thisControlPlane.ready = data.status.ready;
+            //} catch (e: any) {
+            //    thisControlPlane.ready = false;
+            //    console.log(e);
+            //}
+            //let cptemplate = await lastValueFrom(this.xK8sService.getKubevirtMachineTemplate(data.spec.machineTemplate.infrastructureRef.namespace, data.spec.machineTemplate.infrastructureRef.name));
+            //let thisCPTemplate = new KClusterKubevirtMachineTemplate;
+            //thisCPTemplate.name = cptemplate.metadata.name;
+            //thisCPTemplate.namespace = cptemplate.metadata.namespace;
+            //try {
+            //    thisCPTemplate.clusterName = cptemplate.metadata.ownerReferences[0].name;
+            //} catch (e: any) {
+            //    thisCPTemplate.clusterName = "N/A";
+            //    console.log(e);
+            //}
+            //thisControlPlane.machineTemplate = thisCPTemplate;
+            //thisCluster.controlPlane = thisControlPlane;
             this.clusterList.push(thisCluster);
         }
     }
@@ -366,7 +527,7 @@ export class KClusterComponent implements OnInit {
     }
 
     /*
-     * Show New Cluster Window
+     * Show New Standard Cluster Window
      */
     async showNewCluster(): Promise<void> {
         this.hideComponent("modal-new");
@@ -476,7 +637,7 @@ export class KClusterComponent implements OnInit {
     }
 
     /*
-     * Show New Cluster Window
+     * Show New Custom Cluster Window
      */
     async showNewClusterCustom(): Promise<void> {
         this.hideComponent("modal-new");
@@ -566,12 +727,6 @@ export class KClusterComponent implements OnInit {
     async applyNewCluster(
         clustername: string,
         clusternamespace: string,
-        clusterlabelkeyone: string,
-        clusterlabelvalueone: string,
-        clusterlabelkeytwo: string,
-        clusterlabelvaluetwo: string,
-        clusterlabelkeythree: string,
-        clusterlabelvaluethree: string,
         clusterversion: string,
         clustercni: string,
         clustercniversion: string,
@@ -582,10 +737,6 @@ export class KClusterComponent implements OnInit {
         clusternetwork: string,
         clusternetworktype: string,
         clustercontrolplaneeptype: string,
-        clustercontrolplaneepannotationskeyone: string,
-        clustercontrolplaneepannotationsvalueone: string,
-        clustercontrolplaneepannotationskeytwo: string,
-        clustercontrolplaneepannotationsvaluetwo: string,
         clustercontrolplaneosdist: string,
         clustercontrolplaneosversion: string,
         clustercontrolplanetype: string,
@@ -680,7 +831,7 @@ export class KClusterComponent implements OnInit {
             alert("Control Plane machines needs at least 2 vCPU!");
         } else if(clustercontrolplanetype != "custom" && controlPlaneTypedCpus < 2) {
             alert("Control Plane machines needs at least 2 vCPU, choose a bigger VM Type!");
-        } else {
+        } else if (this.validateAnnotations() && this.validateCtrlAnnotations() && this.validateLabels()) {
 
             /* Auto Fill CIDR Blocks */
             if(clusterpodcidr == "") {
@@ -703,23 +854,13 @@ export class KClusterComponent implements OnInit {
             try {
                 this.createClusterRelatedObjects(clustername,
                                             clusternamespace,
-                                            clusterlabelkeyone,
-                                            clusterlabelvalueone,
-                                            clusterlabelkeytwo,
-                                            clusterlabelvaluetwo,
-                                            clusterlabelkeythree,
-                                            clusterlabelvaluethree,
                                             clustercni,
                                             clustercniversion,
                                             clustercnivxlanport,
                                             clusterpodcidr,
                                             clustersvccidr,
                                             clusterautoscaler,
-                                            clustercontrolplaneeptype,
-                                            clustercontrolplaneepannotationskeyone,
-                                            clustercontrolplaneepannotationsvalueone,
-                                            clustercontrolplaneepannotationskeytwo,
-                                            clustercontrolplaneepannotationsvaluetwo);
+                                            clustercontrolplaneeptype);
 
                 this.createControlPlaneRelatedObjects(clustername,
                                             clusternamespace,
@@ -807,12 +948,6 @@ export class KClusterComponent implements OnInit {
     async applyNewClusterCustom(
         clustername: string,
         clusternamespace: string,
-        clusterlabelkeyone: string,
-        clusterlabelvalueone: string,
-        clusterlabelkeytwo: string,
-        clusterlabelvaluetwo: string,
-        clusterlabelkeythree: string,
-        clusterlabelvaluethree: string,
         clusterversion: string,
         clusterdns: string,
         clusterpodcidr: string,
@@ -820,10 +955,6 @@ export class KClusterComponent implements OnInit {
         clusternetwork: string,
         clusternetworktype: string,
         clustercontrolplaneeptype: string,
-        clustercontrolplaneepannotationskeyone: string,
-        clustercontrolplaneepannotationsvalueone: string,
-        clustercontrolplaneepannotationskeytwo: string,
-        clustercontrolplaneepannotationsvaluetwo: string,
         clustercontrolplanetype: string,
         clustercontrolplanecpumemsockets: string,
         clustercontrolplanecpumemcores: string,
@@ -833,6 +964,7 @@ export class KClusterComponent implements OnInit {
         clustercontrolplanefirmware: string,
         clustercontrolplanesecureboot: string,
         clustercontrolplanereplicas: string,
+        clustercontrolplanecloudinit: string,
         clustercontrolplaneimageurl: string,
         clustercontrolplanedisksize: string,
         clustercontrolplanedisksc: string,
@@ -848,6 +980,7 @@ export class KClusterComponent implements OnInit {
         clusternodepoolfirmware: string,
         clusternodepoolsecureboot: string,
         clusternodepoolreplicas: string,
+        clusternodepoolcloudinit: string,
         clusternodepoolimageurl: string,
         clusternodepooldisksize: string,
         clusternodepooldisksc: string,
@@ -910,7 +1043,7 @@ export class KClusterComponent implements OnInit {
             alert("Control Plane machines needs at least 2 vCPU!");
         } else if(clustercontrolplanetype != "custom" && controlPlaneTypedCpus < 2) {
             alert("Control Plane machines needs at least 2 vCPU, choose a bigger VM Type!");
-        } else {
+        } else if (this.validateAnnotations() && this.validateCtrlAnnotations() && this.validateLabels()) {
 
             /* Auto Fill CIDR Blocks */
             if(clusterpodcidr == "") {
@@ -922,8 +1055,15 @@ export class KClusterComponent implements OnInit {
 
             let clustercontrolplaneosdist = "custom";
             let clustercontrolplaneosversion = "custom";
+            if (clustercontrolplanecloudinit == "ignition") {
+                clustercontrolplaneosdist = "flatcar"
+            }
+            
             let clusternodepoolosdist = "custom";
             let clusternodepoolosversion = "custom";
+            if (clusternodepoolcloudinit == "ignition") {
+                clusternodepoolosdist = "flatcar"
+            }
 
             /* Generate random VXLAN Port */
             let clustercnivxlanport = "0000";
@@ -934,23 +1074,13 @@ export class KClusterComponent implements OnInit {
             try {
                 this.createClusterRelatedObjects(clustername,
                                             clusternamespace,
-                                            clusterlabelkeyone,
-                                            clusterlabelvalueone,
-                                            clusterlabelkeytwo,
-                                            clusterlabelvaluetwo,
-                                            clusterlabelkeythree,
-                                            clusterlabelvaluethree,
                                             clustercni,
                                             clustercniversion,
                                             clustercnivxlanport,
                                             clusterpodcidr,
                                             clustersvccidr,
                                             "false",
-                                            clustercontrolplaneeptype,
-                                            clustercontrolplaneepannotationskeyone,
-                                            clustercontrolplaneepannotationsvalueone,
-                                            clustercontrolplaneepannotationskeytwo,
-                                            clustercontrolplaneepannotationsvaluetwo);
+                                            clustercontrolplaneeptype);
 
                 this.createControlPlaneRelatedObjects(clustername,
                                             clusternamespace,
@@ -1023,49 +1153,48 @@ export class KClusterComponent implements OnInit {
     async createClusterRelatedObjects(
         name: string,
         namespace: string,
-        labelkeyone: string,
-        labelvalueone: string,
-        labelkeytwo: string,
-        labelvaluetwo: string,
-        labelkeythree: string,
-        labelvaluethree: string,
         cni: string,
         cniversion: string,
         clustercnivxlanport: string,
         podcidr: string,
         svccidr: string,
         clusterautoscaler: string,
-        controlplaneeptype: string,
-        controlplaneepannotationskeyone: string,
-        controlplaneepannotationsvalueone: string,
-        controlplaneepannotationskeytwo: string,
-        controlplaneepannotationsvaluetwo: string
+        controlplaneeptype: string
     ) {
 
-        /* Load Custom Labels */
+        /* Load Custom Labels OPTIONAL */
+        let labelsForm = this.getLabels();
         let tmpLabels = {};
-        if(labelkeyone != "") {
+        for (let i = 0; i < labelsForm.length; i++) {
             let thisLabel = {
-                [labelkeyone]: labelvalueone
+                [labelsForm[i].labelKey.toString()] : labelsForm[i].labelValue
             };
             Object.assign(tmpLabels, thisLabel);
         }
-        if(labelkeytwo != "") {
-            let thisLabel = {
-                [labelkeytwo]: labelvaluetwo
+
+        /* Load Annotations OPTIONAL */
+        let annotationsForm = this.getAnnotations();
+        let tmpAnnotations = {};
+        for (let i = 0; i < annotationsForm.length; i++) {
+            let thisAnnotation = {
+                [annotationsForm[i].annotKey.toString()] : annotationsForm[i].annotValue
             };
-            Object.assign(tmpLabels, thisLabel);
+            Object.assign(tmpAnnotations, thisAnnotation);
         }
-        if(labelkeythree != "") {
-            let thisLabel = {
-                [labelkeythree]: labelvaluethree
+
+        /* Load Control Plane Annotations OPTIONAL */
+        let crtlAnnotationsForm = this.getCtrlAnnotations();
+        let tmpCrtlAnnotations = {};
+        for (let i = 0; i < crtlAnnotationsForm.length; i++) {
+            let thisAnnotation = {
+                [crtlAnnotationsForm[i].ctrlAnnotKey.toString()] : crtlAnnotationsForm[i].crtlAnnotValue
             };
-            Object.assign(tmpLabels, thisLabel);
+            Object.assign(tmpCrtlAnnotations, thisAnnotation);
         }
 
         /* Load other labels */
-        let thisLabel = { 'kubevirt-manager.io/cluster-name': name };
-        Object.assign(tmpLabels, thisLabel);
+        let clusterNameLabel = { 'kubevirt-manager.io/cluster-name': name };
+        Object.assign(tmpLabels, clusterNameLabel);
 
         let kubevirtManagerLabel = { 'kubevirt-manager.io/managed': "true" };
         Object.assign(tmpLabels, kubevirtManagerLabel);
@@ -1085,21 +1214,6 @@ export class KClusterComponent implements OnInit {
             Object.assign(tmpLabels, thisCNIVXLANPortLabel);
         }
 
-
-        /* Load Annotations */
-        let tmpAnnotations = {};
-        if(controlplaneepannotationskeyone != "") {
-            let thisAnnotations = {
-                [controlplaneepannotationskeyone]: controlplaneepannotationsvalueone
-            };
-            Object.assign(tmpAnnotations, thisAnnotations);
-        }
-        if(controlplaneepannotationskeytwo != "") {
-            let thisAnnotations = {
-                [controlplaneepannotationskeytwo]: controlplaneepannotationsvaluetwo
-            };
-            Object.assign(tmpAnnotations, thisAnnotations);
-        }
 
         /* Creating our Objects */
         let cluster: Cluster = {
@@ -1154,8 +1268,9 @@ export class KClusterComponent implements OnInit {
         Object.assign(tmpLabels, { [this.firewallLabels.Cluster]: name });
         cluster.metadata.labels = tmpLabels;
         kubevirtCluster.metadata.labels = tmpLabels;
+        kubevirtCluster.metadata.annotations = tmpAnnotations;
         kubevirtCluster.spec.controlPlaneServiceTemplate.metadata.labels = tmpLabels;
-        kubevirtCluster.spec.controlPlaneServiceTemplate.metadata.annotations = tmpAnnotations;
+        kubevirtCluster.spec.controlPlaneServiceTemplate.metadata.annotations = tmpCrtlAnnotations;
 
         try {
             let data = await lastValueFrom(this.xK8sService.createCluster(cluster));
@@ -1198,15 +1313,33 @@ export class KClusterComponent implements OnInit {
     ) {
         /* Custom Labels */
         let tmpLabels = {};
+        let labelsForm = this.getLabels();
+        for (let i = 0; i < labelsForm.length; i++) {
+            let thisLabel = {
+                [labelsForm[i].labelKey.toString()] : labelsForm[i].labelValue
+            };
+            Object.assign(tmpLabels, thisLabel);
+        }
         let machineTemplateLabels = {};
+        Object.assign(machineTemplateLabels, tmpLabels);
 
         /* Load other labels */
-        let thisLabel = { 'kubevirt-manager.io/cluster-name': name };
-        Object.assign(tmpLabels, thisLabel);
-        Object.assign(machineTemplateLabels, thisLabel);
+        let clusterNameLabel = { 'kubevirt-manager.io/cluster-name': name };
+        Object.assign(tmpLabels, clusterNameLabel);
+        Object.assign(machineTemplateLabels, clusterNameLabel);
 
         let kubevirtManagerLabel = { 'kubevirt-manager.io/managed': "true" };
         Object.assign(tmpLabels, kubevirtManagerLabel);
+
+        /* Load Annotations OPTIONAL */
+        let annotationsForm = this.getAnnotations();
+        let tmpAnnotations = {};
+        for (let i = 0; i < annotationsForm.length; i++) {
+            let thisAnnotation = {
+                [annotationsForm[i].annotKey.toString()] : annotationsForm[i].annotValue
+            };
+            Object.assign(tmpAnnotations, thisAnnotation);
+        }
 
         
         /* Machine Labels */
@@ -1246,7 +1379,8 @@ export class KClusterComponent implements OnInit {
                             criSocket: "/var/run/containerd/containerd.sock"
                         }
                     },
-                    useExperimentalRetryJoin: true
+                    useExperimentalRetryJoin: true,
+                    format: "cloud-config"
                 },
                 machineTemplate: {
                     infrastructureRef: {
@@ -1261,7 +1395,15 @@ export class KClusterComponent implements OnInit {
             }
         };
         kubeadmControlPlane.metadata.labels = tmpLabels;
+        kubeadmControlPlane.metadata.annotations = tmpAnnotations;
 
+        /* Add ignition support for flatcar */
+        if (controlplaneosdist == "flatcar") {
+            let ignition = { containerLinuxConfig: { additionalConfig: "systemd:\n  units:\n  - name: kubeadm.service\n    enabled: true\n    dropins:\n    - name: 10-flatcar.conf\n      contents: |\n        [Unit]\n        Requires=containerd.service\n        After=containerd.service\n" }};
+            kubeadmControlPlane.spec.kubeadmConfigSpec.format = "ignition";
+            kubeadmControlPlane.spec.kubeadmConfigSpec.ignition = ignition;
+            kubeadmControlPlane.spec.kubeadmConfigSpec.useExperimentalRetryJoin = false;
+        }
 
         /* 
          * Kubevirt Machine Template
@@ -1272,7 +1414,8 @@ export class KClusterComponent implements OnInit {
             metadata: {
                 name: name + "-control-plane",
                 namespace: namespace,
-                labels: machineTemplateLabels
+                labels: machineTemplateLabels,
+                annotations: tmpAnnotations
             },
             spec: {
                 template: {
@@ -1280,14 +1423,16 @@ export class KClusterComponent implements OnInit {
                         virtualMachineTemplate: {
                             metadata: {
                                 namespace: namespace,
-                                labels: machineTemplateLabels
+                                labels: machineTemplateLabels,
+                                annotations: tmpAnnotations
                             },
                             spec: {
                                 dataVolumeTemplates: {},
                                 runStrategy: "Once",
                                 template: {
                                     metadata: {
-                                        labels: machineTemplateLabels
+                                        labels: machineTemplateLabels,
+                                        annotations: tmpAnnotations
                                     },
                                     spec: {
                                         priorityClassName: controlplanepc,
@@ -1366,6 +1511,7 @@ export class KClusterComponent implements OnInit {
             metadata: {
                 name: disk1name,
                 namespace: namespace,
+                labels: tmpLabels,
                 annotations: {
                     "cdi.kubevirt.io/storage.deleteAfterCompletion": "false"
                 },
@@ -1467,8 +1613,28 @@ export class KClusterComponent implements OnInit {
     ) {
         /* Custom Labels */
         let tmpLabels = {};
-        let machineDeploymentLables = {};
+        let labelsForm = this.getLabels();
+        for (let i = 0; i < labelsForm.length; i++) {
+            let thisLabel = {
+                [labelsForm[i].labelKey.toString()] : labelsForm[i].labelValue
+            };
+            Object.assign(tmpLabels, thisLabel);
+        }
+        let machineDeploymentLabels = {};
+        Object.assign(machineDeploymentLabels, tmpLabels);
+
+        /* Load Annotations OPTIONAL */
+        let annotationsForm = this.getAnnotations();
+        let tmpAnnotations = {};
+        for (let i = 0; i < annotationsForm.length; i++) {
+            let thisAnnotation = {
+                [annotationsForm[i].annotKey.toString()] : annotationsForm[i].annotValue
+            };
+            Object.assign(tmpAnnotations, thisAnnotation);
+        }
+
         let machineDeploymentAnnotations = {};
+        Object.assign(machineDeploymentAnnotations, tmpAnnotations);
         let machineTemplateLabels = {};
 
         /* KubeadmConfig Labe;s */
@@ -1476,9 +1642,9 @@ export class KClusterComponent implements OnInit {
         Object.assign(tmpLabels, { 'kubevirt-manager.io/managed': "true" });
 
         /* MachineDeployment Labels */
-        Object.assign(machineDeploymentLables, { 'kubevirt-manager.io/cluster-name': name });
-        Object.assign(machineDeploymentLables, { 'kubevirt-manager.io/managed': "true" });
-        Object.assign(machineDeploymentLables, { 'capk.kubevirt-manager.io/autoscaler': clusterautoscaler });
+        Object.assign(machineDeploymentLabels, { 'kubevirt-manager.io/cluster-name': name });
+        Object.assign(machineDeploymentLabels, { 'kubevirt-manager.io/managed': "true" });
+        Object.assign(machineDeploymentLabels, { 'capk.kubevirt-manager.io/autoscaler': clusterautoscaler });
 
         /* MachineDeployment Annotations */
         if(clusterautoscaler == "true") {
@@ -1504,12 +1670,14 @@ export class KClusterComponent implements OnInit {
             metadata: {
                 name: name + "-" + nodepoolname,
                 namespace: namespace,
-                labels: tmpLabels
+                labels: tmpLabels,
+                annotations: tmpAnnotations
             },
             spec: {
                 template: {
                     metadata: {
-                        labels: tmpLabels
+                        labels: tmpLabels,
+                        annotations: tmpAnnotations
                     },
                     spec: {
                         joinConfiguration: {
@@ -1517,10 +1685,19 @@ export class KClusterComponent implements OnInit {
                                 kubeletExtraArgs: {}
                             }
                         },
-                        useExperimentalRetryJoin: true
+                        useExperimentalRetryJoin: true,
+                        format: "cloud-config"
                     }
                 }
             }
+        }
+
+        /* Add ignition support for flatcar */
+        if (nodepoolosdist == "flatcar") {
+            let ignition = { containerLinuxConfig: { additionalConfig: "systemd:\n  units:\n  - name: kubeadm.service\n    enabled: true\n    dropins:\n    - name: 10-flatcar.conf\n      contents: |\n        [Unit]\n        Requires=containerd.service\n        After=containerd.service\n" }};
+            kubeadmConfigTemplate.spec.template.spec.format = "ignition";
+            kubeadmConfigTemplate.spec.template.spec.ignition = ignition;
+            kubeadmConfigTemplate.spec.template.spec.useExperimentalRetryJoin = false;
         }
 
         /* MachineDeployment */
@@ -1531,7 +1708,7 @@ export class KClusterComponent implements OnInit {
                 name: name + "-" + nodepoolname,
                 namespace: namespace,
                 annotations: machineDeploymentAnnotations,
-                labels: machineDeploymentLables
+                labels: machineDeploymentLabels
             },
             spec: {
                 clusterName: name,
@@ -1539,7 +1716,8 @@ export class KClusterComponent implements OnInit {
                 selector: {},
                 template: {
                     metadata: {
-                        labels: machineDeploymentLables
+                        labels: machineDeploymentLabels,
+                        annotations: tmpAnnotations
                     },
                     spec: {
                         bootstrap: {
@@ -1572,7 +1750,8 @@ export class KClusterComponent implements OnInit {
             metadata: {
                 name: name + "-" + nodepoolname,
                 namespace: namespace,
-                labels: machineTemplateLabels
+                labels: machineTemplateLabels,
+                annotations: tmpAnnotations
             },
             spec: {
                 template: {
@@ -1580,14 +1759,16 @@ export class KClusterComponent implements OnInit {
                         virtualMachineTemplate: {
                             metadata: {
                                 namespace: namespace,
-                                labels: machineTemplateLabels
+                                labels: machineTemplateLabels,
+                                annotations: tmpAnnotations
                             },
                             spec: {
                                 dataVolumeTemplates: {},
                                 runStrategy: "Once",
                                 template: {
                                     metadata: {
-                                        labels: machineTemplateLabels
+                                        labels: machineTemplateLabels,
+                                        annotations: tmpAnnotations
                                     },
                                     spec: {
                                         priorityClassName: nodepoolpc,
@@ -1667,6 +1848,7 @@ export class KClusterComponent implements OnInit {
             metadata: {
                 name: disk1name,
                 namespace: namespace,
+                labels: tmpLabels,
                 annotations: {
                     "cdi.kubevirt.io/storage.deleteAfterCompletion": "false"
                 }
@@ -1752,9 +1934,18 @@ export class KClusterComponent implements OnInit {
         ) {
             let secretData = {};
             let checkData = false;
+            /* Load Custom Labels OPTIONAL */
+            let labelsForm = this.getLabels();
             let tmpLabels = {};
+            for (let i = 0; i < labelsForm.length; i++) {
+                let thisLabel = {
+                    [labelsForm[i].labelKey.toString()] : labelsForm[i].labelValue
+                };
+                Object.assign(tmpLabels, thisLabel);
+            }
 
             /* Load other labels */
+
             let thisLabel = { 'kubevirt-manager.io/cluster-name': clustername };
             Object.assign(tmpLabels, thisLabel);
 
@@ -1895,8 +2086,15 @@ export class KClusterComponent implements OnInit {
      * Create Kubevirt Cloud Controller 
      */
     async loadKubevirtCloudControllerManager(namespace: string, name: string): Promise<void> {
-        /* Custom Labels */
+        /* Load Custom Labels OPTIONAL */
+        let labelsForm = this.getLabels();
         let tmpLabels = {};
+        for (let i = 0; i < labelsForm.length; i++) {
+            let thisLabel = {
+                [labelsForm[i].labelKey.toString()] : labelsForm[i].labelValue
+            };
+            Object.assign(tmpLabels, thisLabel);
+        }
 
         /* Load labels */
         let thisLabel = { 'kubevirt-manager.io/cluster-name': name };
@@ -2046,8 +2244,15 @@ export class KClusterComponent implements OnInit {
      * Create Cluster Autoscaler Controller 
      */
     async loadClusterAutoscaler(namespace: string, name: string): Promise<void> {
-        /* Custom Labels */
+        /* Load Custom Labels OPTIONAL */
+        let labelsForm = this.getLabels();
         let tmpLabels = {};
+        for (let i = 0; i < labelsForm.length; i++) {
+            let thisLabel = {
+                [labelsForm[i].labelKey.toString()] : labelsForm[i].labelValue
+            };
+            Object.assign(tmpLabels, thisLabel);
+        }
 
         /* Load labels */
         let thisLabel = { 'kubevirt-manager.io/cluster-name': name };

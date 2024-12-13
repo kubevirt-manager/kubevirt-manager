@@ -4,6 +4,7 @@ import { VMPoolsComponent } from './vmpools.component';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { ReactiveFormsModule } from '@angular/forms';
  
 describe('VMPoolsComponent', () => {
   let component: VMPoolsComponent;
@@ -12,7 +13,7 @@ describe('VMPoolsComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
     declarations: [VMPoolsComponent],
-    imports: [],
+    imports: [ReactiveFormsModule],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

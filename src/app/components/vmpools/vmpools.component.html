@@ -122,7 +122,7 @@
                       <a class="nav-link active" id="newpool-home-tab" data-toggle="pill" href="#newpool-home" role="tab" aria-controls="newpool-home" aria-selected="false">Basic</a>
                     </li>
                     <li class="nav-item">
-                      <a class="nav-link" id="newpool-labels-tab" data-toggle="pill" href="#newpool-labels" role="tab" aria-controls="newpool-labels" aria-selected="false">Labels</a>
+                      <a class="nav-link" id="newpool-meta-tab" data-toggle="pill" href="#newpool-meta" role="tab" aria-controls="newpool-meta" aria-selected="false">Metadata</a>
                     </li>
                     <li class="nav-item">
                       <a class="nav-link" id="newpool-cpumem-tab" data-toggle="pill" href="#newpool-cpumem" role="tab" aria-controls="newpool-cpumem" aria-selected="false">CPU/Memory</a>
@@ -161,37 +161,69 @@
                       <input #newpoolreplicas type="number" class="form-control" id="newpool-replicas" name="newpool-replicas">
                     </div>
                     <!-- LABELS TAB -->
-                    <div class="tab-pane fade" id="newpool-labels" role="tabpanel" aria-labelledby="newpool-labels-tab">
-                        <table class="table table-sm" style="vertical-align: middle !important;">
-                            <thead>
-                                <tr>
-                                <th style="width: 250px">Key</th>
-                                <th style="width: 250px">Value</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                  <td style="line-height: 2.2 !important;"><input #newpoollabelkeyone type="text" class="form-control" id="newpool-labelkey-one" name="newpool-labelkey-one"></td>
-                                  <td style="line-height: 2.2 !important;"><input #newpoollabelvalueone type="text" class="form-control" id="newpool-labelvalue-one" name="newpool-labelvalue-one"></td>
-                                </tr>
-                                <tr>
-                                  <td style="line-height: 2.2 !important;"><input #newpoollabelkeytwo type="text" class="form-control" id="newpool-labelkey-two" name="newpool-labelkey-two"></td>
-                                  <td style="line-height: 2.2 !important;"><input #newpoollabelvaluetwo type="text" class="form-control" id="newpool-labelvalue-two" name="newpool-labelvalue-two"></td>
-                                </tr>
-                                <tr>
-                                  <td style="line-height: 2.2 !important;"><input #newpoollabelkeythree type="text" class="form-control" id="newpool-labelkey-three" name="newpool-labelkey-three"></td>
-                                  <td style="line-height: 2.2 !important;"><input #newpoollabelvaluethree type="text" class="form-control" id="newpool-labelvalue-three" name="newpool-labelvalue-three"></td>
-                                </tr>
-                                <tr>
-                                  <td style="line-height: 2.2 !important;"><input #newpoollabelkeyfour type="text" class="form-control" id="newpool-labelkey-four" name="newpool-labelkey-four"></td>
-                                  <td style="line-height: 2.2 !important;"><input #newpoollabelvaluefour type="text" class="form-control" id="newpool-labelvalue-four" name="newpool-labelvalue-four"></td>
-                                </tr>
-                                <tr>
-                                  <td style="line-height: 2.2 !important;"><input #newpoollabelkeyfive type="text" class="form-control" id="newpool-labelkey-five" name="newpool-labelkey-five"></td>
-                                  <td style="line-height: 2.2 !important;"><input #newpoollabelvaluefive type="text" class="form-control" id="newpool-labelvalue-five" name="newpool-labelvalue-five"></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="tab-pane fade" id="newpool-meta" role="tabpanel" aria-labelledby="newpool-meta-tab">
+                        <div class="row">
+                            <label for="newpool-labels">Labels:&nbsp;
+                            <a class="btn" (click)="addLabel()" title="Add new label...">
+                                <i class="fas fa-plus"></i>
+                            </a>
+                            </label>
+                        </div>
+                        <div class="row">
+                            <form [formGroup]="labelList">
+                                <table class="table table-sm" style="vertical-align: middle !important;">
+                                    <thead>
+                                        <tr>
+                                        <th style="width: 500px">Key</th>
+                                        <th style="width: 500px">Value</th>
+                                        <th style="width: 100px">&nbsp;</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody formArrayName="labels"> 
+                                        <tr *ngFor="let label of labels.controls; let i = index" [formGroupName]="i">
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newlb-labelkey" id="labelKey{{i}}" formControlName="labelKey"></td>
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newlb-labelvalue" id="labelValue{{i}}" formControlName="labelValue"></td>
+                                        <td style="line-height: 2.2 !important;">
+                                            <a class="btn" (click)="removeLabel(i)" title="Remove label...">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </form>
+                        </div>
+                        <div class="row">
+                            <label for="newvm-annotations">Annotations:&nbsp;
+                            <a class="btn" (click)="addAnnotation()" title="Add new annotation...">
+                                <i class="fas fa-plus"></i>
+                            </a>
+                            </label>
+                        </div>
+                        <div class="row">
+                            <form [formGroup]="annotationList">
+                                <table class="table table-sm" style="vertical-align: middle !important;">
+                                    <thead>
+                                        <tr>
+                                        <th style="width: 500px">Key</th>
+                                        <th style="width: 500px">Value</th>
+                                        <th style="width: 100px">&nbsp;</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody formArrayName="annotations"> 
+                                        <tr *ngFor="let annotation of annotations.controls; let i = index" [formGroupName]="i">
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newlb-annotationkey" id="annotKey{{i}}" formControlName="annotKey"></td>
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newlb-annotationvalue" id="annotValue{{i}}" formControlName="annotValue"></td>
+                                        <td style="line-height: 2.2 !important;">
+                                            <a class="btn" (click)="removeAnnotation(i)" title="Remove annotation...">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </form>
+                        </div>
                     </div>
                     <!-- CPU/MEM TAB -->
                     <div class="tab-pane fade" id="newpool-cpumem" role="tabpanel" aria-labelledby="newpool-cpumem-tab">
@@ -226,106 +258,126 @@
                     </div>
                     <!-- DISK TAB -->
                     <div class="tab-pane fade" id="newpool-disks" role="tabpanel" aria-labelledby="newpool-disks-tab">
-                      <label for="disk1div">Disk 1:</label>
-                      <div class="row">
-                        <div class="col-2" name="newpool-diskone-type-col">
-                          <label for="newpool-diskonetype">Type:</label>
-                          <select #newpooldiskonetype class="custom-select rounded-0" name="newpool-diskonetype" id="newpool-diskonetype" (change)="onChangeDiskOne(newpooldiskonetype.value,newpoolnamespace.value)">
-                            <option value="none">None</option>
-                            <option value="blank">Blank Disk</option>
-                            <option value="image">Image</option>
-                            <option value="dv">Existing Disk</option>
-                          </select>
+                        <div class="row">
+                            <label for="newpool-disks">Disks:&nbsp;
+                              <a class="btn" (click)="addDisk()" title="Add new disk...">
+                                <i class="fas fa-plus"></i>
+                              </a>
+                            </label>
                         </div>
-                        <div class="col-2">
-                          <label for="newpool-diskonesc">Storage Class:</label>
-                          <select #newpooldiskonesc class="custom-select rounded-0" name="newpool-diskonesc" id="newpool-diskonesc">
-                          </select>
+                        <div class="row">
+                            <form [formGroup]="diskList">
+                                <div formArrayName="disks" style="width: 100%; min-width: 1085px;">
+                                    <div class="card card-outline" *ngFor="let disk of disks.controls; let i = index" [formGroupName]="i">
+                                        <div class="card-header">
+                                            <b class="card-title" style="font-weight: bold;"><i class="fas fa-hdd"></i> &nbsp; disk{{i}}</b>
+                                            <div class="card-tools">
+                                                <button type="button" class="btn btn-tool" (click)="removeDisk(i)" title="Remove disk...">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                              <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                                <i class="fas fa-minus"></i>
+                                              </button>
+                                            </div>
+                                        </div>
+                                        <div class="card-body" style="display: block;">
+                                            <div class="row">
+                                                <div class="col-2" name="newpool-disk-type-col">
+                                                    <label for="newpool-disktype-{{i}}">Type:</label>
+                                                    <select #newpooldisktype class="custom-select rounded-0" name="newpool-disktype-{{i}}" id="diskType-{{i}}" formControlName="diskType" (change)="onChangeDisk(newpoolnamespace.value, i)">
+                                                        <option selected></option>
+                                                        <option value="blank">Blank Disk</option>
+                                                        <option value="image">Image</option>
+                                                        <option value="dv">DataVolume</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-2">
+                                                    <label for="newpool-disksc-{{i}}">Storage Class:</label>
+                                                    <select #newpooldisksc class="custom-select rounded-0" name="newpool-disksc-{{i}}" id="diskStorageClass-{{i}}" formControlName="diskStorageClass">
+                                                    </select>
+                                                </div>
+                                                <div class="col-2">
+                                                    <label for="newpool-diskam-{{i}}">Access Mode:</label>
+                                                    <select #newpooldiskam class="custom-select rounded-0" name="newpool-diskeam-{{i}}" id="diskAccessMode-{{i}}" formControlName="diskAccessMode">
+                                                        <option selected></option>
+                                                        <option>ReadWriteOnce</option>
+                                                        <option>ReadOnlyMany</option>
+                                                        <option>ReadWriteMany</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-3">
+                                                    <label for="newpool-diskvalue-{{i}}">Value:</label>
+                                                    <select #newpooldiskvalue class="custom-select rounded-0" name="newpool-diskvalue-{{i}}" id="diskValue-{{i}}" formControlName="diskValue">
+                                                    </select>
+                                                </div>
+                                                <div class="col-1">
+                                                    <label for="newpool-disksize-{{i}}">Size/GB:</label>
+                                                    <input #newpooldisksize type=number class="form-control" name="newpool-disksize-{{i}}" id="diskSize-{{i}}" formControlName="diskSize">
+                                                </div>
+                                                <div class="col-2">
+                                                    <label for="newpool-diskcm-{{i}}">Cache Mode:</label>
+                                                    <select #newpooldiskcm class="custom-select rounded-0" name="newpool-diskcm-{{i}}" id="diskCacheMode-{{i}}" formControlName="diskCacheMode">
+                                                        <option value="" selected>Automatic</option>
+                                                        <option value="none">None</option>
+                                                        <option value="writethrough">WriteThrough</option>
+                                                        <option value="writeback">WriteBack</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
-                        <div class="col-2">
-                            <label for="newpool-diskoneam">Access Mode:</label>
-                            <select #newpooldiskoneam class="custom-select rounded-0" name="newpool-diskoneam" id="newpool-diskoneam">
-                                <option>ReadWriteOnce</option>
-                                <option>ReadOnlyMany</option>
-                                <option>ReadWriteMany</option>
-                            </select>
-                        </div>
-                        <div class="col-3">
-                          <label for="newpool-diskonevalue">Value:</label>
-                          <select #newpooldiskonevalue class="custom-select rounded-0" name="newpool-diskonevalue" id="newpool-diskonevalue" disabled>
-                          </select>
-                        </div>
-                        <div class="col-1">
-                          <label for="newpool-diskonesize">Size in GB:</label>
-                          <input #newpooldiskonesize type=number class="form-control" id="newpool-diskonesize" disabled>
-                        </div>
-                        <div class="col-2">
-                          <label for="newpool-diskonecm">Cache Mode:</label>
-                          <select #newpooldiskonecm class="custom-select rounded-0" name="newpool-diskonecm" id="newpool-diskonecm">
-                            <option value="">Automatic</option>
-                            <option value="none">None</option>
-                            <option value="writethrough">WriteThrough</option>
-                            <option value="writeback">WriteBack</option>
-                          </select>
-                        </div>
-                      </div>
-                      <br>
-                      <label for="disk2div">Disk 2:</label>
-                      <div class="row">
-                        <div class="col-2" name="newpool-diskone-type-col">
-                            <label for="newpool-disktwotype">Type:</label>
-                            <select #newpooldisktwotype class="custom-select rounded-0" name="newpool-disktwotype" id="newpool-disktwotype" (change)="onChangeDiskTwo(newpooldisktwotype.value,newpoolnamespace.value)">
-                              <option value="none">None</option>
-                              <option value="blank">Blank Disk</option>
-                              <option value="image">Image</option>
-                              <option value="dv">Existing Disk</option>
-                            </select>
-                          </div>
-                          <div class="col-2">
-                            <label for="newpool-disktwosc">Storage Class:</label>
-                            <select #newpooldisktwosc class="custom-select rounded-0" name="newpool-disktwosc" id="newpool-disktwosc">
-                            </select>
-                          </div>
-                          <div class="col-2">
-                            <label for="newpool-disktwoam">Access Mode:</label>
-                            <select #newpooldisktwoam class="custom-select rounded-0" name="newpool-disktwoam" id="newpool-disktwoam">
-                                <option>ReadWriteOnce</option>
-                                <option>ReadOnlyMany</option>
-                                <option>ReadWriteMany</option>
-                            </select>
-                          </div>
-                          <div class="col-3">
-                              <label for="newpool-disktwovalue">Value:</label>
-                              <select #newpooldisktwovalue class="custom-select rounded-0" name="newpool-disktwovalue" id="newpool-disktwovalue" disabled>
-                              </select>
-                          </div>
-                          <div class="col-1">
-                            <label for="newpool-disktwosize">Size in GB:</label>
-                            <input #newpooldisktwosize type=number class="form-control" id="newpool-disktwosize" disabled>
-                          </div>
-                          <div class="col-2">
-                            <label for="newpool-disktwocm">Cache Mode:</label>
-                            <select #newpooldisktwocm class="custom-select rounded-0" name="newpool-disktwocm" id="newpool-disktwocm">
-                              <option value="">Automatic</option>
-                              <option value="none">None</option>
-                              <option value="writethrough">WriteThrough</option>
-                              <option value="writeback">WriteBack</option>
-                            </select>
-                          </div>
-                      </div>
                     </div>
                     <!-- NETWORK TAB -->
                     <div class="tab-pane fade" id="newpool-net" role="tabpanel" aria-labelledby="newpool-net-tab">
-                      <label for="newpool-network">Network:</label>
-                      <select #newpoolnetwork class="custom-select rounded-0" name="newpool-network" id="newpool-network" (change)="onChangeNetwork(newpoolnetwork.value)">
-                        <option value=podNetwork>podNetwork</option>
-                      </select>
-                      <label for="newpool-networktype">Type:</label>
-                      <select #newpoolnetworktype class="custom-select rounded-0" name="newpool-networktype" id="newpool-networktype">
-                        <option value=bridge>bridge</option>
-                        <option value=macvtap>macvtap</option>
-                        <option value=masquerade>masquerade</option>
-                    </select>
+                        <div class="row">
+                            <label for="newpool-nics">Interfaces:&nbsp;
+                              <a class="btn" (click)="addNic()" title="Add new network...">
+                                <i class="fas fa-plus"></i>
+                              </a>
+                            </label>
+                        </div>
+                        <div class="row">
+                            <form [formGroup]="nicList">
+                                <div formArrayName="nics" style="width: 100%; min-width: 800px;">
+                                    <div class="card card-outline" *ngFor="let nic of nics.controls; let j = index" [formGroupName]="j">
+                                        <div class="card-header">
+                                            <b class="card-title" style="font-weight: bold;"><i class="fas fa-network-wired"></i> &nbsp; nic{{j}}</b>
+                                            <div class="card-tools">
+                                                <button type="button" class="btn btn-tool" (click)="removeNic(j)" title="Remove network...">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                              <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                                <i class="fas fa-minus"></i>
+                                              </button>
+                                            </div>
+                                        </div>
+                                        <div class="card-body" style="display: block;">
+                                            <div class="row">
+                                                <div class="col-5" name="newpool-netname-col">
+                                                    <label for="newpool-netname-{{j}}">Network:</label>
+                                                    <select style="min-width: 300px;" class="custom-select rounded-0" name="newpool-netname-{{j}}" id="networkName-{{j}}" formControlName="networkName" (change)="onChangeNetwork(j)">
+                                                        <option value="" selected></option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-1">&nbsp;</div>
+                                                <div class="col-5" name="newpool-nettype-col">
+                                                    <label for="newpool-nettype-{{j}}">Type:</label>
+                                                    <select #nettype style="min-width: 300px;" class="custom-select rounded-0" name="newpool-nettype-{{j}}" id="networkType-{{j}}" formControlName="networkType">
+                                                        <option value=bridge>bridge</option>
+                                                        <option value=macvtap>macvtap</option>
+                                                        <option value=masquerade>masquerade</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-1">&nbsp;</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                     <!-- LIVENESS CHECK TAB -->
                     <div class="tab-pane fade" id="newpool-liveness" role="tabpanel" aria-labelledby="newpool-liveness-tab">
@@ -414,7 +466,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-newpool")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)="applyNewPool(newpoolname.value, newpoolnamespace.value, newpoolreplicas.value, newpoollabelkeyone.value, newpoollabelvalueone.value, newpoollabelkeytwo.value, newpoollabelvaluetwo.value, newpoollabelkeythree.value, newpoollabelvaluethree.value, newpoollabelkeyfour.value, newpoollabelvaluefour.value, newpoollabelkeyfive.value, newpoollabelvaluefive.value, newpooltype.value, newpoolcpumemsockets.value, newpoolcpumemcores.value, newpoolcpumemthreads.value, newpoolcpumemmemory.value, newpoolpc.value, newpoolfirmware.value, newpoolsecureboot.value, newpooldiskonetype.value, newpooldiskonevalue.value, newpooldiskonesize.value, newpooldiskonesc.value, newpooldiskoneam.value, newpooldiskonecm.value, newpooldisktwotype.value, newpooldisktwovalue.value, newpooldisktwosize.value, newpooldisktwosc.value, newpooldisktwoam.value, newpooldisktwocm.value, newpoolnetwork.value, newpoolnetworktype.value, newpoollivenessenable.value, newpoollivenesstype.value, newpoollivenesspath.value, newpoollivenessport.value, newpoollivenessinitialdelay.value, newpoollivenessinterval.value, newpoollivenesstimeout.value, newpoollivenessfailure.value, newpoollivenesssuccess.value, newpoolreadinessenable.value, newpoolreadinesstype.value, newpoolreadinesspath.value, newpoolreadinessport.value, newpoolreadinessinitialdelay.value, newpoolreadinessinterval.value, newpoolreadinesstimeout.value, newpoolreadinessfailure.value, newpoolreadinesssuccess.value, newpooluserdatausername.value, newpooluserdataauth.value, newpooluserdatapassword.value, newpooluserdatassh.value, newpoolinitscript.value)">Create</button>
+              <button type="button" class="btn btn-primary" (click)="applyNewPool(newpoolname.value, newpoolnamespace.value, newpoolreplicas.value, newpooltype.value, newpoolcpumemsockets.value, newpoolcpumemcores.value, newpoolcpumemthreads.value, newpoolcpumemmemory.value, newpoolpc.value, newpoolfirmware.value, newpoolsecureboot.value, newpoollivenessenable.value, newpoollivenesstype.value, newpoollivenesspath.value, newpoollivenessport.value, newpoollivenessinitialdelay.value, newpoollivenessinterval.value, newpoollivenesstimeout.value, newpoollivenessfailure.value, newpoollivenesssuccess.value, newpoolreadinessenable.value, newpoolreadinesstype.value, newpoolreadinesspath.value, newpoolreadinessport.value, newpoolreadinessinitialdelay.value, newpoolreadinessinterval.value, newpoolreadinesstimeout.value, newpoolreadinessfailure.value, newpoolreadinesssuccess.value, newpooluserdatausername.value, newpooluserdataauth.value, newpooluserdatapassword.value, newpooluserdatassh.value, newpoolinitscript.value)">Create</button>
             </div>
           </form>
           </div>

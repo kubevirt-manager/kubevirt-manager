@@ -29,7 +29,7 @@ export class VmdetailsComponent implements OnInit {
     urlSafe: SafeResourceUrl = "";
     promCheck: boolean = false;
 
-    myInterval = setInterval(() =>{ this.reloadChartsAndLogs(); }, 30000);
+    myInterval = setInterval(() =>{ this.reloadChartsAndLogs(); }, 120000);
 
     /* Prometheus query data */
     promStartTime = 0;

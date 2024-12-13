@@ -56,7 +56,7 @@ export class DashboardComponent implements OnInit {
     netChart: any;
     stgChart: any;
 
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
+    myInterval = setInterval(() =>{ this.reloadComponent(); }, 180000);
 
     constructor(
         private cdRef: ChangeDetectorRef,

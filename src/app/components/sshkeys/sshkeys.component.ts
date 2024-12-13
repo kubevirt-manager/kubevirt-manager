@@ -14,7 +14,7 @@ export class SSHKeysComponent implements OnInit {
 
     keyList: SSHKey [] = [];
     namespacesList: string[] = [];
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
+    myInterval = setInterval(() =>{ this.reloadComponent(); }, 120000);
 
     constructor(
         private cdRef: ChangeDetectorRef,

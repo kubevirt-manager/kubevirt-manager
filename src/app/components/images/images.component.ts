@@ -15,7 +15,7 @@ export class ImagesComponent implements OnInit {
 
     imageList: Images [] = [];
     namespacesList: string[] = [];
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
+    myInterval = setInterval(() =>{ this.reloadComponent(); }, 120000);
 
     constructor(
         private cdRef: ChangeDetectorRef,

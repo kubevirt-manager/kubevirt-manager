@@ -15,7 +15,7 @@ import { HorizontalPodAutoscaler } from 'src/app/interfaces/horizontal-pod-autos
 export class AutoscaleComponent implements OnInit {
 
     hpaList: K8sHPA[] = [];
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
+    myInterval = setInterval(() =>{ this.reloadComponent(); }, 120000);
 
     constructor(
         private cdRef: ChangeDetectorRef,

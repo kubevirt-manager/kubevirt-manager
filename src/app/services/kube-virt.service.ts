@@ -45,6 +45,11 @@ export class KubeVirtService {
         return this.http.get(`${baseUrl}/namespaces/${namespace}/virtualmachineinstances/${name}`);
     }
 
+    getPooledVMI(namespace: string, pool: string): Observable<any> {
+        var baseUrl ='./k8s/apis/kubevirt.io/v1alpha3';
+        return this.http.get(`${baseUrl}/namespaces/${namespace}/virtualmachineinstances?labelSelector=kubevirt.io%2Fvmpool%3D${pool}&labelSelector=kubevirt-manager.io%2Fmanaged`);
+    }
+
     getVMPools(): Observable<any> {
         var baseUrl ='./k8s/apis/pool.kubevirt.io/v1alpha1';
         return this.http.get(`${baseUrl}/virtualmachinepools?labelSelector=kubevirt.io%2Fvmpool&labelSelector=kubevirt-manager.io%2Fmanaged`);
@@ -147,6 +152,7 @@ export class KubeVirtService {
         var baseUrl ='./k8s/apis/kubevirt.io/v1alpha3';
         return this.http.delete(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`);
     }
+
     migrateVm(namespace: string, name: string): Observable<any> {
         var baseUrl ='./k8s/apis/kubevirt.io/v1';
         const headers = {
@@ -165,6 +171,7 @@ export class KubeVirtService {
             }
         }, { 'headers': headers } );
     }
+    
     createVm(virtualMachine: VirtualMachine): Observable<any> {
         var baseUrl ='./k8s/apis/' + virtualMachine.apiVersion;
         let name = virtualMachine.metadata.name;

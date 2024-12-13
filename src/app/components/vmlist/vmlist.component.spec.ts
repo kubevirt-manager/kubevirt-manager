@@ -2,8 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { VmlistComponent } from './vmlist.component';
 import { DebugElement } from '@angular/core';
-import { By } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { ReactiveFormsModule } from '@angular/forms';
 
 describe('VmlistComponent', () => {
   let component: VmlistComponent;
@@ -12,7 +12,7 @@ describe('VmlistComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
     declarations: [VmlistComponent],
-    imports: [],
+    imports: [ReactiveFormsModule],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

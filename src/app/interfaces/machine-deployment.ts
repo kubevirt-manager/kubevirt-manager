@@ -14,6 +14,7 @@ export interface MachineDeployment {
         template: {
             metadata: {
                 labels?: {};
+                annotations?: {};
             };
             spec: {
                 bootstrap: {

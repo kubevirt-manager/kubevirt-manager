@@ -1107,11 +1107,17 @@ export class KClusterDetailsComponent implements OnInit {
                                     kubeletExtraArgs: {}
                                 }
                             },
-                            useExperimentalRetryJoin: true
+                            useExperimentalRetryJoin: true,
+                            format: "cloud-config"
                         }
                     }
                 }
             };
+
+            /* Add ignition support for flatcar */
+            if (nodepoolosdist == "flatcar") {
+                kubeadmConfigTemplate.spec.template.spec.format = "ignition";
+            }
 
             /* MachineDeployment */
             let machineDeployment: MachineDeployment = {
