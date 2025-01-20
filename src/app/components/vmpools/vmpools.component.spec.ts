@@ -4,6 +4,8 @@ import { VMPoolsComponent } from './vmpools.component';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { ReactiveFormsModule } from '@angular/forms';
+import { DataTablesModule } from 'angular-datatables';
  
 describe('VMPoolsComponent', () => {
   let component: VMPoolsComponent;
@@ -12,7 +14,7 @@ describe('VMPoolsComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
     declarations: [VMPoolsComponent],
-    imports: [],
+    imports: [ReactiveFormsModule, DataTablesModule],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();
@@ -29,12 +31,24 @@ describe('VMPoolsComponent', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.nativeElement;
     const contentValue = componentElem.querySelector('h3');
-    expect(contentValue.textContent).toContain('VM Pools');
+    expect(contentValue.textContent).toContain('Virtual Machine Pools');
+  });
+  it('should contain Refresh item', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.query(By.css('.fa-sync'))
+    const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
   });
   it('should contain New Virtual Machine Pool item', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.query(By.css('.fa-plus-square'))
     const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain Main Datatable', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#vmPool_datatable');
     expect(contentValue).toBeTruthy();
   });
   it('should contain Window: New VM Pool', () => {

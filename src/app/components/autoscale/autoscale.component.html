@@ -5,16 +5,20 @@
         <div class="card card-outline">
           <div class="card-header">
             <h3 class="card-title">
-              Scaling Groups
+              <i class="fas fa-expand-alt"></i>
+              &nbsp;&nbsp;Scaling Groups
             </h3>
             <div class="card-tools">
-              <button type="button" class="btn btn-tool">
-                  <i class="fas fa-plus-square" (click)="showNew()" title="Create group..."></i>
+              <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="Refresh..." title="Refresh..." class="btn btn-tool" (click)="fullReload()">
+                  <i class="fas fa-sync" (click)="fullReload()" title="Refresh..."></i>
+              </button>
+              <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="Create Autoscaling group..." title="Create Autoscaling group..." class="btn btn-tool" (click)="showNew()">
+                  <i class="fas fa-plus-square" (click)="showNew()" title="Create Autoscaling group..."></i>
               </button>
             </div>
           </div>
           <div class="card-body">
-            <table class="table table-sm" style="vertical-align: middle !important;">
+            <table datatable id="hpaList_datatable" [dtOptions]="hpaList_dtOptions" [dtTrigger]="hpaList_dtTrigger" class="table table-sm" style="vertical-align: middle !important;">
                 <thead>
                   <tr>
                     <th style="width: 10px">&nbsp;</th>
@@ -33,10 +37,10 @@
                 </thead>
                 <tbody>
                   <tr *ngFor="let thisHPA of hpaList">
-                    <td style="line-height: 2.2 !important;">&nbsp;</td>
+                    <td style="line-height: 2.2 !important;"><i class="fas fa-expand-alt"></i></td>
                     <td style="line-height: 2.2 !important;">{{thisHPA.namespace}}</td>
                     <td style="line-height: 2.2 !important;">{{thisHPA.name}}</td>
-                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisHPA.namespace}}/{{thisHPA.scaleTarget}}" title="Target details...">{{thisHPA.scaleTarget}}</a></td>
+                    <td style="line-height: 2.2 !important;">{{thisHPA.scaleTarget}}</td>
                     <td style="line-height: 2.2 !important;">{{thisHPA.minReplicas}}</td>
                     <td style="line-height: 2.2 !important;">{{thisHPA.maxReplicas}}</td>
                     <td style="line-height: 2.2 !important;">{{thisHPA.metricName}}</td>
@@ -45,12 +49,17 @@
                     <td style="line-height: 2.2 !important;">{{thisHPA.desiredRpl}}</td>
                     <td style="line-height: 2.2 !important;">{{thisHPA.currAvgUtl}}%</td>
                     <td style="line-height: 0 !important;">
-                        <a class="btn" (click)="showEdit(thisHPA.namespace, thisHPA.name, thisHPA.minReplicas, thisHPA.maxReplicas, thisHPA.metricAvg)" title="Config...">
-                            <i class="fas fa-cog" (click)="showEdit(thisHPA.namespace, thisHPA.name, thisHPA.minReplicas, thisHPA.maxReplicas, thisHPA.metricAvg)"></i>
-                          </a>
-                        <a class="btn" (click)="showDelete(thisHPA.namespace, thisHPA.name)" title="Delete...">
-                          <i class="fas fa-trash" (click)="showDelete(thisHPA.namespace, thisHPA.name)"></i>
-                        </a>
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" href="#" aria-expanded="false">Actions</button>
+                            <div class="dropdown-menu">
+                                <a class="btn" (click)="showEdit(thisHPA.namespace, thisHPA.name, thisHPA.minReplicas, thisHPA.maxReplicas, thisHPA.metricAvg)" title="Config...">
+                                    <i class="fas fa-cog" (click)="showEdit(thisHPA.namespace, thisHPA.name, thisHPA.minReplicas, thisHPA.maxReplicas, thisHPA.metricAvg)"></i>
+                                </a>
+                                <a class="btn" (click)="showDelete(thisHPA.namespace, thisHPA.name)" title="Delete...">
+                                <i class="fas fa-trash" (click)="showDelete(thisHPA.namespace, thisHPA.name)"></i>
+                                </a>
+                            </div>
+                        </div>
                     </td>
                   </tr>
                 </tbody>

@@ -1,12 +1,14 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { lastValueFrom } from 'rxjs';
+import { Subject, lastValueFrom } from 'rxjs';
 import { LoadBalancerPort } from 'src/app/models/load-balancer-port.model';
 import { LoadBalancer } from 'src/app/models/load-balancer.model';
 import { K8sService } from 'src/app/services/k8s.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
 import { Services } from 'src/app/interfaces/services';
 import { ServicesPort } from 'src/app/interfaces/services-port';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { Config } from 'datatables.net';
 
 @Component({
   selector: 'app-load-balancers',
@@ -16,26 +18,218 @@ import { ServicesPort } from 'src/app/interfaces/services-port';
 export class LoadBalancersComponent implements OnInit {
 
     loadBalancerList: LoadBalancer[] = [];
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
     charDot = '.';
 
+    /*
+     * Dynamic Forms
+     */
+    portList: FormGroup;
+    annotationList: FormGroup;
+    labelList: FormGroup;
+
+    /*
+     * Dynamic Tables
+     */
+    lbList_dtOptions: Config = {
+        //pagingType: 'full_numbers',
+        //lengthMenu: [5,10,15,25,50,100,150,200],
+        //pageLength: 50,
+        paging: false,
+        info: false,
+        ordering: true,
+        orderMulti: true,
+        search: true,
+        destroy: false,
+        stateSave: false,
+        serverSide: false,
+        columnDefs: [{ orderable: false, targets: 0 }, { orderable: false, targets: 7 }],
+        order: [[1, 'asc']],
+    };
+    lbList_dtTrigger: Subject<any> = new Subject<any>();
+
     constructor(
-        private cdRef: ChangeDetectorRef,
         private router: Router,
         private k8sService: K8sService,
-        private kubeVirtService: KubeVirtService
-    ) { }
+        private kubeVirtService: KubeVirtService,
+        private fb: FormBuilder
+    ) { 
+        this.portList = this.fb.group({
+            ports: this.fb.array([]),
+        });
+        this.annotationList = this.fb.group({
+            annotations: this.fb.array([]),
+        });
+        this.labelList = this.fb.group({
+            labels: this.fb.array([]),
+        });
+    }
 
-    ngOnInit(): void {
-        this.getLoadBalancers();
+    async ngOnInit(): Promise<void> {
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Load Balancers");
         }
+        this.portList = this.fb.group({
+            ports: this.fb.array([this.createPortGroup()]),
+        });
+        this.annotationList = this.fb.group({
+            annotations: this.fb.array([]),
+        });
+        this.labelList = this.fb.group({
+            labels: this.fb.array([]),
+        });
+        await this.getLoadBalancers();
+        this.lbList_dtTrigger.next(null);
     }
 
     ngOnDestroy() {
-        clearInterval(this.myInterval);
+        this.lbList_dtTrigger.unsubscribe();
+    }
+
+    /* Getting the Ports FormArray */
+    get ports(): FormArray {
+        return this.portList.get('ports') as FormArray;
+    }
+
+    /* Port FormGroup */
+    createPortGroup(): FormGroup {
+        return this.fb.group({
+            portName: [''],
+            srcPort: [''],
+            dstPort: [''],
+            portProtocol: ['TCP'],
+        });
+    }
+
+    /* Add a new Port entry to the Group */
+    addPort(): void {
+        if (this.ports.length < 8) {
+            this.ports.push(this.createPortGroup());
+        } else {
+            alert('You can only add a maximum of 8 ports.');
+        }
+    }
+
+    /* Remove Port entry from the Group */
+    removePort(index: number): void {
+        this.ports.removeAt(index);
+    }
+
+    /* Getting all the ports */
+    getPorts(): any[] {
+        return this.portList.value.ports;
+    }
+
+    /*
+     * Port Form Validation
+     */
+    validatePorts(): boolean {
+        let toValidate = this.getPorts();
+        if (toValidate.length < 1) {
+            return false;
+        } else {
+            for (let i = 0; i < toValidate.length; i ++) {
+                if (toValidate[i].portName == "") {
+                    alert("Port " + i + " has no Name set.")
+                    return false;
+                } else if (toValidate[i].srcPort == "") {
+                    alert("Port " + i + " has no Source Port set.")
+                    return false;
+                } else if (toValidate[i].dstPort == "") {
+                    alert("Port " + i + " has no Destination Port set.")
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /* Getting the Annotations FormArray */
+    get annotations(): FormArray {
+        return this.annotationList.get('annotations') as FormArray;
+    }
+
+    /* Annotation FormGroup */
+    createAnnotationGroup(): FormGroup {
+        return this.fb.group({
+            annotKey: [''],
+            annotValue: [''],
+        });
+    }
+
+    /* Add a new Annotation entry to the Group */
+    addAnnotation(): void {
+        this.annotations.push(this.createAnnotationGroup());
+    }
+
+    /* Remove Annotation entry from the Group */
+    removeAnnotation(index: number): void {
+        this.annotations.removeAt(index);
+    }
+
+    /* Getting all the annotations */
+    getAnnotations(): any[] {
+        return this.annotationList.value.annotations;
+    }
+
+    /*
+     * Annotation Form Validation
+     */
+    validateAnnotations(): boolean {
+        let toValidate = this.getAnnotations();
+        if (toValidate.length > 0) {
+            for (let i = 0; i < toValidate.length; i ++) {
+                if (toValidate[i].annotKey == "" || toValidate[i].annotValue == "") {
+                    alert("Annotation " + i + " should have Key and Value filled in.")
+                    return false;
+                } 
+            }
+        }
+        return true;
+    }
+
+    /* Getting the Labels FormArray */
+    get labels(): FormArray {
+        return this.labelList.get('labels') as FormArray;
+    }
+
+    /* Label FormGroup */
+    createLabelGroup(): FormGroup {
+        return this.fb.group({
+            labelKey: [''],
+            labelValue: [''],
+        });
+    }
+
+    /* Add a new Label entry to the Group */
+    addLabel(): void {
+        this.labels.push(this.createLabelGroup());
+    }
+
+    /* Remove Label entry from the Group */
+    removeLabel(index: number): void {
+        this.labels.removeAt(index);
+    }
+
+    /* Getting all the labels */
+    getLabels(): any[] {
+        return this.labelList.value.labels;
+    }
+
+    /*
+     * Label Form Validation
+     */
+    validateLabels(): boolean {
+        let toValidate = this.getLabels();
+        if (toValidate.length > 0) {
+            for (let i = 0; i < toValidate.length; i ++) {
+                if (toValidate[i].labelKey == "" || toValidate[i].labelValue == "") {
+                    alert("Label " + i + " should have Key and Value filled in.")
+                    return false;
+                } 
+            }
+        }
+        return true;
     }
 
     /*
@@ -88,7 +282,6 @@ export class LoadBalancersComponent implements OnInit {
      * Show Info Window
      */
     async showInfo(lbNamespace: string, lbName: string): Promise<void> {
-        clearInterval(this.myInterval);
         let myInnerHTML = "";
         try {
             let data = await lastValueFrom(this.k8sService.getService(lbNamespace, lbName));
@@ -97,10 +290,6 @@ export class LoadBalancersComponent implements OnInit {
             myInnerHTML += "<li class=\"nav-item\">Creation Time: <span class=\"float-right badge bg-primary\">" + data.metadata["creationTimestamp"] + "</span></li>";
             myInnerHTML += "<li class=\"nav-item\">Type: <span class=\"float-right badge bg-primary\">" + data.spec["type"] + "</span></li>";
             myInnerHTML += "<li class=\"nav-item\">ClusterIP: <span class=\"float-right badge bg-primary\">" + data.spec["clusterIP"] + "</span></li>";
-
-            myInnerHTML += "<li class=\"nav-item\">Protocol: <span class=\"float-right badge bg-primary\">" + data.spec.ports[0].protocol + "</span></li>";
-            myInnerHTML += "<li class=\"nav-item\">Port: <span class=\"float-right badge bg-primary\">" + data.spec.ports[0].port + "</span></li>";
-            myInnerHTML += "<li class=\"nav-item\">Target Port: <span class=\"float-right badge bg-primary\">" + data.spec.ports[0].targetPort + "</span></li>";
 
             if(data.spec.selector["kubevirt.io/vmpool"] != null) {
                 myInnerHTML += "<li class=\"nav-item\">Target VM Pool: <span class=\"float-right badge bg-primary\">" + data.spec.selector["kubevirt.io/vmpool"] + "</span></li>";
@@ -115,6 +304,25 @@ export class LoadBalancersComponent implements OnInit {
             } if(data.spec["type"].toLowerCase() == "nodeport" && data.spec.ports[0].nodePort != null) {
                 myInnerHTML += "<li class=\"nav-item\">Node Port: <span class=\"float-right badge bg-primary\">" + data.spec.ports[0].nodePort + "</span></li>";
             }
+            myInnerHTML += "<div class=\"row\">&nbsp;</div>";
+            myInnerHTML += "<table class=\"table table-sm\" style=\"vertical-align: middle !important;\">";
+            myInnerHTML += "    <thead>";
+            myInnerHTML += "      <tr>";
+            myInnerHTML += "        <th style=\"width: 100px\">Name</th>";
+            myInnerHTML += "        <th style=\"width: 100px\">Protocol</th>";
+            myInnerHTML += "        <th style=\"width: 80px\">Src</th>";
+            myInnerHTML += "        <th style=\"width: 80px\">Dst</th>";
+            myInnerHTML += "      </tr>";
+            myInnerHTML += "    </thead>";
+            myInnerHTML += "    <tbody>";
+            for (let i = 0; i < data.spec.ports.length; i++) {
+                let portName = data.spec.ports[i].name || "";
+                myInnerHTML += "<tr>";
+                myInnerHTML += "<td>" + portName + "</td><td>" + data.spec.ports[i].protocol + "</td><td>" + data.spec.ports[i].port + "</td><td>" + data.spec.ports[i].targetPort + "</td>";
+                myInnerHTML += "</tr>";
+            }
+            myInnerHTML += "    </tbody>";
+            myInnerHTML += "</table>";
         } catch (e: any) {
             console.log(e);
         }
@@ -141,7 +349,6 @@ export class LoadBalancersComponent implements OnInit {
      * Show Delete Window
      */
     showDelete(lbNamespace: string, lbName: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-delete");
         let modalTitle = document.getElementById("delete-title");
         let modalBody = document.getElementById("delete-value");
@@ -179,7 +386,7 @@ export class LoadBalancersComponent implements OnInit {
                 try {
                     let deleteService = await lastValueFrom(this.k8sService.deleteService(lbNamespace, lbName));
                     this.hideComponent("modal-delete");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -192,7 +399,6 @@ export class LoadBalancersComponent implements OnInit {
      * Show Change Type Window
      */
     showType(lbNamespace: string, lbName: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-type");
         let modalTitle = document.getElementById("type-title");
         let modalBody = document.getElementById("type-value");
@@ -242,7 +448,6 @@ export class LoadBalancersComponent implements OnInit {
      * Show New Window
      */
     async showNew(): Promise<void> {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-new");
         let modalTitle = document.getElementById("new-title");
         let modalBody = document.getElementById("new-value");
@@ -286,49 +491,38 @@ export class LoadBalancersComponent implements OnInit {
         newlbnamespace: string,
         newlbtargetresourcetype: string,
         newlbtargetresource: string,
-        newlbannotationskeyone: string,
-        newlbannotationsvalueone: string,
-        newlbannotationskeytwo: string,
-        newlbannotationsvaluetwo: string,
-        newlblabelkeyone: string,
-        newlblabelvalueone: string,
-        newlblabelkeytwo: string,
-        newlblabelvaluetwo: string,
-        newlbtargettype: string,
-        newlbport: string,
-        newlbtargetport: string,
-        newlbtargetproto: string
+        newlbtargettype: string
         ): Promise<void> {
         if(newlbname == "") {
             alert("You must select a name for your Load Balancer!");
         } else if(newlbname.includes(this.charDot)) {
             alert("Your Load Balancer name should not have .(dot)!");
-        } else if (newlbtargetresourcetype == "" || newlbtargetresource == "" || newlbtargettype == "" || newlbport == "" || newlbtargetport == "" || newlbtargetproto == "") {
+        } else if (newlbtargetresourcetype == "" || newlbtargetresource == "" || newlbtargettype == "") {
             alert("Please select all the target properties!");
-        } else {
+        } else if (this.validatePorts() && this.validateLabels() && this.validateAnnotations()){
 
-            /* Port and Proto settings */
-            let servicePort: ServicesPort = {
-                port: Number(newlbport),
-                targetPort: Number(newlbtargetport),
-                protocol: newlbtargetproto
-            };
+            let portsForm = this.getPorts();
+            let servicePorts: ServicesPort[] = [];
+            for (let i = 0; i < portsForm.length; i++) {
+                /* Port and Proto settings */
+                let servicePort: ServicesPort = {
+                    name: portsForm[i].portName,
+                    port: Number(portsForm[i].srcPort),
+                    targetPort: Number(portsForm[i].dstPort),
+                    protocol: portsForm[i].portProtocol
+                };
+                servicePorts.push(servicePort);
+            }
 
             /* Load Custom Labels */
+            let labelsForm = this.getLabels();
             let tmpLabels = {};
-            if(newlblabelkeyone != "") {
+            for (let i = 0; i < labelsForm.length; i++) {
                 let thisLabel = {
-                    [newlblabelkeyone]: newlblabelvalueone
+                    [labelsForm[i].labelKey.toString()] : labelsForm[i].labelValue
                 };
                 Object.assign(tmpLabels, thisLabel);
             }
-            if(newlblabelkeytwo != "") {
-                let thisLabel = {
-                    [newlblabelkeytwo]: newlblabelvaluetwo
-                };
-                Object.assign(tmpLabels, thisLabel);
-            }
-
 
             /* Selector and Labels */            
             let thisSelector = {};
@@ -360,16 +554,11 @@ export class LoadBalancersComponent implements OnInit {
 
 
             /* Load Annotations */
+            let annotationsForm = this.getAnnotations();
             let tmpAnnotations = {};
-            if(newlbannotationskeyone != "") {
+            for (let i = 0; i < annotationsForm.length; i++) {
                 let thisAnnotation = {
-                    [newlbannotationskeyone]: newlbannotationsvalueone
-                };
-                Object.assign(tmpAnnotations, thisAnnotation);
-            }
-            if(newlbannotationskeytwo != "") {
-                let thisAnnotation = {
-                    [newlbannotationskeytwo]: newlbannotationsvaluetwo
+                    [annotationsForm[i].annotKey.toString()] : annotationsForm[i].annotValue
                 };
                 Object.assign(tmpAnnotations, thisAnnotation);
             }
@@ -386,7 +575,7 @@ export class LoadBalancersComponent implements OnInit {
                 },
                 spec: {
                     type: newlbtargettype,
-                    ports: [ servicePort ],
+                    ports: servicePorts,
                     selector: thisSelector,
                 }
             };
@@ -444,15 +633,6 @@ export class LoadBalancersComponent implements OnInit {
             modalDiv.setAttribute("aria-hidden", "true");
             modalDiv.setAttribute("style","display: none;");
         }
-        this.myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
-    }
-
-    /*
-     * Reload this component
-     */
-    async reloadComponent(): Promise<void> {
-        await this.getLoadBalancers();
-        await this.cdRef.detectChanges();
     }
 
     /*

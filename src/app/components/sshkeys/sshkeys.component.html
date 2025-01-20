@@ -9,20 +9,23 @@
               &nbsp;&nbsp;SSH Keys
             </h3>
             <div class="card-tools">
-              <button type="button" class="btn btn-tool" (click)="showNew()" title="New Key...">
-                <i class="fas fa-plus-square"></i>
+              <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="Refresh..." title="Refresh..." class="btn btn-tool" (click)="fullReload()">
+                  <i class="fas fa-sync" (click)="fullReload()" title="Refresh..."></i>
+              </button>
+              <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="New Key..." title="New Key..." class="btn btn-tool" (click)="showNew()">
+                <i class="fas fa-plus-square"(click)="showNew()" title="New Key..."></i>
             </button>
             </div>
           </div>
           <div class="card-body">
-           <table class="table table-sm" style="vertical-align: middle !important;">
+           <table datatable id="sshList_datatable" [dtOptions]="sshList_dtOptions" [dtTrigger]="sshList_dtTrigger"class="table table-sm" style="vertical-align: middle !important;">
               <thead>
                 <tr>
                   <th style="width: 10px">&nbsp;</th>
                   <th style="width: 60px">Namespace</th>
                   <th style="width: 100px">Name</th>
                   <th style="width: 150px">Created At</th>
-                  <th style="width: 20px">Actions</th>
+                  <th style="width: 20px">&nbsp;</th>
                 </tr>
               </thead>
               <tbody>
@@ -32,8 +35,9 @@
                     <td style="line-height: 2.2 !important;">{{thisKey.name}}</td>
                     <td style="line-height: 2.2 !important;">{{thisKey.creationTimestamp}}</td>
                     <td style="line-height: 0 !important;">
+                      <!--- DELETE BUTTON -->
                       <a class="btn" (click)="showDelete(thisKey.name, thisKey.namespace)" title="Delete...">
-                        <i class="fas fa-trash" (click)="showDelete(thisKey.name, thisKey.namespace)"></i>
+                        <i class="fas fa-trash" (click)="showDelete(thisKey.name, thisKey.namespace)" title="Delete..."></i>
                       </a>
                     </td>
                   </tr>

@@ -1,9 +1,10 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { lastValueFrom } from 'rxjs';
+import { Subject, lastValueFrom } from 'rxjs';
 import { KubeVMClusterInstanceType } from 'src/app/models/kube-vmcluster-instance-type.model';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
 import { VirtualMachineClusterInstanceType } from 'src/app/interfaces/virtual-machine-cluster-instance-type'
+import { Config } from 'datatables.net';
 
 @Component({
   selector: 'app-cluster-instance-type-list',
@@ -14,24 +15,42 @@ export class ClusterInstanceTypeListComponent implements OnInit {
 
     clusterInstanceTypeList: KubeVMClusterInstanceType [] = [];
 
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
+    /*
+     * Dynamic Tables
+     */
+    citList_dtOptions: Config = {
+        //pagingType: 'full_numbers',
+        //lengthMenu: [5,10,15,25,50,100,150,200],
+        //pageLength: 50,
+        paging: false,
+        info: false,
+        ordering: true,
+        orderMulti: true,
+        search: true,
+        destroy: false,
+        stateSave: false,
+        serverSide: false,
+        columnDefs: [{ orderable: false, targets: 0 }, { orderable: false, targets: 4 }],
+        order: [[1, 'asc']],
+    };
+    citList_dtTrigger: Subject<any> = new Subject<any>();
 
     constructor(
-        private cdRef: ChangeDetectorRef,
         private router: Router,
         private kubeVirtService: KubeVirtService
     ) { }
 
-    ngOnInit(): void {
-        this.getClusterInstanceTypes();
+    async ngOnInit(): Promise<void> {
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Cluster Instance Types");
         }
+        await this.getClusterInstanceTypes();
+        this.citList_dtTrigger.next(null);
     }
 
     ngOnDestroy() {
-        clearInterval(this.myInterval);
+        this.citList_dtTrigger.unsubscribe();
     }
 
     /*
@@ -55,7 +74,6 @@ export class ClusterInstanceTypeListComponent implements OnInit {
      * Show Edit Window
      */
     showEdit(typeName: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-edit");
         let modalTitle = document.getElementById("edit-title");
         let modalBody = document.getElementById("edit-value");
@@ -101,7 +119,6 @@ export class ClusterInstanceTypeListComponent implements OnInit {
      * Show Delete Window
      */
     showDelete(typeName: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-delete");
         let modalTitle = document.getElementById("delete-title");
         let modalBody = document.getElementById("delete-value");
@@ -148,7 +165,6 @@ export class ClusterInstanceTypeListComponent implements OnInit {
      * Show New Window
      */
     showNew(): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-new");
         let modalTitle = document.getElementById("new-title");
         if(modalTitle != null) {
@@ -208,15 +224,6 @@ export class ClusterInstanceTypeListComponent implements OnInit {
             modalDiv.setAttribute("aria-hidden", "true");
             modalDiv.setAttribute("style","display: none;");
         }
-        this.myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
-    }
-    
-    /*
-     * Reload this component
-     */
-    async reloadComponent(): Promise<void> {
-        await this.getClusterInstanceTypes();
-        await this.cdRef.detectChanges();
     }
 
     /*full reloadReload this component

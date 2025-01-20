@@ -18,7 +18,7 @@ export class FirewallListComponent implements OnInit {
     namespacesList: string[] = [];
     firewallRuleList: FirewallRule[] = [];
     firewallLabels: FirewallLabels = new FirewallLabels;
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
+    myInterval = setInterval(() =>{ this.reloadComponent(); }, 120000);
 
     constructor(
         private cdRef: ChangeDetectorRef,
@@ -27,12 +27,12 @@ export class FirewallListComponent implements OnInit {
     ) { }
 
     async ngOnInit(): Promise<void> {
-        await this.getNamespaces();
-        await this.loadRules();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Firewall Policies");
         }
+        await this.getNamespaces();
+        await this.loadRules();
     }
 
     /*

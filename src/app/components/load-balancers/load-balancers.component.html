@@ -9,13 +9,16 @@
               &nbsp;&nbsp;Load Balancers
             </h3>
             <div class="card-tools">
-                <button type="button" class="btn btn-tool" (click)="showNew()" title="New Load Balancer...">
-                <i class="fas fa-plus-square" (click)="showNew()"></i>
+                <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="Refresh..." title="Refresh..." class="btn btn-tool" (click)="fullReload()">
+                    <i class="fas fa-sync" (click)="fullReload()" title="Refresh..."></i>
+                </button>
+                <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="New Load Balancer..." title="New Load Balancer..." class="btn btn-tool" (click)="showNew()">
+                    <i class="fas fa-plus-square" (click)="showNew()" title="New Load Balancer..."></i>
                 </button>
             </div>
           </div>
           <div class="card-body">
-            <table class="table table-sm" style="vertical-align: middle !important;">
+            <table datatable id="lbList_datatable" [dtOptions]="lbList_dtOptions" [dtTrigger]="lbList_dtTrigger" class="table table-sm" style="vertical-align: middle !important;">
                 <thead>
                   <tr>
                     <th style="width: 10px">&nbsp;</th>
@@ -24,11 +27,8 @@
                     <th style="width: 40px">Type</th>
                     <th style="width: 20px">ClusterIP</th>
                     <th style="width: 20px">Load Balancer</th>
-                    <th style="width: 20px">Protocol</th>
-                    <th style="width: 60px">Port</th>
-                    <th style="width: 80px">Target Port</th>
                     <th style="width: 80px">Target Resource</th>
-                    <th style="width: 90px">Actions</th>
+                    <th style="width: 90px">&nbsp;</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -39,20 +39,25 @@
                     <td style="line-height: 2.2 !important;">{{thisLoadBalancer.type}}</td>
                     <td style="line-height: 2.2 !important;">{{thisLoadBalancer.clusterIP}}</td>
                     <td style="line-height: 2.2 !important;">{{thisLoadBalancer.loadBalancer}}</td>
-                    <td style="line-height: 2.2 !important;">{{thisLoadBalancer.ports[0].protocol}}</td>
-                    <td style="line-height: 2.2 !important;">{{thisLoadBalancer.ports[0].listenport}}</td>
-                    <td style="line-height: 2.2 !important;">{{thisLoadBalancer.ports[0].targetport}}</td>
                     <td style="line-height: 2.2 !important;">{{thisLoadBalancer.targetResource}}</td>
                     <td style="line-height: 0 !important;">
-                        <a class="btn" (click)="showInfo(thisLoadBalancer.namespace, thisLoadBalancer.name)" title="Info...">
-                          <i class="fas fa-info" (click)="showInfo(thisLoadBalancer.namespace, thisLoadBalancer.name)"></i>
-                        </a>
-                        <a class="btn" (click)="showType(thisLoadBalancer.namespace, thisLoadBalancer.name)" title="Config...">
-                            <i class="fas fa-cog" (click)="showType(thisLoadBalancer.namespace, thisLoadBalancer.name)"></i>
-                          </a>
-                        <a class="btn" (click)="showDelete(thisLoadBalancer.namespace, thisLoadBalancer.name)" title="Delete...">
-                          <i class="fas fa-trash" (click)="showDelete(thisLoadBalancer.namespace, thisLoadBalancer.name)"></i>
-                        </a>
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" href="#" aria-expanded="false">Actions</button>
+                            <div class="dropdown-menu">
+                                <!--- INFO BUTTON -->
+                                <a class="btn" (click)="showInfo(thisLoadBalancer.namespace, thisLoadBalancer.name)" title="Info...">
+                                <i class="fas fa-info" (click)="showInfo(thisLoadBalancer.namespace, thisLoadBalancer.name)"></i>
+                                </a>
+                                <!--- TYPE BUTTON -->
+                                <a class="btn" (click)="showType(thisLoadBalancer.namespace, thisLoadBalancer.name)" title="Config...">
+                                    <i class="fas fa-cog" (click)="showType(thisLoadBalancer.namespace, thisLoadBalancer.name)"></i>
+                                </a>
+                                <!--- DELETE BUTTON -->
+                                <a class="btn" (click)="showDelete(thisLoadBalancer.namespace, thisLoadBalancer.name)" title="Delete...">
+                                    <i class="fas fa-trash" (click)="showDelete(thisLoadBalancer.namespace, thisLoadBalancer.name)"></i>
+                                </a>
+                            </div>
+                        </div>
                     </td>
                 </tbody>
             </table>
@@ -74,99 +79,161 @@
               </button>
             </div>
             <div class="modal-body" id="new-value">
-              <ul class="nav flex-column" id="new-cards">
-                <label for="newlb-name">Name:</label>
-                <input #newlbname type="text" class="form-control" id="newlb-name" name="newlb-name">
-                <label for="newlb-namespaces">Namespace:</label>
-                <select #newlbnamespace class="custom-select rounded-0" name="newlb-namespace" id="newlb-namespace" (change)="onChangeNamespaceOrResourceType(newlbnamespace.value, newlbtargetresourcetype.value)">
-                  <option>Value 1</option>
-                </select>
-                <label for="newlb-targetresourcetype">Target Resource Type:</label>
-                <select #newlbtargetresourcetype class="custom-select rounded-0" name="newlb-targetresourcetype" id="newlb-targetresourcetype" (change)="onChangeNamespaceOrResourceType(newlbnamespace.value, newlbtargetresourcetype.value)">
-                    <option value="vminstance">VM Instance</option>
-                    <option value="vmpool">VM Pool</option>
-                </select>
-                <label for="newlb-targetresource">Target Resource:</label>
-                <select #newlbtargetresource class="custom-select rounded-0" name="newlb-targetresource" id="newlb-targetresource">
-                </select>
-                <div class="row">&nbsp;</div>
-                <div class="row">
-                    <br>
-                    <label for="newlb-annotations">Annotations:</label>
-                    <br>
-                    <table class="table table-sm" style="vertical-align: middle !important;">
-                        <thead>
-                            <tr>
-                            <th style="width: 250px">Annotation</th>
-                            <th style="width: 250px">Value</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                              <td style="line-height: 2.2 !important;"><input #newlbannotationskeyone type="text" class="form-control" id="newlb-annotationskey-one" name="newlb-annotationskey-one"></td>
-                              <td style="line-height: 2.2 !important;"><input #newlbannotationsvalueone type="text" class="form-control" id="newlb-annotationsvalue-one" name="newlb-annotationsvalue-one"></td>
-                            </tr>
-                            <tr>
-                              <td style="line-height: 2.2 !important;"><input #newlbannotationskeytwo type="text" class="form-control" id="newlb-annotationskey-two" name="newlb-annotationskey-two"></td>
-                              <td style="line-height: 2.2 !important;"><input #newlbannotationsvaluetwo type="text" class="form-control" id="newlb-annotationsvalue-two" name="newlb-annotationsvalue-two"></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="card card-primary card-tabs">
+                    <div class="card-header p-0 pt-1">
+                      <!-- TABS Selector-->
+                      <ul class="nav nav-tabs" id="custom-tabs-two-tab" role="tablist">
+                        <li class="nav-item">
+                          <a class="nav-link active" id="newlb-home-tab" data-toggle="pill" href="#newlb-home" role="tab" aria-controls="newlb-home" aria-selected="false">Home</a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link" id="newlb-meta-tab" data-toggle="pill" href="#newlb-meta" role="tab" aria-controls="newlb-meta" aria-selected="false">Metadata</a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link" id="newlb-ports-tab" data-toggle="pill" href="#newlb-ports" role="tab" aria-controls="newlb-ports" aria-selected="false">Ports</a>
+                        </li>
+                      </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content" id="custom-tabs-two-tabContent">
+                            <!-- HOME TAB -->
+                            <div class="tab-pane fade show active" id="newlb-home" role="tabpanel" aria-labelledby="newlb-home-tab">
+                                <label for="newlb-name">Name:</label>
+                                <input #newlbname type="text" class="form-control" id="newlb-name" name="newlb-name">
+                                <label for="newlb-namespaces">Namespace:</label>
+                                <select #newlbnamespace class="custom-select rounded-0" name="newlb-namespace" id="newlb-namespace" (change)="onChangeNamespaceOrResourceType(newlbnamespace.value, newlbtargetresourcetype.value)">
+                                    <option>Value 1</option>
+                                </select>
+                                <label for="newlb-targettype">Type:</label>
+                                <select #newlbtargettype class="custom-select rounded-0" name="newlb-targettype" id="newlb-targettype">
+                                    <option value="ClusterIP">ClusterIP</option>
+                                    <option value="LoadBalancer">LoadBalancer</option>
+                                    <option value="NodePort">NodePort</option>
+                                </select>
+                                <label for="newlb-targetresourcetype">Target Type:</label>
+                                <select #newlbtargetresourcetype class="custom-select rounded-0" name="newlb-targetresourcetype" id="newlb-targetresourcetype" (change)="onChangeNamespaceOrResourceType(newlbnamespace.value, newlbtargetresourcetype.value)">
+                                    <option value="vminstance">VM Instance</option>
+                                    <option value="vmpool">VM Pool</option>
+                                </select>
+                                <label for="newlb-targetresource">Target Resource:</label>
+                                <select #newlbtargetresource class="custom-select rounded-0" name="newlb-targetresource" id="newlb-targetresource">
+                                </select>
+                            </div>
+                            <!-- METADATA TAB -->
+                            <div class="tab-pane fade" id="newlb-meta" role="tabpanel" aria-labelledby="newlb-meta-tab">
+                                <div class="row">
+                                    <label for="newlb-ports">Labels:&nbsp;
+                                      <a class="btn" (click)="addLabel()" title="Add new label...">
+                                        <i class="fas fa-plus"></i>
+                                      </a>
+                                    </label>
+                                </div>
+                                <div class="row">
+                                    <form [formGroup]="labelList">
+                                        <table class="table table-sm" style="vertical-align: middle !important;">
+                                            <thead>
+                                                <tr>
+                                                <th style="width: 400px">Key</th>
+                                                <th style="width: 400px">Value</th>
+                                                <th style="width: 60px">&nbsp;</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody formArrayName="labels"> 
+                                                <tr *ngFor="let label of labels.controls; let i = index" [formGroupName]="i">
+                                                  <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newlb-labelkey" id="labelKey{{i}}" formControlName="labelKey"></td>
+                                                  <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newlb-labelvalue" id="labelValue{{i}}" formControlName="labelValue"></td>
+                                                  <td style="line-height: 2.2 !important;">
+                                                    <a class="btn" (click)="removeLabel(i)" title="Remove label...">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                  </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </form>
+                                </div>
+                                <div class="row">
+                                    <label for="newlb-ports">Annotations:&nbsp;
+                                      <a class="btn" (click)="addAnnotation()" title="Add new annotation...">
+                                        <i class="fas fa-plus"></i>
+                                      </a>
+                                    </label>
+                                </div>
+                                <div class="row">
+                                    <form [formGroup]="annotationList">
+                                        <table class="table table-sm" style="vertical-align: middle !important;">
+                                            <thead>
+                                                <tr>
+                                                <th style="width: 400px">Key</th>
+                                                <th style="width: 400px">Value</th>
+                                                <th style="width: 60px">&nbsp;</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody formArrayName="annotations"> 
+                                                <tr *ngFor="let annotation of annotations.controls; let i = index" [formGroupName]="i">
+                                                  <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newlb-annotationkey" id="annotKey{{i}}" formControlName="annotKey"></td>
+                                                  <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newlb-annotationvalue" id="annotValue{{i}}" formControlName="annotValue"></td>
+                                                  <td style="line-height: 2.2 !important;">
+                                                    <a class="btn" (click)="removeAnnotation(i)" title="Remove annotation...">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                  </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </form>
+                                </div>
+                            </div>
+                            <!-- PORTS TAB -->
+                            <div class="tab-pane fade" id="newlb-ports" role="tabpanel" aria-labelledby="newlb-ports-tab">
+                                <div class="row">
+                                    <label for="newlb-ports">Ports:&nbsp;
+                                      <a class="btn" (click)="addPort()" title="Add new port...">
+                                        <i class="fas fa-plus"></i>
+                                      </a>
+                                    </label>
+                                </div>
+                                <div class="row">
+                                    <form [formGroup]="portList">
+                                        <table class="table table-sm" style="vertical-align: middle !important;">
+                                            <thead>
+                                                <tr>
+                                                <th style="width: 260px">Name</th>
+                                                <th style="width: 260px">Port</th>
+                                                <th style="width: 260px">Target Port</th>
+                                                <th style="width: 260px">Protocol</th>
+                                                <th style="width: 60px">&nbsp;</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody formArrayName="ports"> 
+                                                <tr *ngFor="let port of ports.controls; let i = index" [formGroupName]="i">
+                                                  <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newlb-port" id="portName{{i}}" formControlName="portName"></td>
+                                                  <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newlb-port" id="srcPort{{i}}" formControlName="srcPort"></td>
+                                                  <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newlb-targetport" id="dstPort{{i}}" formControlName="dstPort"></td>
+                                                  <td style="line-height: 2.2 !important;">
+                                                    <select class="custom-select rounded-0" name="newlb-targetproto" id="portProtocol{{i}}" formControlName="portProtocol">
+                                                      <option value="TCP">TCP</option>
+                                                      <option value="UDP">UDP</option>
+                                                    </select>
+                                                  </td>
+                                                  <td style="line-height: 2.2 !important;">
+                                                    <a class="btn" (click)="removePort(i)" title="Remove port...">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                  </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="row">
-                    <br>
-                    <label for="newlb-labels">Labels:</label>
-                    <br>
-                    <table class="table table-sm" style="vertical-align: middle !important;">
-                        <thead>
-                            <tr>
-                            <th style="width: 250px">Key</th>
-                            <th style="width: 250px">Value</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                              <td style="line-height: 2.2 !important;"><input #newlblabelkeyone type="text" class="form-control" id="newlb-labelkey-one" name="newlb-labelkey-one"></td>
-                              <td style="line-height: 2.2 !important;"><input #newlblabelvalueone type="text" class="form-control" id="newlb-labelvalue-one" name="newlb-labelvalue-one"></td>
-                            </tr>
-                            <tr>
-                              <td style="line-height: 2.2 !important;"><input #newlblabelkeytwo type="text" class="form-control" id="newlb-labelkey-two" name="newlb-labelkey-two"></td>
-                              <td style="line-height: 2.2 !important;"><input #newlblabelvaluetwo type="text" class="form-control" id="newlb-labelvalue-two" name="newlb-labelvalue-two"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="row">
-                  <div class="col-4" name="newlb-target-type-col">
-                    <label for="newlb-targettype">Type:</label>
-                    <select #newlbtargettype class="custom-select rounded-0" name="newlb-targettype" id="newlb-targettype">
-                      <option value="ClusterIP">ClusterIP</option>
-                      <option value="LoadBalancer">LoadBalancer</option>
-                      <option value="NodePort">NodePort</option>
-                    </select>
-                  </div>
-                  <div class="col-3">
-                    <label for="newlb-port">Port:</label>
-                    <input #newlbport type="number" class="form-control" name="newlb-port" id="newlb-port">
-                  </div>
-                  <div class="col-3">
-                    <label for="newvm-diskonevalue">Target Port:</label>
-                    <input #newlbtargetport type="number" class="form-control" name="newlb-targetport" id="newlb-targetport">
-                  </div>
-                  <div class="col-2">
-                    <label for="newlb-targetproto">Type:</label>
-                    <select #newlbtargetproto class="custom-select rounded-0" name="newlb-targetproto" id="newlb-targetproto">
-                      <option value="TCP">TCP</option>
-                      <option value="UDP">UDP</option>
-                    </select>
-                  </div>
-                </div>
-                <br>
-              </ul>
             </div>
             <div class="modal-footer justify-content-between">
                 <button type="button" class="btn btn-default" (click)='hideComponent("modal-new")'>Close</button>
-                <button type="button" class="btn btn-primary" (click)="applyNew(newlbname.value, newlbnamespace.value, newlbtargetresourcetype.value, newlbtargetresource.value, newlbannotationskeyone.value, newlbannotationsvalueone.value, newlbannotationskeytwo.value, newlbannotationsvaluetwo.value, newlblabelkeyone.value, newlblabelvalueone.value, newlblabelkeytwo.value, newlblabelvaluetwo.value, newlbtargettype.value, newlbport.value, newlbtargetport.value, newlbtargetproto.value)">Create</button>
+                <button type="button" class="btn btn-primary" (click)="applyNew(newlbname.value, newlbnamespace.value, newlbtargetresourcetype.value, newlbtargetresource.value, newlbtargettype.value)">Create</button>
             </div>
           </div>
           <!-- /.modal-content -->

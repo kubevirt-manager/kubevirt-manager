@@ -9,13 +9,16 @@
               &nbsp;&nbsp;Images
             </h3>
             <div class="card-tools">
-              <button type="button" class="btn btn-tool" (click)="showNew()" title="New Image...">
-                <i class="fas fa-plus-square"></i>
+              <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="Refresh..." title="Refresh..." class="btn btn-tool" (click)="fullReload()">
+                  <i class="fas fa-sync" (click)="fullReload()" title="Refresh..."></i>
+              </button>
+              <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="New Image..." title="New Image..." class="btn btn-tool" (click)="showNew()">
+                <i class="fas fa-plus-square" (click)="showNew()" title="New Image..."></i>
             </button>
             </div>
           </div>
           <div class="card-body">
-           <table class="table table-sm" style="vertical-align: middle !important;">
+           <table datatable id="imgList_datatable" [dtOptions]="imgList_dtOptions" [dtTrigger]="imgList_dtTrigger" class="table table-sm" style="vertical-align: middle !important;">
               <thead>
                 <tr>
                   <th style="width: 10px">&nbsp;</th>
@@ -23,7 +26,7 @@
                   <th style="width: 100px">Name</th>
                   <th style="width: 20px">Type</th>
                   <th style="width: 150px">Readable Name</th>
-                  <th style="width: 20px">Actions</th>
+                  <th style="width: 20px">&nbsp;</th>
                 </tr>
               </thead>
               <tbody>
@@ -34,15 +37,23 @@
                     <td style="line-height: 2.2 !important;">{{thisImage.type}}</td>
                     <td style="line-height: 2.2 !important;">{{thisImage.readableName}}</td>
                     <td style="line-height: 0 !important;">
-                      <a class="btn" (click)="showInfo(thisImage.name, thisImage.namespace)" title="Info...">
-                        <i class="fas fa-info" (click)="showInfo(thisImage.name, thisImage.namespace)"></i>
-                      </a>
-                      <a class="btn" (click)="showEdit(thisImage.name, thisImage.namespace)" title="Edit...">
-                        <i class="fas fa-pen" (click)="showEdit(thisImage.name, thisImage.namespace)"></i>
-                      </a>
-                      <a class="btn" (click)="showDelete(thisImage.name, thisImage.namespace)" title="Delete...">
-                        <i class="fas fa-trash" (click)="showDelete(thisImage.name, thisImage.namespace)"></i>
-                      </a>
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" href="#" aria-expanded="false">Actions</button>
+                            <div class="dropdown-menu">
+                                <!--- INFO BUTTON -->
+                                <a class="btn" (click)="showInfo(thisImage.name, thisImage.namespace)" title="Info...">
+                                    <i class="fas fa-info" (click)="showInfo(thisImage.name, thisImage.namespace)"></i>
+                                </a>
+                                <!--- EDIT BUTTON -->
+                                <a class="btn" (click)="showEdit(thisImage.name, thisImage.namespace)" title="Edit...">
+                                    <i class="fas fa-pen" (click)="showEdit(thisImage.name, thisImage.namespace)"></i>
+                                </a>
+                                <!--- DELETE BUTTON -->
+                                <a class="btn" (click)="showDelete(thisImage.name, thisImage.namespace)" title="Delete...">
+                                    <i class="fas fa-trash" (click)="showDelete(thisImage.name, thisImage.namespace)"></i>
+                                </a>
+                            </div>
+                        </div>
                     </td>
                   </tr>
               </tbody>

@@ -2,164 +2,162 @@
   <div class="container-fluid">
     <div class="content-wrapper">
       &nbsp;<br>
-      <div class="card card-outline" *ngFor="let thisNode of nodeList">
+      <div class="card card-outline">
         <div class="card-header">
-          <h3 class="card-title">
-            <i class="fas fa-hdd"></i>
-            &nbsp;&nbsp;{{thisNode.name}} 
-          </h3>
-          <div class="card-tools">
-            <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="Tooltip on bottom" class="btn btn-tool" (click)="showNewVm(thisNode.name)">
-                <i class="fas fa-plus-square"></i>
-            </button>
-          </div>
+            <h3 class="card-title">
+              <i class="fas fa-desktop"></i>
+              &nbsp;&nbsp;Virtual Machines 
+            </h3>
+            <div class="card-tools">
+              <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="Refresh..." title="Refresh..." class="btn btn-tool" (click)="fullReload()">
+                  <i class="fas fa-sync" (click)="fullReload()" title="Refresh..."></i>
+              </button>
+              <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="New VM..." title="New VM..." class="btn btn-tool" (click)="showNewVm()">
+                  <i class="fas fa-plus-square" (click)="showNewVm()" title="New VM..."></i>
+              </button>
+            </div>
         </div>
         <div class="card-body">
-         <table class="table table-sm" style="vertical-align: middle !important;">
-            <thead>
-              <tr>
-                <th style="width: 10px">&nbsp;</th>
-                <th style="width: 130px">Namespace</th>
-                <th style="width: 160px">Name</th>
-                <th style="width: 70px">VM Type</th>
-                <th style="width: 18px">vCPU</th>
-                <th style="width: 18px">Memory</th>
-                <th style="width: 80px">Status</th>
-                <th style="width: 80px">IP Address</th>
-                <th style="width: 250px">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let thisVM of thisNode.vmlist">
-                  <td style="line-height: 2.2 !important; align-content: center;">
-                    <span [ngSwitch]="thisVM.status">
-                      <span *ngSwitchCase="'running'">
-                        <span class="badge bg-success"><i class="fas fa-check-circle"></i></span>
-                      </span>
-                      <span *ngSwitchDefault>
-                        <span class="badge bg-danger"><i class="fas fa-times-circle"></i></span>
-                      </span>
-                    </span>
-                  </td>
-                  <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.namespace}}</a></td>
-                  <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.name}}</a></td>
-                  <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.instType}}</a></td>
-                  <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{(thisVM.cores || 0) * (thisVM.sockets || 0) * (thisVM.threads || 0)}}</a></td>
-                  <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.memory}}</a></td>
-                  <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.status}}</a></td>
-                  <td style="line-height: 2.2 !important;">
-                    <span [ngSwitch]="thisVM.status">
-                      <span *ngSwitchCase="'running'">
-                        {{thisVM.vmi.ifAddr}}
-                      </span>
-                      <span *ngSwitchDefault>
-                        &nbsp;
-                      </span>
-                    </span>
-                  </td>
-                  <td style="line-height: 0 !important;">
-                    <!--- INFO BUTTON -->
-                    <span>
-                      <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="Show info...">
-                        <i class="fas fa-info"></i>
-                      </a>
-                    </span>
-                    <!--- PAUSE BUTTON -->
-                    <span [ngSwitch]="thisVM.status">
-                        <a class="btn" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' title="Pause..." *ngSwitchCase="'running'">
-                          <i class="fas fa-pause"></i>
-                        </a>
-                        <a class="btn disabled" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' title="Pause..." *ngSwitchDefault>
-                          <i class="fas fa-pause disabled"></i>
-                        </a>
-                      </span>
-                    <!--- PLAY BUTTON -->
-                    <span [ngSwitch]="thisVM.status">
-                      <a class="btn" (click)='vmOperations("unpause", thisVM.namespace, thisVM.name)' title="Resume..." *ngSwitchCase="'paused'">
-                        <i class="fas fa-play"></i>
-                      </a>
-                      <a class="btn disabled" (click)='vmOperations("unpause", thisVM.namespace, thisVM.name)' title="Resume..." *ngSwitchDefault>
-                        <i class="fas fa-play disabled"></i>
-                      </a>
-                    </span>
-                    <!--- VNC BUTTON -->
-                    <span [ngSwitch]="thisVM.status">
-                      <a class="btn" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchCase="'running'">
-                        <i class="fas fa-desktop"></i>
-                      </a>
-                      <a class="btn disabled" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchDefault>
-                        <i class="fas fa-desktop disabled"></i>
-                      </a>
-                    </span>
-                    <!--- CONFIG BUTTON -->
-                    <span [ngSwitch]="thisVM.running">
-                      <a class="btn disabled" title="Config..." *ngSwitchCase="true">
-                        <i class="fas fa-cog disabled"></i>
-                      </a>
-                      <!-- Check if this VM is custom or not -->
-                      <span *ngSwitchDefault>
-                        <span [ngSwitch]="thisVM.instType">
-                          <a class="btn" (click)="showResize(thisVM.name, thisVM.namespace, thisVM.sockets, thisVM.cores, thisVM.threads, thisVM.memory)" title="Config..." *ngSwitchCase="'custom'">
-                            <i class="fas fa-cog"></i>
-                          </a>
-                          <a class="btn" (click)="showType(thisVM.name, thisVM.namespace)" title="Config..." *ngSwitchDefault>
-                            <i class="fas fa-cog"></i>
-                          </a>
+            <table datatable id="vmList_datatable" [dtOptions]="vmList_dtOptions" [dtTrigger]="vmList_dtTrigger" class="table table-sm" style="vertical-align: middle !important;">
+               <thead>
+                 <tr>
+                    <th style="width: 10px">&nbsp;</th>
+                    <th style="width: 130px">Namespace</th>
+                    <th style="width: 160px">Name</th>
+                    <th style="width: 10px">Node</th>
+                    <th style="width: 70px">VM Type</th>
+                    <th style="width: 18px">vCPU</th>
+                    <th style="width: 18px">Memory</th>
+                    <!-- <th style="width: 80px">Status</th> -->
+                    <th style="width: 250px">&nbsp;</th>
+                 </tr>
+               </thead>
+               <tbody>
+                <tr *ngFor="let thisVM of vmList">
+                    <td style="line-height: 2.2 !important; align-content: center;">
+                        <p style="display: none;">{{thisVM.status}}</p>
+                        <span [ngSwitch]="thisVM.status">
+                          <span *ngSwitchCase="'running'">
+                            <span class="badge bg-success"><i class="fas fa-check-circle" title="{{thisVM.status}}"></i></span>
                           </span>
-                      </span>
-                    </span>
-                    <!--- POWER ON BUTTON -->
-                    <span [ngSwitch]="thisVM.running">
-                      <a class="btn disabled" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchCase="true">
-                        <i class="fas fa-plug disabled"></i>
-                      </a>
-                      <a class="btn" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchDefault>
-                        <i class="fas fa-plug"></i>
-                      </a>
-                    </span>
-                    <!--- POWER OFF BUTTON -->
-                    <span [ngSwitch]="thisVM.running">
-                      <a class="btn" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchCase="true">
-                        <i class="fas fa-power-off"></i>
-                      </a>
-                      <a class="btn disabled" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchDefault>
-                        <i class="fas fa-power-off disabled"></i>
-                      </a>
-                    </span>
-                    <!--- RESTART BUTTON -->
-                    <span [ngSwitch]="thisVM.running">
-                      <a class="btn" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchCase="true">
-                        <i class="fas fa-redo"></i>
-                      </a>
-                      <a class="btn disabled" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchDefault>
-                        <i class="fas fa-redo disabled"></i>
-                      </a>
-                    </span>
-                    <!--- LIVEMIGRATE BUTTON -->
-                    <span [ngSwitch]="thisVM.running">
-                      <a class="btn" (click)='vmOperations("migrate", thisVM.namespace, thisVM.name)' title="Live Migrate..." *ngSwitchCase="true">
-                        <i class="fas fa-angle-double-right"></i>
-                      </a>
-                      <a class="btn disabled" (click)='vmOperations("migrate", thisVM.namespace, thisVM.name)' title="Live Migrate..." *ngSwitchDefault>
-                        <i class="fas fa-angle-double-right disabled"></i>
-                      </a>
-                    </span>
-                     <!--- DELETE BUTTON -->
-                     <span [ngSwitch]="thisVM.running">
-                      <a class="btn disabled" (click)="showDelete(thisVM.name, thisVM.namespace)" title="Delete..." *ngSwitchCase="true">
-                        <i class="fas fa-trash disabled"></i>
-                      </a>
-                      <a class="btn" (click)="showDelete(thisVM.name, thisVM.namespace)" title="Delete..." *ngSwitchDefault>
-                        <i class="fas fa-trash"></i>
-                      </a>
-                    </span>
-                  </td>
+                          <span *ngSwitchDefault>
+                            <span class="badge bg-danger"><i class="fas fa-times-circle" title="{{thisVM.status}}"></i></span>
+                          </span>
+                        </span>
+                      </td>
+                      <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.namespace}}</a></td>
+                      <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.name}}</a></td>
+                      <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.nodeSel}}</a></td>
+                      <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.instType}}</a></td>
+                      <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{(thisVM.cores || 0) * (thisVM.sockets || 0) * (thisVM.threads || 0)}}</a></td>
+                      <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.memory}}</a></td>
+                      <!-- <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.status}}</a></td> -->
+                      <td style="line-height: 0 !important;">
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" href="#" aria-expanded="false">Actions</button>
+                            <div class="dropdown-menu">
+                                <!--- INFO BUTTON -->
+                                <span>
+                                    <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="Show info...">
+                                    <i class="fas fa-info"></i>
+                                    </a>
+                                </span>
+                                <!--- PAUSE BUTTON -->
+                                <span [ngSwitch]="thisVM.status">
+                                    <a class="btn" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' title="Pause..." *ngSwitchCase="'running'">
+                                        <i class="fas fa-pause"></i>
+                                    </a>
+                                    <a class="btn disabled" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' title="Pause..." *ngSwitchDefault>
+                                        <i class="fas fa-pause disabled"></i>
+                                    </a>
+                                    </span>
+                                <!--- PLAY BUTTON -->
+                                <span [ngSwitch]="thisVM.status">
+                                    <a class="btn" (click)='vmOperations("unpause", thisVM.namespace, thisVM.name)' title="Resume..." *ngSwitchCase="'paused'">
+                                    <i class="fas fa-play"></i>
+                                    </a>
+                                    <a class="btn disabled" (click)='vmOperations("unpause", thisVM.namespace, thisVM.name)' title="Resume..." *ngSwitchDefault>
+                                    <i class="fas fa-play disabled"></i>
+                                    </a>
+                                </span>
+                                <!--- VNC BUTTON -->
+                                <span [ngSwitch]="thisVM.status">
+                                    <a class="btn" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchCase="'running'">
+                                    <i class="fas fa-desktop"></i>
+                                    </a>
+                                    <a class="btn disabled" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchDefault>
+                                    <i class="fas fa-desktop disabled"></i>
+                                    </a>
+                                </span>
+                                <!--- CONFIG BUTTON -->
+                                <span [ngSwitch]="thisVM.running">
+                                    <a class="btn disabled" title="Config..." *ngSwitchCase="true">
+                                    <i class="fas fa-cog disabled"></i>
+                                    </a>
+                                    <!-- Check if this VM is custom or not -->
+                                    <span *ngSwitchDefault>
+                                    <span [ngSwitch]="thisVM.instType">
+                                        <a class="btn" (click)="showResize(thisVM.name, thisVM.namespace, thisVM.sockets, thisVM.cores, thisVM.threads, thisVM.memory)" title="Config..." *ngSwitchCase="'custom'">
+                                        <i class="fas fa-cog"></i>
+                                        </a>
+                                        <a class="btn" (click)="showType(thisVM.name, thisVM.namespace)" title="Config..." *ngSwitchDefault>
+                                        <i class="fas fa-cog"></i>
+                                        </a>
+                                        </span>
+                                    </span>
+                                </span>
+                                <!--- POWER ON BUTTON -->
+                                <span [ngSwitch]="thisVM.running">
+                                    <a class="btn disabled" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchCase="true">
+                                    <i class="fas fa-plug disabled"></i>
+                                    </a>
+                                    <a class="btn" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchDefault>
+                                    <i class="fas fa-plug"></i>
+                                    </a>
+                                </span>
+                                <!--- POWER OFF BUTTON -->
+                                <span [ngSwitch]="thisVM.running">
+                                    <a class="btn" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchCase="true">
+                                    <i class="fas fa-power-off"></i>
+                                    </a>
+                                    <a class="btn disabled" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchDefault>
+                                    <i class="fas fa-power-off disabled"></i>
+                                    </a>
+                                </span>
+                                <!--- RESTART BUTTON -->
+                                <span [ngSwitch]="thisVM.running">
+                                    <a class="btn" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchCase="true">
+                                    <i class="fas fa-redo"></i>
+                                    </a>
+                                    <a class="btn disabled" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchDefault>
+                                    <i class="fas fa-redo disabled"></i>
+                                    </a>
+                                </span>
+                                <!--- LIVEMIGRATE BUTTON -->
+                                <span [ngSwitch]="thisVM.running">
+                                    <a class="btn" (click)='vmOperations("migrate", thisVM.namespace, thisVM.name)' title="Live Migrate..." *ngSwitchCase="true">
+                                    <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                    <a class="btn disabled" (click)='vmOperations("migrate", thisVM.namespace, thisVM.name)' title="Live Migrate..." *ngSwitchDefault>
+                                    <i class="fas fa-angle-double-right disabled"></i>
+                                    </a>
+                                </span>
+                                <!--- DELETE BUTTON -->
+                                <span [ngSwitch]="thisVM.running">
+                                    <a class="btn disabled" (click)="showDelete(thisVM.name, thisVM.namespace)" title="Delete..." *ngSwitchCase="true">
+                                    <i class="fas fa-trash disabled"></i>
+                                    </a>
+                                    <a class="btn" (click)="showDelete(thisVM.name, thisVM.namespace)" title="Delete..." *ngSwitchDefault>
+                                    <i class="fas fa-trash"></i>
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
+                      </td>
                 </tr>
-            </tbody>
-          </table>
+               </tbody>
+            </table>
         </div>
-        <!-- /.card-body -->
-      </div>
     </div>
 
     <!--               -->
@@ -168,7 +166,7 @@
     <div class="modal fade" id="modal-newvm" style="display: none;" aria-hidden="true">
       <div class="modal-dialog modal-xl">
         <div class="modal-content">
-        <form name="newvmform" id="newvmform">
+        <div name="newvmform" id="newvmform">
           <div class="modal-header">
             <h4 class="modal-title" id="newvm-title">TITLE_TEMPLATE</h4>
             <button type="button" class="close" (click)='hideComponent("modal-newvm")'>
@@ -184,7 +182,7 @@
                     <a class="nav-link active" id="newvm-home-tab" data-toggle="pill" href="#newvm-home" role="tab" aria-controls="newvm-home" aria-selected="false">Basic</a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" id="newvm-labels-tab" data-toggle="pill" href="#newvm-labels" role="tab" aria-controls="newvm-labels" aria-selected="false">Labels</a>
+                    <a class="nav-link" id="newvm-labels-tab" data-toggle="pill" href="#newvm-meta" role="tab" aria-controls="newvm-meta" aria-selected="false">Metadata</a>
                   </li>
                   <li class="nav-item">
                     <a class="nav-link" id="newvm-cpumem-tab" data-toggle="pill" href="#newvm-cpumem" role="tab" aria-controls="newvm-cpumem" aria-selected="false">CPU/Memory</a>
@@ -208,8 +206,8 @@
                 </ul>
               </div>
               <div class="card-body">
-                <!-- HOME TAB -->
                 <div class="tab-content" id="custom-tabs-two-tabContent">
+                   <!-- HOME TAB -->
                   <div class="tab-pane fade show active" id="newvm-home" role="tabpanel" aria-labelledby="newvm-home-tab">
                     <label for="newvm-name">Name:</label>
                     <input #newvmname type="text" class="form-control" id="newvm-name" name="newvm-name">
@@ -217,40 +215,75 @@
                     <select #newvmnamespace class="custom-select rounded-0" name="newvm-namespace" id="newvm-namespace" (change)="onChangeNamespace(newvmnamespace.value)">
                       <option>Value 1</option>
                     </select>
-                    <input #newvmnode type="hidden" class="form-control" id="newvm-node" name="newvm-node">
+                    <label for="newvm-node">Node:</label>
+                    <select #newvmnode class="custom-select rounded-0" name="newvm-node" id="newvm-node">
+                      <option value="auto-select">auto-select</option>
+                    </select>
                   </div>
-                  <!-- LABELS TAB -->
-                  <div class="tab-pane fade" id="newvm-labels" role="tabpanel" aria-labelledby="newvm-labels-tab">
-                      <table class="table table-sm" style="vertical-align: middle !important;">
-                          <thead>
-                              <tr>
-                              <th style="width: 250px">Key</th>
-                              <th style="width: 250px">Value</th>
-                              </tr>
-                          </thead>
-                          <tbody>
-                              <tr>
-                                <td style="line-height: 2.2 !important;"><input #newvmlabelkeyone type="text" class="form-control" id="newvm-labelkey-one" name="newvm-labelkey-one"></td>
-                                <td style="line-height: 2.2 !important;"><input #newvmlabelvalueone type="text" class="form-control" id="newvm-labelvalue-one" name="newvm-labelvalue-one"></td>
-                              </tr>
-                              <tr>
-                                <td style="line-height: 2.2 !important;"><input #newvmlabelkeytwo type="text" class="form-control" id="newvm-labelkey-two" name="newvm-labelkey-two"></td>
-                                <td style="line-height: 2.2 !important;"><input #newvmlabelvaluetwo type="text" class="form-control" id="newvm-labelvalue-two" name="newvm-labelvalue-two"></td>
-                              </tr>
-                              <tr>
-                                <td style="line-height: 2.2 !important;"><input #newvmlabelkeythree type="text" class="form-control" id="newvm-labelkey-three" name="newvm-labelkey-three"></td>
-                                <td style="line-height: 2.2 !important;"><input #newvmlabelvaluethree type="text" class="form-control" id="newvm-labelvalue-three" name="newvm-labelvalue-three"></td>
-                              </tr>
-                              <tr>
-                                <td style="line-height: 2.2 !important;"><input #newvmlabelkeyfour type="text" class="form-control" id="newvm-labelkey-four" name="newvm-labelkey-four"></td>
-                                <td style="line-height: 2.2 !important;"><input #newvmlabelvaluefour type="text" class="form-control" id="newvm-labelvalue-four" name="newvm-labelvalue-four"></td>
-                              </tr>
-                              <tr>
-                                <td style="line-height: 2.2 !important;"><input #newvmlabelkeyfive type="text" class="form-control" id="newvm-labelkey-five" name="newvm-labelkey-five"></td>
-                                <td style="line-height: 2.2 !important;"><input #newvmlabelvaluefive type="text" class="form-control" id="newvm-labelvalue-five" name="newvm-labelvalue-five"></td>
-                              </tr>
-                          </tbody>
-                      </table>
+                  <!-- METADATA TAB -->
+                  <div class="tab-pane fade" id="newvm-meta" role="tabpanel" aria-labelledby="newvm-meta-tab">
+                    <div class="row">
+                        <label for="newvm-labels">Labels:&nbsp;
+                          <a class="btn" (click)="addLabel()" title="Add new label...">
+                            <i class="fas fa-plus"></i>
+                          </a>
+                        </label>
+                    </div>
+                    <div class="row">
+                        <form [formGroup]="labelList">
+                            <table class="table table-sm" style="vertical-align: middle !important;">
+                                <thead>
+                                    <tr>
+                                    <th style="width: 500px">Key</th>
+                                    <th style="width: 500px">Value</th>
+                                    <th style="width: 100px">&nbsp;</th>
+                                    </tr>
+                                </thead>
+                                <tbody formArrayName="labels"> 
+                                    <tr *ngFor="let label of labels.controls; let i = index" [formGroupName]="i">
+                                      <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newvm-labelkey" id="labelKey{{i}}" formControlName="labelKey"></td>
+                                      <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newvm-labelvalue" id="labelValue{{i}}" formControlName="labelValue"></td>
+                                      <td style="line-height: 2.2 !important;">
+                                        <a class="btn" (click)="removeLabel(i)" title="Remove label...">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                      </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </form>
+                    </div>
+                    <div class="row">
+                        <label for="newvm-annotations">Annotations:&nbsp;
+                          <a class="btn" (click)="addAnnotation()" title="Add new annotation...">
+                            <i class="fas fa-plus"></i>
+                          </a>
+                        </label>
+                    </div>
+                    <div class="row">
+                        <form [formGroup]="annotationList">
+                            <table class="table table-sm" style="vertical-align: middle !important;">
+                                <thead>
+                                    <tr>
+                                    <th style="width: 500px">Key</th>
+                                    <th style="width: 500px">Value</th>
+                                    <th style="width: 100px">&nbsp;</th>
+                                    </tr>
+                                </thead>
+                                <tbody formArrayName="annotations"> 
+                                    <tr *ngFor="let annotation of annotations.controls; let i = index" [formGroupName]="i">
+                                      <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newvm-annotationkey" id="annotKey{{i}}" formControlName="annotKey"></td>
+                                      <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newvm-annotationvalue" id="annotValue{{i}}" formControlName="annotValue"></td>
+                                      <td style="line-height: 2.2 !important;">
+                                        <a class="btn" (click)="removeAnnotation(i)" title="Remove annotation...">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                      </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </form>
+                    </div>
                   </div>
                   <!-- CPU/MEM TAB -->
                   <div class="tab-pane fade" id="newvm-cpumem" role="tabpanel" aria-labelledby="newvm-cpumem-tab">
@@ -285,120 +318,126 @@
                   </div>
                   <!-- DISK TAB -->
                   <div class="tab-pane fade" id="newvm-disks" role="tabpanel" aria-labelledby="newvm-disks-tab">
-                    <label for="disk1div">Disk 1:</label>
                     <div class="row">
-                      <div class="col-2" name="newvm-diskone-type-col">
-                        <label for="newvm-diskonetype">Type:</label>
-                        <select #newvmdiskonetype class="custom-select rounded-0" name="newvm-diskonetype" id="newvm-diskonetype" (change)="onChangeDiskOne(newvmdiskonetype.value,newvmnamespace.value)">
-                          <option value="none">None</option>
-                          <option value="blank">Blank Disk</option>
-                          <option value="image">Image</option>
-                          <option value="dv">DataVolume</option>
-                        </select>
-                      </div>
-                      <div class="col-2">
-                        <label for="newvm-diskonesc">Storage Class:</label>
-                        <select #newvmdiskonesc class="custom-select rounded-0" name="newvm-diskonesc" id="newvm-diskonesc">
-                        </select>
-                      </div>
-                      <div class="col-2">
-                        <label for="newvm-diskoneam">Access Mode:</label>
-                        <select #newvmdiskoneam class="custom-select rounded-0" name="newvm-diskoneam" id="newvm-diskoneam">
-                            <option>ReadWriteOnce</option>
-                            <option>ReadOnlyMany</option>
-                            <option>ReadWriteMany</option>
-                        </select>
-                      </div>
-                      <div class="col-3">
-                        <label for="newvm-diskonevalue">Value:</label>
-                        <select #newvmdiskonevalue class="custom-select rounded-0" name="newvm-diskonevalue" id="newvm-diskonevalue" disabled>
-                        </select>
-                      </div>
-                      <div class="col-1">
-                        <label for="newvm-diskonesize">Size in GB:</label>
-                        <input #newvmdiskonesize type=number class="form-control" id="newvm-diskonesize" disabled>
-                      </div>
-                      <div class="col-2">
-                          <label for="newvm-diskonecm">Cache Mode:</label>
-                          <select #newvmdiskonecm class="custom-select rounded-0" name="newvm-diskonecm" id="newvm-diskonecm">
-                            <option value="">Automatic</option>
-                            <option value="none">None</option>
-                            <option value="writethrough">WriteThrough</option>
-                            <option value="writeback">WriteBack</option>
-                          </select>
-                      </div>
+                        <label for="newvm-disks">Disks:&nbsp;
+                          <a class="btn" (click)="addDisk()" title="Add new disk...">
+                            <i class="fas fa-plus"></i>
+                          </a>
+                        </label>
                     </div>
-                    <br>
-                    <label for="disk2div">Disk 2:</label>
                     <div class="row">
-                      <div class="col-2" name="newvm-diskone-type-col">
-                          <label for="newvm-disktwotype">Type:</label>
-                          <select #newvmdisktwotype class="custom-select rounded-0" name="newvm-disktwotype" id="newvm-disktwotype" (change)="onChangeDiskTwo(newvmdisktwotype.value,newvmnamespace.value)">
-                            <option value="none">None</option>
-                            <option value="blank">Blank Disk</option>
-                            <option value="image">Image</option>
-                            <option value="dv">DataVolume</option>
-                          </select>
-                        </div>
-                        <div class="col-2">
-                          <label for="newvm-disktwosc">Storage Class:</label>
-                          <select #newvmdisktwosc class="custom-select rounded-0" name="newvm-disktwosc" id="newvm-disktwosc">
-                          </select>
-                        </div>
-                        <div class="col-2">
-                            <label for="newvm-disktwoam">Access Mode:</label>
-                            <select #newvmdisktwoam class="custom-select rounded-0" name="newvm-disktwoam" id="newvm-disktwoam">
-                                <option>ReadWriteOnce</option>
-                                <option>ReadOnlyMany</option>
-                                <option>ReadWriteMany</option>
-                            </select>
-                        </div>
-                        <div class="col-3">
-                            <label for="newvm-disktwovalue">Value:</label>
-                            <select #newvmdisktwovalue class="custom-select rounded-0" name="newvm-disktwovalue" id="newvm-disktwovalue" disabled>
-                            </select>
-                        </div>
-                        <div class="col-1">
-                          <label for="newvm-disktwosize">Size in GB:</label>
-                          <input #newvmdisktwosize type=number class="form-control" id="newvm-disktwosize" disabled>
-                        </div>
-                        <div class="col-2">
-                          <label for="newvm-disktwocm">Cache Mode:</label>
-                          <select #newvmdisktwocm class="custom-select rounded-0" name="newvm-disktwocm" id="newvm-disktwocm">
-                            <option value="">Automatic</option>
-                            <option value="none">None</option>
-                            <option value="writethrough">WriteThrough</option>
-                            <option value="writeback">WriteBack</option>
-                          </select>
-                        </div>
+                        <form [formGroup]="diskList">
+                            <div formArrayName="disks" style="width: 100%; min-width: 1085px;">
+                                <div class="card card-outline" *ngFor="let disk of disks.controls; let i = index" [formGroupName]="i">
+                                    <div class="card-header">
+                                        <b class="card-title" style="font-weight: bold;"><i class="fas fa-hdd"></i> &nbsp; disk{{i}}</b>
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool" (click)="removeDisk(i)" title="Remove disk...">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                            <i class="fas fa-minus"></i>
+                                          </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body" style="display: block;">
+                                        <div class="row">
+                                            <div class="col-2" name="newvm-disk-type-col">
+                                                <label for="newvm-disktype-{{i}}">Type:</label>
+                                                <select #disktype class="custom-select rounded-0" name="newvm-disktype-{{i}}" id="diskType-{{i}}" formControlName="diskType" (change)="onChangeDisk(newvmnamespace.value, i)">
+                                                    <option selected></option>
+                                                    <option value="blank">Blank Disk</option>
+                                                    <option value="image">Image</option>
+                                                    <option value="dv">DataVolume</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-2">
+                                                <label for="newvm-disksc-{{i}}">Storage Class:</label>
+                                                <select #newvmdisksc class="custom-select rounded-0" name="newvm-disksc-{{i}}" id="diskStorageClass-{{i}}" formControlName="diskStorageClass">
+                                                </select>
+                                            </div>
+                                            <div class="col-2">
+                                                <label for="newvm-diskam-{{i}}">Access Mode:</label>
+                                                <select #newvmdiskam class="custom-select rounded-0" name="newvm-diskeam-{{i}}" id="diskAccessMode-{{i}}" formControlName="diskAccessMode">
+                                                    <option selected></option>
+                                                    <option>ReadWriteOnce</option>
+                                                    <option>ReadOnlyMany</option>
+                                                    <option>ReadWriteMany</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-3">
+                                                <label for="newvm-diskvalue-{{i}}">Value:</label>
+                                                <select #newvmdiskvalue class="custom-select rounded-0" name="newvm-diskvalue-{{i}}" id="diskValue-{{i}}" formControlName="diskValue">
+                                                </select>
+                                            </div>
+                                            <div class="col-1">
+                                                <label for="newvm-disksize-{{i}}">Size/GB:</label>
+                                                <input #newvmdisksize type=number class="form-control" name="newvm-disksize-{{i}}" id="diskSize-{{i}}" formControlName="diskSize">
+                                            </div>
+                                            <div class="col-2">
+                                                <label for="newvm-diskcm-{{i}}">Cache Mode:</label>
+                                                <select #newvmdiskcm class="custom-select rounded-0" name="newvm-diskcm-{{i}}" id="diskCacheMode-{{i}}" formControlName="diskCacheMode">
+                                                    <option value="" selected>Automatic</option>
+                                                    <option value="none">None</option>
+                                                    <option value="writethrough">WriteThrough</option>
+                                                    <option value="writeback">WriteBack</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                   </div>
                   <!-- NETWORK TAB -->
                   <div class="tab-pane fade" id="newvm-net" role="tabpanel" aria-labelledby="newvm-net-tab">
-                    <label for="newvm-networkone">NIC 1</label><br>
-                    <label for="newvm-networkone">Network:</label>
-                    <select #newvmnetworkone class="custom-select rounded-0" name="newvm-networkone" id="newvm-networkone" (change)="onChangeNetworkOne(newvmnetworkone.value)">
-                        <option value=podNetwork>podNetwork</option>
-                    </select>
-                    <label for="newvm-networktypeone">Type:</label>
-                    <select #newvmnetworktypeone class="custom-select rounded-0" name="newvm-networktypeone" id="newvm-networktypeone">
-                        <option value=bridge>bridge</option>
-                        <option value=macvtap>macvtap</option>
-                        <option value=masquerade>masquerade</option>
-                    </select>
-                    <br><br>
-                    <label for="newvm-networktwo">NIC 2</label><br>
-                    <label for="newvm-networktwo">Network:</label>
-                    <select #newvmnetworktwo class="custom-select rounded-0" name="newvm-networktwo" id="newvm-networktwo"  (change)="onChangeNetworkTwo(newvmnetworktwo.value)">
-                        <option value=none selected>None</option>
-                        <option value=podNetwork>podNetwork</option>
-                    </select>
-                    <label for="newvm-networktypetwo">Type:</label>
-                    <select #newvmnetworktypetwo class="custom-select rounded-0" name="newvm-networktypetwo" id="newvm-networktypetwo">
-                        <option value=bridge>bridge</option>
-                        <option value=macvtap>macvtap</option>
-                        <option value=masquerade>masquerade</option>
-                    </select>
+                    <div class="row">
+                        <label for="newvm-nics">Interfaces:&nbsp;
+                          <a class="btn" (click)="addNic()" title="Add new network...">
+                            <i class="fas fa-plus"></i>
+                          </a>
+                        </label>
+                    </div>
+                    <div class="row">
+                        <form [formGroup]="nicList">
+                            <div formArrayName="nics" style="width: 100%; min-width: 800px;">
+                                <div class="card card-outline" *ngFor="let nic of nics.controls; let j = index" [formGroupName]="j">
+                                    <div class="card-header">
+                                        <b class="card-title" style="font-weight: bold;"><i class="fas fa-network-wired"></i> &nbsp; nic{{j}}</b>
+                                        <div class="card-tools">
+                                            <button type="button" class="btn btn-tool" (click)="removeNic(j)" title="Remove network...">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                            <i class="fas fa-minus"></i>
+                                          </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body" style="display: block;">
+                                        <div class="row">
+                                            <div class="col-5" name="newvm-netname-col">
+                                                <label for="newvm-netname-{{j}}">Network:</label>
+                                                <select style="min-width: 300px;" class="custom-select rounded-0" name="newvm-netname-{{j}}" id="networkName-{{j}}" formControlName="networkName" (change)="onChangeNetwork(j)">
+                                                    <option value="" selected></option>
+                                                </select>
+                                            </div>
+                                            <div class="col-1">&nbsp;</div>
+                                            <div class="col-5" name="newvm-nettype-col">
+                                                <label for="newvm-nettype-{{j}}">Type:</label>
+                                                <select #nettype style="min-width: 300px;" class="custom-select rounded-0" name="newvm-nettype-{{j}}" id="networkType-{{j}}" formControlName="networkType">
+                                                    <option value=bridge>bridge</option>
+                                                    <option value=macvtap>macvtap</option>
+                                                    <option value=masquerade>masquerade</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-1">&nbsp;</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                   </div>
                   <!-- USERDATA TAB -->
                   <div class="tab-pane fade" id="newvm-userdata" role="tabpanel" aria-labelledby="newvm-userdata-tab">
@@ -422,11 +461,11 @@
                   </div>
                   <!-- NETWORK DATA TAB -->
                   <div class="tab-pane fade" id="newvm-netdata" role="tabpanel" aria-labelledby="newvm-netdata-tab">
-                    <label for="newvm-netdata-ip">NIC1 IP:</label>
+                    <label for="newvm-netdata-ip">nic0 IP:</label>
                     <input #newvmnetdataip type="text" class="form-control" id="newvm-netdata-ip" name="newvm-netdata-ip">
-                    <label for="newvm-netdata-netmask">NIC1 Netmask:</label>
+                    <label for="newvm-netdata-netmask">nic0 Netmask:</label>
                     <input #newvmnetdatanetmask type="text" class="form-control" id="newvm-netdata-netmask" name="newvm-netdata-netmask">
-                    <label for="newvm-netdata-gw">NIC1 Gateway:</label>
+                    <label for="newvm-netdata-gw">nic0 Gateway:</label>
                     <input #newvmnetdatagw type="text" class="form-control" id="newvm-netdata-gw" name="newvm-netdata-gw">
                     <label for="newvm-netdata-dns1">DNS 1:</label>
                     <input #newvmnetdatadns1 type="text" class="form-control" id="newvm-netdata-dns1" name="newvm-netdata-dns1">
@@ -444,9 +483,9 @@
           </div>
           <div class="modal-footer justify-content-between">
             <button type="button" class="btn btn-default" (click)='hideComponent("modal-newvm")'>Close</button>
-            <button type="button" class="btn btn-primary" (click)="applyNewVm(newvmname.value, newvmnamespace.value, newvmnode.value, newvmlabelkeyone.value, newvmlabelvalueone.value, newvmlabelkeytwo.value, newvmlabelvaluetwo.value, newvmlabelkeythree.value, newvmlabelvaluethree.value, newvmlabelkeyfour.value, newvmlabelvaluefour.value, newvmlabelkeyfive.value, newvmlabelvaluefive.value, newvmtype.value, newvmcpumemsockets.value, newvmcpumemcores.value, newvmcpumemthreads.value, newvmcpumemmemory.value, newvmpc.value, newvmfirmware.value, newvmsecureboot.value, newvmdiskonetype.value, newvmdiskonevalue.value, newvmdiskonesize.value, newvmdiskonesc.value, newvmdiskoneam.value, newvmdiskonecm.value, newvmdisktwotype.value, newvmdisktwovalue.value, newvmdisktwosize.value, newvmdisktwosc.value, newvmdisktwoam.value, newvmdisktwocm.value, newvmnetworkone.value, newvmnetworktypeone.value, newvmnetworktwo.value, newvmnetworktypetwo.value, newvmuserdatausername.value, newvmuserdataauth.value, newvmuserdatapassword.value, newvmuserdatassh.value, newvmnetdataip.value, newvmnetdatanetmask.value, newvmnetdatagw.value, newvmnetdatadns1.value, newvmnetdatadns2.value, newpoolinitscript.value)">Create</button>
+            <button type="button" class="btn btn-primary" (click)="applyNewVm(newvmname.value, newvmnamespace.value, newvmnode.value, newvmtype.value, newvmcpumemsockets.value, newvmcpumemcores.value, newvmcpumemthreads.value, newvmcpumemmemory.value, newvmpc.value, newvmfirmware.value, newvmsecureboot.value, newvmuserdatausername.value, newvmuserdataauth.value, newvmuserdatapassword.value, newvmuserdatassh.value, newvmnetdataip.value, newvmnetdatanetmask.value, newvmnetdatagw.value, newvmnetdatadns1.value, newvmnetdatadns2.value, newpoolinitscript.value)">Create</button>
           </div>
-        </form>
+        </div>
         </div>
         <!-- /.modal-content -->
       </div>

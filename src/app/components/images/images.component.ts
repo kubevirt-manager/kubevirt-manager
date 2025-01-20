@@ -1,6 +1,7 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { lastValueFrom } from 'rxjs';
+import { Config } from 'datatables.net';
+import { Subject, lastValueFrom } from 'rxjs';
 import { Image } from 'src/app/interfaces/image';
 import { Images } from 'src/app/models/images.model';
 import { K8sService } from 'src/app/services/k8s.service';
@@ -15,26 +16,45 @@ export class ImagesComponent implements OnInit {
 
     imageList: Images [] = [];
     namespacesList: string[] = [];
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
+
+    /*
+     * Dynamic Tables
+     */
+    imgList_dtOptions: Config = {
+        //pagingType: 'full_numbers',
+        //lengthMenu: [5,10,15,25,50,100,150,200],
+        //pageLength: 50,
+        paging: false,
+        info: false,
+        ordering: true,
+        orderMulti: true,
+        search: true,
+        destroy: false,
+        stateSave: false,
+        serverSide: false,
+        columnDefs: [{ orderable: false, targets: 0 }, { orderable: false, targets: 5 }],
+        order: [[1, 'asc']],
+    };
+    imgList_dtTrigger: Subject<any> = new Subject<any>();
 
     constructor(
-        private cdRef: ChangeDetectorRef,
         private router: Router,
         private k8sService: K8sService,
         private kubevirtMgrService: KubevirtMgrService
     ) { }
 
     async ngOnInit(): Promise<void> {
-        await this.getImages();
-        await this.getNamespaces();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Images");
         }
+        await this.getImages();
+        this.imgList_dtTrigger.next(null);
+        await this.getNamespaces();
     }
 
     ngOnDestroy() {
-        clearInterval(this.myInterval);
+        this.imgList_dtTrigger.unsubscribe();
     }
 
     /*
@@ -137,7 +157,6 @@ export class ImagesComponent implements OnInit {
      * Show New Window
      */
     showNew(): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-new");
         let modalTitle = document.getElementById("new-title");
         let selectorNamespacesField = document.getElementById("new-image-namespace");
@@ -193,7 +212,6 @@ export class ImagesComponent implements OnInit {
     * Show Delete Window
     */
     showDelete(imageName: string, imageNamespace: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-delete");
         let modalTitle = document.getElementById("delete-title");
         let modalBody = document.getElementById("delete-value");
@@ -244,7 +262,6 @@ export class ImagesComponent implements OnInit {
      * Show Info Window
      */
     async showInfo(name: string, namespace: string): Promise<void> {
-        clearInterval(this.myInterval);
         let myInnerHTML = "";
         let imageData = await lastValueFrom(this.kubevirtMgrService.getImage(namespace, name));
         myInnerHTML += "<li class=\"nav-item\">Name: <span class=\"float-right badge bg-primary\">" + imageData.metadata["name"] + "</span></li>";
@@ -302,7 +319,6 @@ export class ImagesComponent implements OnInit {
      * Show Edit Window
      */
     async showEdit(name: string, namespace: string): Promise<void> {
-        clearInterval(this.myInterval);
         let imageData = await lastValueFrom(this.kubevirtMgrService.getImage(namespace, name));
         let myImageType = imageData.spec["type"];
         let myImageValue = "";
@@ -438,15 +454,6 @@ export class ImagesComponent implements OnInit {
             modalDiv.setAttribute("aria-hidden", "true");
             modalDiv.setAttribute("style","display: none;");
         }
-        this.myInterval = setInterval(() => { this.reloadComponent(); }, 30000);
-    }
-
-    /*
-     * Reload this component
-     */
-    async reloadComponent(): Promise<void> {
-        await this.getImages();
-        await this.cdRef.detectChanges();
     }
 
     /*

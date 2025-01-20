@@ -1,8 +1,6 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { lastValueFrom } from 'rxjs';
-import { KubeVirtVM } from 'src/app/models/kube-virt-vm.model';
-import { KubeVirtVMI } from 'src/app/models/kube-virt-vmi.model';
+import { Subject, lastValueFrom } from 'rxjs';
 import { KubeVirtVMPool } from 'src/app/models/kube-virt-vmpool.model';
 import { NetworkAttach } from 'src/app/models/network-attach.model';
 import { DataVolumesService } from 'src/app/services/data-volumes.service';
@@ -14,6 +12,9 @@ import { VirtualMachinePool } from 'src/app/interfaces/virtual-machine-pool';
 import { Probe } from 'src/app/interfaces/probe';
 import { KubevirtMgrService } from 'src/app/services/kubevirt-mgr.service';
 import { FirewallLabels } from 'src/app/models/firewall-labels.model';
+import { FormGroup, FormArray, FormBuilder } from '@angular/forms';
+import { KubeVirtClusterInstanceType } from 'src/app/models/kube-virt-clusterinstancetype';
+import { Config } from 'datatables.net';
 
 @Component({
   selector: 'app-vmpools',
@@ -23,36 +24,287 @@ import { FirewallLabels } from 'src/app/models/firewall-labels.model';
 export class VMPoolsComponent implements OnInit {
 
     poolList: KubeVirtVMPool[] = [];
-    vmList: KubeVirtVM[] = [];
     namespaceList: string[] = [];
-    networkList: NetworkAttach[] = [];
-    netAttachList: NetworkAttach[] = []
+    clusterInstanceTypeList: KubeVirtClusterInstanceType[] = [];
+    netAttachList: NetworkAttach[] = [];
     networkCheck: boolean = false;
     firewallLabels: FirewallLabels = new FirewallLabels;
 
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
+    /*
+     * Dynamic Forms
+     */
+    annotationList: FormGroup;
+    labelList: FormGroup;
+    diskList: FormGroup;
+    nicList: FormGroup;
+
+    /*
+     * Dynamic Tables
+     */
+    vmPool_dtOptions: Config = {
+        //pagingType: 'full_numbers',
+        //lengthMenu: [5,10,15,25,50,100,150,200],
+        //pageLength: 50,
+        paging: false,
+        info: false,
+        ordering: true,
+        orderMulti: true,
+        search: true,
+        destroy: false,
+        stateSave: false,
+        serverSide: false,
+        columnDefs: [{ orderable: false, targets: 8 }],
+        order: [[1, 'asc']],
+    };
+    vmPool_dtTrigger: Subject<any> = new Subject<any>();
 
     constructor(
-        private cdRef: ChangeDetectorRef,
         private router: Router,
         private k8sService: K8sService,
         private k8sApisService: K8sApisService,
         private dataVolumesService: DataVolumesService,
         private kubeVirtService: KubeVirtService,
-        private kubevirtMgrService: KubevirtMgrService
-    ) { }
+        private kubevirtMgrService: KubevirtMgrService,
+        private fb: FormBuilder
+    ) {
+        this.annotationList = this.fb.group({
+            annotations: this.fb.array([]),
+        });
+        this.labelList = this.fb.group({
+            labels: this.fb.array([]),
+        });
+        this.diskList = this.fb.group({
+            disks: this.fb.array([]),
+        });
+        this.nicList = this.fb.group({
+            nics: this.fb.array([]),
+        });
+    }
 
     async ngOnInit(): Promise<void> {
-        await this.getPools();
-        await this.checkNetwork();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Virtual Machine Pools");
         }
+        await this.getClusterInstanceTypes();
+        await this.getPools();
+        this.vmPool_dtTrigger.next(null);
+        await this.checkNetwork();
+        this.annotationList = this.fb.group({
+            annotations: this.fb.array([]),
+        });
+        this.labelList = this.fb.group({
+            labels: this.fb.array([]),
+        });
+        this.diskList = this.fb.group({
+            disks: this.fb.array([]),
+        });
+        this.nicList = this.fb.group({
+            nics: this.fb.array([]),
+        });
     }
 
     ngOnDestroy() {
-        clearInterval(this.myInterval);
+        this.vmPool_dtTrigger.unsubscribe();
+    }
+
+    /* Getting the Annotations FormArray */
+    get annotations(): FormArray {
+        return this.annotationList.get('annotations') as FormArray;
+    }
+
+    /* Annotation FormGroup */
+    createAnnotationGroup(): FormGroup {
+        return this.fb.group({
+            annotKey: [''],
+            annotValue: [''],
+        })
+    }
+
+    /* Add a new Annotation entry to the Group */
+    addAnnotation(): void {
+        this.annotations.push(this.createAnnotationGroup());
+    }
+
+    /* Remove Annotation entry from the Group */
+    removeAnnotation(index: number): void {
+        this.annotations.removeAt(index);
+    }
+
+    /* Getting all the annotations */
+    getAnnotations(): any[] {
+        return this.annotationList.value.annotations;
+    }
+
+    /*
+     * Annotation Form Validation
+     */
+    validateAnnotations(): boolean {
+        let toValidate = this.getAnnotations();
+        if (toValidate.length > 0) {
+            for (let i = 0; i < toValidate.length; i ++) {
+                if (toValidate[i].annotKey == "" || toValidate[i].annotValue == "") {
+                    alert("Annotation " + i + " should have Key and Value filled in.")
+                    return false;
+                } 
+            }
+        }
+        return true;
+    }
+
+    /* Getting the Labels FormArray */
+    get labels(): FormArray {
+        return this.labelList.get('labels') as FormArray;
+    }
+
+    /* Label FormGroup */
+    createLabelGroup(): FormGroup {
+        return this.fb.group({
+            labelKey: [''],
+            labelValue: [''],
+        });
+    }
+
+    /* Add a new Label entry to the Group */
+    addLabel(): void {
+        this.labels.push(this.createLabelGroup());
+    }
+
+    /* Remove Label entry from the Group */
+    removeLabel(index: number): void {
+        this.labels.removeAt(index);
+    }
+
+    /* Getting all the labels */
+    getLabels(): any[] {
+        return this.labelList.value.labels;
+    }
+
+    /*
+     * Label Form Validation
+     */
+    validateLabels(): boolean {
+        let toValidate = this.getLabels();
+        if (toValidate.length > 0) {
+            for (let i = 0; i < toValidate.length; i ++) {
+                if (toValidate[i].labelKey == "" || toValidate[i].labelValue == "") {
+                    alert("Label " + i + " should have Key and Value filled in.")
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /* Getting the Disks FormArray */
+    get disks(): FormArray {
+        return this.diskList.get('disks') as FormArray;
+    }
+
+    /* Disk FormGroup */
+    createDiskGroup(): FormGroup {
+        return this.fb.group({
+            diskType: [''],
+            diskValue: [''],
+            diskSize: [''],
+            diskStorageClass: [''],
+            diskAccessMode: [''],        
+            diskCacheMode: [''],
+        });
+    }
+
+    /* Add a new Disk entry to the Group */
+    async addDisk(): Promise<void> {
+        this.disks.push(this.createDiskGroup());
+        let thisDiskId = this.disks.length - 1;
+        await this.diskLoadStorageClasses(thisDiskId);
+    }
+
+    /* Remove Disk entry from the Group */
+    removeDisk(index: number): void {
+        this.disks.removeAt(index);
+    }
+
+    /* Getting all the Disks */
+    getDisks(): any[] {
+        return this.diskList.value.disks;
+    }
+
+    /*
+     * Disk Form Validation
+     */
+    validateDisks(): boolean {
+        let toValidate = this.getDisks();
+        if (toValidate.length > 0) {
+            for (let i = 0; i < toValidate.length; i ++) {
+                if (toValidate[i].diskType == "") {
+                    alert("Disk " + i + " has no type selected.")
+                    return false;
+                } else if ((toValidate[i].diskType == "blank" || toValidate[i].diskType == "image") && toValidate[i].diskSize == "") {
+                    alert("Disk " + i + " has no size set.");
+                    return false;
+                } else if ((toValidate[i].diskType == "image" || toValidate[i].diskType == "dv") && toValidate[i].diskValue == "") {
+                    alert("Disk " + i + " has no value set.");
+                    return false;
+                } else if (toValidate[i].diskAccessMode == "") {
+                    alert("Disk " + i + " has no Access Mode set.");
+                    return false;
+                } else if (toValidate[i].diskStorageClass == "") {
+                    alert("Disk " + i + " has no Storage Class set.");
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /* Getting the NICs FormArray */
+    get nics(): FormArray {
+        return this.nicList.get('nics') as FormArray;
+    }
+
+    /* NIC FormGroup */
+    createNicGroup(): FormGroup {
+        return this.fb.group({
+            networkName: [''],
+            networkType: [''],
+        });
+    }
+
+    /* Add a new NIC entry to the Group */
+    async addNic(): Promise<void> {
+        this.nics.push(this.createNicGroup());
+        let thisNicId = this.nics.length - 1;
+        await this.loadNetworkOptions(thisNicId);
+    }
+
+    /* Remove NIC entry from the Group */
+    removeNic(index: number): void {
+        this.nics.removeAt(index);
+    }
+
+    /* Getting all the NICs */
+    getNics(): any[] {
+        return this.nicList.value.nics;
+    }
+
+    /*
+     * NIC Form Validation
+     */
+    validateNics(): boolean {
+        let toValidate = this.getNics();
+        if (toValidate.length > 0) {
+            for (let i = 0; i < toValidate.length; i ++) {
+                if (toValidate[i].networkName == "") {
+                    alert("NIC " + i + " has no Network selected.")
+                    return false;
+                } else if (toValidate[i].networkType == "") {
+                    alert("NIC " + i + " has no Type selected.");
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /*
@@ -96,130 +348,45 @@ export class VMPoolsComponent implements OnInit {
                 currentPool.memory = pools[i].spec.virtualMachineTemplate.spec.template.spec.domain.resources.requests["memory"];
             } else {
                 /* load vCPU / Mem from type */
-                try {
-                    const data = await lastValueFrom(this.kubeVirtService.getClusterInstanceType(currentPool.instType));
-                    currentPool.cores = data.spec.cpu["guest"];
-                    currentPool.memory = data.spec.memory["guest"];
-                    currentPool.sockets = 1;
-                    currentPool.threads = 1;
-                } catch (e: any) {
-                    currentPool.sockets = 0;
-                    currentPool.threads = 0;
-                    currentPool.cores = 0;
-                    currentPool.memory = "";
-                    console.log(e);
+                for(let j = 0; j < this.clusterInstanceTypeList.length; j++) {
+                    if(this.clusterInstanceTypeList[j].name == currentPool.instType) {
+                        currentPool.cores = this.clusterInstanceTypeList[j].cores;
+                        currentPool.memory = this.clusterInstanceTypeList[j].memory;
+                        currentPool.sockets = this.clusterInstanceTypeList[j].sockets;
+                        currentPool.threads = this.clusterInstanceTypeList[j].threads;
+                    }
                 }
             }
-            await this.getPoolVM(currentPool.namespace, currentPool.name);
-            currentPool.vmlist = this.vmList;
             this.poolList.push(currentPool);
         }
     }
 
     /*
-     * Load VM List
+     * Load Instance Types
      */
-    async getPoolVM(namespace: string, poolName: string): Promise<void> {
-        this.vmList = [];
-        let currentVm = new KubeVirtVM;
-        const data = await lastValueFrom(this.kubeVirtService.getPooledVM(namespace, poolName));
-        let vms = data.items;
-        for (let i = 0; i < vms.length; i++) {
-            currentVm = new KubeVirtVM();
-            currentVm.name = vms[i].metadata["name"];
-            currentVm.namespace = vms[i].metadata["namespace"];
-            currentVm.creationTimestamp = new Date(vms[i].metadata["creationTimestamp"]);
-            currentVm.running = vms[i].spec["running"];
-            try {
-                currentVm.status = vms[i].status["printableStatus"].toLowerCase();
-                if (currentVm.status.toLowerCase() == "running") {
-                    currentVm.running = true;
-                }
-            } catch (e: any) {
-                currentVm.status = "";
-                console.log(e);
-            }
-            try {
-                currentVm.nodeSel = vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"];
-            } catch (e:any) {
-                currentVm.nodeSel = "auto-select";
-                console.log(e);
-            }
-
-            /* Getting VM Type */
-            try {
-                currentVm.instType = vms[i].spec.instancetype.name;
-            } catch(e: any) {
-                currentVm.instType = "custom";
-                console.log(e);
-            }
-
-            if(currentVm.instType == "custom") {
-                /* Custom VM has cpu / mem parameters */
-                currentVm.cores = vms[i].spec.template.spec.domain.cpu["cores"];
-                currentVm.sockets = vms[i].spec.template.spec.domain.cpu["sockets"];
-                currentVm.threads = vms[i].spec.template.spec.domain.cpu["threads"];
-                currentVm.memory = vms[i].spec.template.spec.domain.resources.requests["memory"];
-            } else {
-                /* load vCPU / Mem from type */
+    async getClusterInstanceTypes(): Promise<void> {
+        let currentClusterInstanceType = new KubeVirtClusterInstanceType;
+        try {
+            const datacit = await lastValueFrom(this.kubeVirtService.getClusterInstanceTypes());
+            let cits = datacit.items;
+            for (let i = 0; i < cits.length; i++) {
+                currentClusterInstanceType = new KubeVirtClusterInstanceType();
                 try {
-                    const data = await lastValueFrom(this.kubeVirtService.getClusterInstanceType(currentVm.instType));
-                    currentVm.cores = data.spec.cpu["guest"];
-                    currentVm.memory = data.spec.memory["guest"];
-                    currentVm.sockets = 1;
-                    currentVm.threads = 1;
+                    currentClusterInstanceType.name = cits[i].metadata.name;
+                    currentClusterInstanceType.cores = cits[i].spec.cpu["guest"];
+                    currentClusterInstanceType.memory = cits[i].spec.memory["guest"];
+                    currentClusterInstanceType.sockets = 1;
+                    currentClusterInstanceType.threads = 1;
                 } catch (e: any) {
-                    currentVm.sockets = 0;
-                    currentVm.threads = 0;
-                    currentVm.cores = 0;
-                    currentVm.memory = "";
-                    console.log(e);
+                    currentClusterInstanceType.sockets = 0;
+                    currentClusterInstanceType.threads = 0;
+                    currentClusterInstanceType.cores = 0;
+                    currentClusterInstanceType.memory = "";
                 }
+                this.clusterInstanceTypeList.push(currentClusterInstanceType);
             }
-
-            try {
-                if(vms[i].status["ready"] != null) {
-                    currentVm.ready = vms[i].status["ready"];
-                }
-            } catch (e: any) {
-                currentVm.ready = false;
-                console.log(e);
-            }
-
-            if(currentVm.running && currentVm.status && vms[i].status["printableStatus"].toLowerCase() == "running") {
-                let currentVmi = new KubeVirtVMI;
-                try {
-                    const datavmi = await lastValueFrom(this.kubeVirtService.getVMi(currentVm.namespace, currentVm.name));
-                    currentVmi = new KubeVirtVMI();
-                    currentVmi.name = datavmi.metadata["name"];
-                    currentVmi.namespace = datavmi.metadata["namespace"];
-                    currentVmi.creationTimestamp = new Date(datavmi.metadata["creationTimestamp"]);
-                    currentVmi.osId = datavmi.status.guestOSInfo["id"];
-                    currentVmi.osKernRel = datavmi.status.guestOSInfo["kernelRelease"];
-                    currentVmi.osKernVer = datavmi.status.guestOSInfo["kernelVersion"];
-                    currentVmi.osName = datavmi.status.guestOSInfo["name"];
-                    currentVmi.osPrettyName = datavmi.status.guestOSInfo["prettyName"];
-                    currentVmi.osVersion = datavmi.status.guestOSInfo["version"];
-
-                    /* Only works with guest-agent installed */
-                    try {
-                        currentVm.nodeSel = datavmi.status["nodeName"];
-                        currentVmi.ifAddr = datavmi.status.interfaces[0]["ipAddress"];
-                        currentVmi.ifName = datavmi.status.interfaces[0]["name"];
-                    } catch(e: any) {
-                        currentVmi.ifAddr = "";
-                        currentVmi.ifName = "";
-                        console.log(e);
-                    }
-
-                    currentVmi.nodeName = datavmi.status["nodeName"];
-                    currentVm.vmi = currentVmi;
-                } catch (e: any) {
-                    console.log(e);
-                    console.log("ERROR Retrieving VMI: " + currentVm.name + "-" + currentVm.namespace + ":" + currentVm.status);
-                }
-            }
-            this.vmList.push(currentVm);
+        } catch (e: any) {
+            console.log("ERROR Retrieving ClusterInstanceType list");
         }
     }
 
@@ -227,7 +394,6 @@ export class VMPoolsComponent implements OnInit {
      * Show New Pool Window
      */
     async showNewPool(): Promise<void> {
-        clearInterval(this.myInterval);
         let i = 0;
         let modalDiv = document.getElementById("modal-newpool");
         let modalTitle = document.getElementById("newpool-title");
@@ -332,16 +498,6 @@ export class VMPoolsComponent implements OnInit {
         newpoolname: string,
         newpoolnamespace: string,
         newpoolreplicas: string,
-        newpoollabelkeyone: string,
-        newpoollabelvalueone: string,
-        newpoollabelkeytwo: string,
-        newpoollabelvaluetwo: string,
-        newpoollabelkeythree: string,
-        newpoollabelvaluethree: string,
-        newpoollabelkeyfour: string,
-        newpoollabelvaluefour: string,
-        newpoollabelkeyfive: string,
-        newpoollabelvaluefive: string,
         newpooltype: string,
         newpoolcpumemsockets: string,
         newpoolcpumemcores: string,
@@ -350,20 +506,6 @@ export class VMPoolsComponent implements OnInit {
         newpoolpriorityclass: string,
         newpoolfirmware: string,
         newpoolsecureboot: string,
-        newpooldiskonetype: string,
-        newpooldiskonevalue: string,
-        newpooldiskonesize: string,
-        newpooldiskonesc: string,
-        newpooldiskoneam: string,
-        newpooldiskonecm: string,
-        newpooldisktwotype: string,
-        newpooldisktwovalue: string,
-        newpooldisktwosize: string,
-        newpooldisktwosc: string,
-        newpooldisktwoam: string,
-        newpooldisktwocm: string,
-        newpoolnetwork: string,
-        newpoolnetworktype: string,
         newpoollivenessenable: string,
         newpoollivenesstype: string,
         newpoollivenesspath: string,
@@ -391,18 +533,6 @@ export class VMPoolsComponent implements OnInit {
         /* Basic Form Fields Check/Validation */
         if(newpoolname == "" || newpoolnamespace == "") {
             alert("You need to fill in the name and namespace fields!");
-        } else if (newpooldiskonetype == "none") {
-            alert("Your virtual machine needs at least the first disk!");
-        } else if ((newpooldiskonetype == "blank" || newpooldiskonetype == "image") && newpooldiskonesize == "") {
-            alert("You need to set a size for your disk!");
-        } else if (newpooldiskonetype == "image" && newpooldiskonevalue == "") {
-            alert("You need to select Disk1 image");
-        } else if ((newpooldisktwotype == "blank" || newpooldisktwotype == "image") && newpooldisktwosize == "") {
-            alert("You need to set a size for your disk!");
-        } else if (newpooldisktwotype == "image" && newpooldisktwovalue == "") {
-            alert("You need to select Disk2 image");
-        } else if (newpooldisktwotype == "disk" && newpooldisktwovalue == "") {
-            alert("You need to select the disk!");
         } else if(this.checkPoolExists(newpoolname, newpoolnamespace)) {
             alert("Pool with name/namespace combination already exists!");
         } else if(newpooltype.toLowerCase() == "none" || newpooltype.toLowerCase() == "") {
@@ -415,7 +545,7 @@ export class VMPoolsComponent implements OnInit {
             alert("You need to enter all the Readiness Probe details!");
         } else if (newpoolreadinessenable == "true" && newpoolreadinesstype == "http" && newpoolreadinesspath == "") {
             alert("You need to enter HTTP Path details on the Readiness Probe tab!");
-        } else {
+        } else if(this.validateAnnotations() && this.validateLabels() && this.validateDisks() && this.validateNics()) {
 
             /* Initial Descriptor */
             let thisVirtualMachinePool: VirtualMachinePool = {
@@ -455,40 +585,27 @@ export class VMPoolsComponent implements OnInit {
                 }
             };
 
-            /* Load Custom Labels */
+            /* Load Custom Labels OPTIONAL */
+            let labelsForm = this.getLabels();
             let tmpLabels = {};
-            if(newpoollabelkeyone != "") {
+            for (let i = 0; i < labelsForm.length; i++) {
                 let thisLabel = {
-                    [newpoollabelkeyone]: newpoollabelvalueone
-                };
-                Object.assign(tmpLabels, thisLabel);
-            }
-            if(newpoollabelkeytwo != "") {
-                let thisLabel = {
-                    [newpoollabelkeytwo]: newpoollabelvaluetwo
-                };
-                Object.assign(tmpLabels, thisLabel);
-            }
-            if(newpoollabelkeythree != "") {
-                let thisLabel = {
-                    [newpoollabelkeythree]: newpoollabelvaluethree
-                };
-                Object.assign(tmpLabels, thisLabel);
-            }
-            if(newpoollabelkeyfour != "") {
-                let thisLabel = {
-                    [newpoollabelkeyfour]: newpoollabelvaluefour
-                };
-                Object.assign(tmpLabels, thisLabel);
-            }
-            if(newpoollabelkeyfive != "") {
-                let thisLabel = {
-                    [newpoollabelkeyfive]: newpoollabelvaluefive
+                    [labelsForm[i].labelKey.toString()] : labelsForm[i].labelValue
                 };
                 Object.assign(tmpLabels, thisLabel);
             }
 
-            /* Populate our VM with our Labels */
+            /* Load Annotations OPTIONAL */
+            let annotationsForm = this.getAnnotations();
+            let tmpAnnotations = {};
+            for (let i = 0; i < annotationsForm.length; i++) {
+                let thisAnnotation = {
+                    [annotationsForm[i].annotKey.toString()] : annotationsForm[i].annotValue
+                };
+                Object.assign(tmpAnnotations, thisAnnotation);
+            }
+
+            /* Populate our Pool with our Labels */
             Object.assign(tmpLabels, { 'kubevirt.io/vmpool': newpoolname });
             Object.assign(tmpLabels, { 'kubevirt-manager.io/managed': "true" });
             Object.assign(tmpLabels, { [this.firewallLabels.VirtualMachinePool]: newpoolname });
@@ -498,6 +615,11 @@ export class VMPoolsComponent implements OnInit {
             thisVirtualMachinePool.spec.selector.matchLabels = tmpLabels;
             thisVirtualMachinePool.spec.virtualMachineTemplate.metadata.labels = tmpLabels;
             thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.metadata.labels = tmpLabels;
+
+            /* Load Annotations */
+            thisVirtualMachinePool.metadata.annotations = tmpAnnotations;
+            thisVirtualMachinePool.spec.virtualMachineTemplate.metadata.annotations = tmpAnnotations;
+            thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.metadata.annotations = tmpAnnotations;
 
             /* Check VM Type */
             if(newpooltype.toLowerCase() == "custom") {
@@ -542,113 +664,19 @@ export class VMPoolsComponent implements OnInit {
                 netconfig += "      subnets:\n";
                 netconfig += "      - type: dhcp\n";
 
-            /* Disk1 setup */
-            let disk1name = newpoolnamespace + "-"+ newpoolname + "-disk1";
-            let disk1 = {};
-            let device1 = {};
-            let dataVolumeOne: DataVolume = {
-                apiVersion: "cdi.kubevirt.io/v1beta1",
-                kind: "DataVolume",
-                metadata: {
-                    name: disk1name,
-                    namespace: newpoolnamespace,
-                    annotations: {
-                        "cdi.kubevirt.io/storage.deleteAfterCompletion": "false",
-                    }
-                },
-                spec: {
-                    pvc: {
-                        storageClassName: newpooldiskonesc,
-                        accessModes:[
-                            newpooldiskoneam
-                        ],
-                        resources: {
-                            requests: {
-                                storage: newpooldiskonesize + "Gi",
-                            }
-                        }
-                    },
-                    source: {}
-                }
-            }
-            if(newpooldiskonetype == "image") {
-                try {
-                    let imageData = await lastValueFrom(await this.kubevirtMgrService.getImage(newpoolnamespace, newpooldiskonevalue));
-                    switch(imageData.spec.type) {
-                        case "http":
-                            dataVolumeOne.spec.source = {
-                                http: {
-                                    url: imageData.spec.http.url
-                                }
-                            }
-                            break;
-                        case "gcs":
-                            dataVolumeOne.spec.source = {
-                                gcs: {
-                                    url: imageData.spec.gcs.url
-                                }
-                            }
-                            break;
-                        case "s3":
-                            dataVolumeOne.spec.source = {
-                                s3: {
-                                    url: imageData.spec.s3.url
-                                }
-                            }
-                            break;
-                        case "registry":
-                            dataVolumeOne.spec.source = {
-                                registry: {
-                                    url: imageData.spec.registry.url
-                                }
-                            }
-                            break;
-                        case "pvc":
-                            dataVolumeOne.spec.source = {
-                                pvc: {
-                                    name: imageData.spec.pvc.name,
-                                    namespace: imageData.spec.pvc.namespace
-                                }
-                            }
-                            break;
-                    }
-                } catch (e: any) {
-                    alert(e.error.message);
-                    console.log(e.error.message);
-                    throw new Error("Error loading Disk1 image data!");
-                }
-                if(newpooldiskonecm != "") {
-                    disk1 = { 'name': "disk1", 'cache': newpooldiskonecm, 'disk': {}};
-                } else {
-                    disk1 = { 'name': "disk1", 'disk': {}};
-                }
-                device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}};     
-            } else if (newpooldiskonetype == "blank") {
-                /* Create Blank Disk */
-                dataVolumeOne.spec.source = {
-                    blank: {}
-                }
-                if(newpooldiskonecm != "") {
-                    disk1 = { 'name': "disk1", 'cache': newpooldiskonecm, 'disk': {}};
-                } else {
-                    disk1 = { 'name': "disk1", 'disk': {}};
-                }
-                device1 = { 'name': "disk1", 'dataVolume': { 'name': disk1name}}
-            }
-            volumes.push(device1);
-            disks.push(disk1);
-            dvtemplates.push(dataVolumeOne);
 
-            /* Disk2 setup */
-            if(newpooldisktwotype != "none") {
-                let disk2name = newpoolnamespace + "-" + newpoolname + "-disk2";
-                let disk2 = {};
-                let device2 = {};
-                let dataVolumeTwo: DataVolume = {
+            /* Disk setup */
+            let thisDiskList = this.getDisks();
+            for(let i = 0; i < thisDiskList.length; i++) {
+                let diskObject = {};
+                let deviceObject = {};
+                let actualDisk = thisDiskList[i];
+                let actualDiskName = newpoolnamespace + "-"+ newpoolname + "-disk" + i.toString();
+                let diskDataVolume: DataVolume = {
                     apiVersion: "cdi.kubevirt.io/v1beta1",
                     kind: "DataVolume",
                     metadata: {
-                        name: disk2name,
+                        name: actualDiskName,
                         namespace: newpoolnamespace,
                         annotations: {
                             "cdi.kubevirt.io/storage.deleteAfterCompletion": "false",
@@ -656,53 +684,54 @@ export class VMPoolsComponent implements OnInit {
                     },
                     spec: {
                         pvc: {
-                            storageClassName: newpooldisktwosc,
+                            storageClassName: actualDisk.diskStorageClass,
                             accessModes:[
-                                newpooldisktwoam
+                                actualDisk.diskAccessMode
                             ],
                             resources: {
                                 requests: {
-                                    storage: newpooldisktwosize + "Gi",
+                                    storage: actualDisk.diskSize + "Gi",
                                 }
                             }
                         },
                         source: {}
                     }
                 }
-                if(newpooldisktwotype == "image") {
+
+                if(actualDisk.diskType == "image") {
                     try {
-                        let imageData = await lastValueFrom(await this.kubevirtMgrService.getImage(newpoolnamespace, newpooldisktwovalue));
+                        let imageData = await lastValueFrom(await this.kubevirtMgrService.getImage(newpoolnamespace, actualDisk.diskValue));
                         switch(imageData.spec.type) {
                             case "http":
-                                dataVolumeTwo.spec.source = {
+                                diskDataVolume.spec.source = {
                                     http: {
                                         url: imageData.spec.http.url
                                     }
                                 }
                                 break;
                             case "gcs":
-                                dataVolumeTwo.spec.source = {
+                                diskDataVolume.spec.source = {
                                     gcs: {
                                         url: imageData.spec.gcs.url
                                     }
                                 }
                                 break;
                             case "s3":
-                                dataVolumeTwo.spec.source = {
+                                diskDataVolume.spec.source = {
                                     s3: {
                                         url: imageData.spec.s3.url
                                     }
                                 }
                                 break;
                             case "registry":
-                                dataVolumeTwo.spec.source = {
+                                diskDataVolume.spec.source = {
                                     registry: {
                                         url: imageData.spec.registry.url
                                     }
                                 }
                                 break;
                             case "pvc":
-                                dataVolumeTwo.spec.source = {
+                                diskDataVolume.spec.source = {
                                     pvc: {
                                         name: imageData.spec.pvc.name,
                                         namespace: imageData.spec.pvc.namespace
@@ -713,29 +742,36 @@ export class VMPoolsComponent implements OnInit {
                     } catch (e: any) {
                         alert(e.error.message);
                         console.log(e.error.message);
-                        throw new Error("Error loading Disk2 image data!");
+                        throw new Error("Error loading disk" + i + " image data!");
                     }
-                    if(newpooldisktwocm != "") {
-                        disk2 = { 'name': "disk2", 'cache': newpooldisktwocm, 'disk': {}};
+                    if(actualDisk.diskCacheMode != "") {
+                        diskObject = { 'name': "disk" + i.toString(), 'cache': actualDisk.diskCacheMode, 'disk': {}};
                     } else {
-                        disk2 = { 'name': "disk2", 'disk': {}};
+                        diskObject = { 'name': "disk" + i.toString(), 'disk': {}};
                     }
-                    device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}};
-                } else if (newpooldisktwotype == "blank") {
-                    /* Create Blank Disk */
-                    dataVolumeTwo.spec.source = {
+                    deviceObject = { 'name': "disk" + i.toString(), 'dataVolume': { 'name': actualDiskName}};
+                } else if (actualDisk.diskType == "blank") {
+                    diskDataVolume.spec.source = {
                         blank: {}
                     }
-                    if(newpooldisktwocm != "") {
-                        disk2 = { 'name': "disk2", 'cache': newpooldisktwocm, 'disk': {}};
+                    if(actualDisk.diskCacheMode != "") {
+                        diskObject = { 'name': "disk" + i.toString(), 'cache': actualDisk.diskCacheMode, 'disk': {}};
                     } else {
-                        disk2 = { 'name': "disk2", 'disk': {}};
+                        diskObject = { 'name': "disk" + i.toString(), 'disk': {}};
                     }
-                    device2 = { 'name': "disk2", 'dataVolume': { 'name': disk2name}}
+                    deviceObject = { 'name': "disk" + i.toString(), 'dataVolume': { 'name': actualDiskName}};
+                } else if (actualDisk.diskType == "dv") {
+                    /* Use Existing DataVolume */
+                    if(actualDisk.diskCacheMode != "") {
+                        diskObject = { 'name': "disk" + i.toString(), 'cache': actualDisk.diskCacheMode, 'disk': {}};
+                    } else {
+                        diskObject = { 'name': "disk" + i.toString(), 'disk': {}};
+                    }
+                    deviceObject = { 'name': "disk" + i.toString(), 'dataVolume': { 'name': actualDiskName}};
                 }
-                volumes.push(device2);
-                disks.push(disk2);
-                dvtemplates.push(dataVolumeTwo);
+                volumes.push(deviceObject);
+                disks.push(diskObject);
+                dvtemplates.push(diskDataVolume);
             }
 
             /* UserData Setup */
@@ -743,6 +779,7 @@ export class VMPoolsComponent implements OnInit {
                 cloudconfig += "user: " + newpooluserdatausername + "\n";
                 Object.assign(thisVirtualMachinePool.metadata.labels, { "cloud-init.kubevirt-manager.io/username" : newpooluserdatassh });
                 Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.metadata.labels, { "cloud-init.kubevirt-manager.io/username" : newpooluserdatassh });
+                Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.metadata.labels, { "cloud-init.kubevirt-manager.io/username" : newpooluserdatassh });
             }
             if(newpooluserdataauth.toLowerCase() == "ssh") {
                 if (newpooluserdatassh != "") {
@@ -751,6 +788,7 @@ export class VMPoolsComponent implements OnInit {
                     Object.assign(sshLabels, { "cloud-init.kubevirt-manager.io/ssh" : newpooluserdatassh});
                     Object.assign(thisVirtualMachinePool.metadata.labels, sshLabels);
                     Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.metadata.labels, sshLabels);
+                    Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.metadata.labels, sshLabels);
                     try {
                         let sshSecret = await lastValueFrom(this.k8sService.getSecret(newpoolnamespace, newpooluserdatassh));
                         let sshKey = sshSecret.data["ssh-privatekey"];
@@ -775,33 +813,62 @@ export class VMPoolsComponent implements OnInit {
                 }
             }
 
-
             /* Adding UserData/NetworkData device */
-            let disk3 = {'name': "disk3", 'disk': {'bus': "virtio"}};
-            let device3 = {'name': "disk3", 'cloudInitNoCloud': {'userData': cloudconfig, 'networkData': netconfig}};
-            volumes.push(device3);
-            disks.push(disk3);
-        
+            let diskUserData = {'name': "disk" + this.disks.length.toString(), 'disk': {'bus': "virtio"}};
+            let deviceUserData = {'name': "disk" + this.disks.length.toString(), 'cloudInitNoCloud': {'userData': cloudconfig, 'networkData': netconfig}};
+            volumes.push(deviceUserData);
+            disks.push(diskUserData);
 
-            /* Networking Setup */
-            let net1 = {};
-            let iface1 = {};
-            if(newpoolnetwork != "podNetwork") {
-                net1 = {'name': "net1", 'multus': {'networkName': newpoolnetwork}};
-                Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newpoolnetwork});
-                Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': newpoolnetwork});
-            } else {
-                net1 = {'name': "net1", 'pod': {}};
+            /* NICs Setup */
+            let thisNICList = this.getNics();
+            for(let i = 0; i < thisNICList.length; i++) {
+                /* networkName, networkType */
+                let thisNIC = thisNICList[i];
+                let netObject = {};
+                let ifaceObject = {};
+                if(thisNIC.networkName != "podNetwork") {
+                    netObject = {'name': "net" + i.toString(), 'multus': {'networkName': thisNIC.networkName}};
+                    let network_split = thisNIC.networkName.split("/")
+                    if(i > 0) {
+                        let theseNetworks: string[] = [];
+                        theseNetworks.push(network_split[1])
+                        for(let j = 0; j < i; j++) {
+                            let otherNIC = thisNICList[j];
+                            if(otherNIC.networkName != "podNetwork") {
+                                let othernic_network_split = otherNIC.networkName.split("/")
+                                if (othernic_network_split[1] !== undefined) {
+                                    theseNetworks.push(othernic_network_split[1]);
+                                }
+                            }
+                        }
+                        if (theseNetworks.length > 0) {
+                            Object.assign(thisVirtualMachinePool.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': theseNetworks.join(".") });
+                            Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': theseNetworks.join(".") });
+                            Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': theseNetworks.join(".") });
+                        } else {
+                            Object.assign(thisVirtualMachinePool.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': network_split[1] });
+                            Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': network_split[1] });
+                            Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': network_split[1] });
+                        }
+                    } else {
+                        Object.assign(thisVirtualMachinePool.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': network_split[1] });
+                        Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': network_split[1] });
+                        Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.metadata.labels, { 'k8s.v1.cni.cncf.io/networks': network_split[1] });
+                    }
+                } else {
+                    netObject = {'name': "net" + i.toString(), 'pod': {}};
+                }
+                
+                if(thisNIC.networkType == "bridge") {
+                    ifaceObject = {'name': "net" + i.toString(), 'bridge': {}}; 
+                } else if(thisNIC.networkType == "macvtap") {
+                    ifaceObject = {'name': "net" + i.toString(), 'binding': {'name': 'macvtap'}};
+                } else {
+                    ifaceObject = {'name': "net" + i.toString(), 'masquerade': {}};
+                }
+                networks.push(netObject);
+                interfaces.push(ifaceObject);
             }
-            networks.push(net1);
-            if(newpoolnetworktype == "bridge") {
-                iface1 = {'name': "net1", 'bridge': {}};
-            } else if(newpoolnetworktype == "macvtap") {
-                iface1 = {'name': "net1", 'binding': {'name': 'macvtap'}};
-            } else {
-                iface1 = {'name': "net1", 'masquerade': {}};
-            }
-            interfaces.push(iface1);
 
             /* Firmware and Secure Boot */
             if(newpoolfirmware.toLowerCase() == "bios") {
@@ -915,19 +982,18 @@ export class VMPoolsComponent implements OnInit {
      * VM Basic Operations (start, stop, etc...)
      */
     async vmOperations(vmOperation: string, vmNamespace: string, vmName: string): Promise<void> {
-        clearInterval(this.myInterval);
         if(vmOperation == "start"){
             var data = await lastValueFrom(this.kubeVirtService.startVm(vmNamespace, vmName));
-            this.reloadComponent();
+            this.fullReload();
         } else if (vmOperation == "stop") {
             var data = await lastValueFrom(this.kubeVirtService.stopVm(vmNamespace, vmName));
-            this.reloadComponent();
+            this.fullReload();
         } else if (vmOperation == "reboot"){
             var data = await lastValueFrom(this.kubeVirtService.restartVm(vmNamespace, vmName));
-            this.reloadComponent();
+            this.fullReload();
         } else if (vmOperation == "delete") {
             const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
-            this.reloadComponent();
+            this.fullReload();
         }
     }
 
@@ -937,7 +1003,7 @@ export class VMPoolsComponent implements OnInit {
     async removeVmFromPool(vmNamespace: string, vmName: string, vmNode: string) {
         try {
             const data = await lastValueFrom(this.kubeVirtService.removeVmFromPool(vmNamespace, vmName, vmNode));
-            this.reloadComponent();
+            this.fullReload();
         } catch (e: any) {
             alert(e.error.message);
             console.log(e);
@@ -948,16 +1014,15 @@ export class VMPoolsComponent implements OnInit {
      * Pool Basic Operations (start, stop, etc...)
      */
     async poolOperations(poolOperation: string, poolNamespace: string, poolName: string): Promise<void> {
-        clearInterval(this.myInterval);
         if(poolOperation == "start"){
             var data = await lastValueFrom(this.kubeVirtService.startPool(poolNamespace, poolName));
-            this.reloadComponent();
+            this.fullReload();
         } else if (poolOperation == "stop") {
             var data = await lastValueFrom(this.kubeVirtService.stopPool(poolNamespace, poolName));
-            this.reloadComponent();
+            this.fullReload();
         } else if (poolOperation == "delete") {
             const data = await lastValueFrom(this.kubeVirtService.deletePool(poolNamespace, poolName));
-            this.reloadComponent();
+            this.fullReload();
         }
     }
 
@@ -965,7 +1030,6 @@ export class VMPoolsComponent implements OnInit {
      * Show Replicas Window
      */
     showReplicas(poolNamespace: string, poolName: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-replicas");
         let modalTitle = document.getElementById("replicas-title");
         let modalBody = document.getElementById("replicas-value");
@@ -1015,7 +1079,6 @@ export class VMPoolsComponent implements OnInit {
      * Show Delete Window
      */
     showDelete(poolNamespace: string, poolName: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-delete");
         let modalTitle = document.getElementById("delete-title");
         let modalBody = document.getElementById("delete-value");
@@ -1053,7 +1116,7 @@ export class VMPoolsComponent implements OnInit {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.deletePool(poolNamespace, poolName));
                     this.hideComponent("modal-delete");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -1066,7 +1129,6 @@ export class VMPoolsComponent implements OnInit {
      * Show Delete VM Window
      */
     showDeleteVM(vmName: string, vmNamespace: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-deletevm");
         let modalTitle = document.getElementById("deletevm-title");
         let modalBody = document.getElementById("deletevm-value");
@@ -1104,7 +1166,7 @@ export class VMPoolsComponent implements OnInit {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
                     this.hideComponent("modal-deletevm");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -1117,7 +1179,6 @@ export class VMPoolsComponent implements OnInit {
      * Show Resize Pool Window
      */
     showResize(poolName: string, poolNamespace: string, poolSockets: number, poolCores: number, poolThreads: number, poolMemory: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-resize");
         let modalTitle = document.getElementById("resize-title");
         let modalBody = document.getElementById("resize-value");
@@ -1179,7 +1240,6 @@ export class VMPoolsComponent implements OnInit {
      * Show Pool Type Window
      */
     async showType(poolName: string, poolNamespace: string): Promise<void> {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-type");
         let modalTitle = document.getElementById("type-title");
         let modalBody = document.getElementById("type-value");
@@ -1235,72 +1295,32 @@ export class VMPoolsComponent implements OnInit {
         }
     }
 
-    /*
-     * New Pool: Control Disk1 Options
+     /*
+     * New VM: Control Disk Options
      */
-    async onChangeDiskOne(diskType: string, diskNamespace: string) {
-        let diskOneValueField = document.getElementById("newpool-diskonevalue");
-        let diskOneSizeField = document.getElementById("newpool-diskonesize");
-        let diskOneURLField = document.getElementById("newpool-disk1-url");
-        if(diskType == "none") {
-            if (diskOneValueField != null && diskOneSizeField != null && diskOneURLField != null) {
-                diskOneValueField.setAttribute("disabled", "disabled");
-                diskOneSizeField.setAttribute("disabled", "disabled");
-                diskOneURLField.setAttribute("disabled", "disabled");
-            }
-        } else if (diskType == "blank") {
-            if (diskOneValueField != null && diskOneSizeField != null && diskOneURLField != null) {
-                diskOneValueField.setAttribute("disabled", "disabled");
-                diskOneSizeField.removeAttribute("disabled");
-                diskOneURLField.setAttribute("disabled", "disabled");
-            }
-        } else if (diskType == "image") {
-            if(diskOneValueField != null && diskOneSizeField != null) {
-                diskOneValueField.innerHTML = await this.loadImageOptions(diskNamespace);
-                diskOneValueField.removeAttribute("disabled");
-                diskOneSizeField.removeAttribute("disabled");
-            }
-        } else if (diskType == "dv") {
-            if (diskOneValueField != null && diskOneSizeField != null && diskOneURLField != null) {
-                diskOneValueField.innerHTML = await this.loadDiskOptions(diskNamespace);
-                diskOneValueField.removeAttribute("disabled");
-                diskOneSizeField.setAttribute("disabled", "disabled");
-                diskOneURLField.setAttribute("disabled", "disabled");                
-            }
-        }
-    }
-
-    /*
-     * New Pool: Control Disk2 Options
-     */
-    async onChangeDiskTwo(diskType: string, diskNamespace: string) {
-        let diskTwoValueField = document.getElementById("newpool-disktwovalue");
-        let diskTwoSizeField = document.getElementById("newpool-disktwosize");
-        let diskTwoURLField = document.getElementById("newpool-disk2-url");
-        if(diskType == "none") {
-            if (diskTwoValueField != null && diskTwoSizeField != null && diskTwoURLField != null) {
-                diskTwoValueField.setAttribute("disabled", "disabled");
-                diskTwoSizeField.setAttribute("disabled", "disabled");
-                diskTwoURLField.setAttribute("disabled", "disabled");
-            }
-        } else if (diskType == "blank") {
-            if (diskTwoValueField != null && diskTwoSizeField != null && diskTwoURLField != null) {
-                diskTwoValueField.setAttribute("disabled", "disabled");
-                diskTwoURLField.setAttribute("disabled", "disabled");
-                diskTwoSizeField.removeAttribute("disabled");
-            }
-        } else if (diskType == "image") {
-            if (diskTwoValueField != null && diskTwoSizeField != null) {
-                diskTwoValueField.innerHTML = await this.loadImageOptions(diskNamespace);
-                diskTwoValueField.removeAttribute("disabled");
-                diskTwoSizeField.removeAttribute("disabled");
-            }
-        } else if (diskType == "dv") {
-            if (diskTwoValueField != null && diskTwoSizeField != null && diskTwoURLField != null) {
-                diskTwoValueField.innerHTML = await this.loadDiskOptions(diskNamespace);
-                diskTwoValueField.removeAttribute("disabled");
-                diskTwoSizeField.setAttribute("disabled", "disabled");
-                diskTwoURLField.setAttribute("disabled", "disabled");
+     async onChangeDisk(diskNamespace: string, frmIndex: number) {
+        let diskTypeField = document.getElementById("diskType-" + frmIndex.toString());
+        let diskValueField = document.getElementById("diskValue-" + frmIndex.toString());
+        let diskSizeField = document.getElementById("diskSize-" + frmIndex.toString());
+        if(diskTypeField != null && diskTypeField instanceof HTMLSelectElement) {
+            let diskType = diskTypeField.value;
+            if (diskType == "blank") {
+                if (diskValueField != null && diskSizeField != null) {
+                    diskValueField.setAttribute("disabled", "disabled");
+                    diskSizeField.removeAttribute("disabled");
+                }
+            } else if (diskType == "image") {
+                if(diskValueField != null && diskSizeField != null) {
+                    diskValueField.innerHTML = await this.loadImageOptions(diskNamespace);
+                    diskValueField.removeAttribute("disabled");
+                    diskSizeField.removeAttribute("disabled");
+                }
+            } else if (diskType == "dv") {
+                if (diskValueField != null && diskSizeField != null) {
+                    diskValueField.innerHTML = await this.loadDiskOptions(diskNamespace);
+                    diskValueField.removeAttribute("disabled");
+                    diskSizeField.setAttribute("disabled", "disabled");
+                }
             }
         }
     }
@@ -1341,56 +1361,33 @@ export class VMPoolsComponent implements OnInit {
     }
 
     /*
+     * New VM: Load Available Storage Classes
+     */
+    async diskLoadStorageClasses(frmIndex: number) {
+        /* Load Storage Class List and Set Selector  */
+        let storageSelectorOptions = "<option selected></option>\n";
+        try {
+            let data = await lastValueFrom(this.k8sApisService.getStorageClasses());
+            for (let i = 0; i < data.items.length; i++) {
+                storageSelectorOptions += "<option value=" + data.items[i].metadata["name"] +">" + data.items[i].metadata["name"] + "</option>\n";
+            }
+        } catch (e: any) {
+            console.log(e.error.message);
+        }
+
+        let diskStorageClassField = document.getElementById("diskStorageClass-" + frmIndex.toString());
+
+        if (diskStorageClassField != null) {
+            diskStorageClassField.innerHTML = storageSelectorOptions;
+        }
+    }
+
+    /*
      * New Pool: Load Network Options
      */
     async onChangeNamespace(namespace: string) {
-        let selectorNetworkField = document.getElementById("newpool-network");
-        let networkSelectorOptions = "<option value=podNetwork>podNetwork</option>\n";
-        let selectorDiskOneType = document.getElementById("newpool-diskonetype");
-        let selectorDiskTwoType = document.getElementById("newpool-disktwotype");
-        let selectorDiskOneValue = document.getElementById("newpool-diskonevalue");
-        let fieldDiskOneSize = document.getElementById("newpool-diskonesize");
-        let selectorDiskTwoValue = document.getElementById("newpool-disktwovalue");
-        let fieldDiskTwoSize = document.getElementById("newpool-disktwosize");
         let selectorAuthType = document.getElementById("newpool-userdata-auth");
         let selectorSSHKey = document.getElementById("newpool-userdata-ssh");
-        if(this.networkCheck) {
-            try {
-                let data = await lastValueFrom(this.k8sApisService.getNetworkAttachs());
-                let netAttach = data.items;
-                for (let i = 0; i < netAttach.length; i++) {
-                    if(namespace == netAttach[i].metadata["namespace"]) {
-                        let currentAttach = new NetworkAttach();
-                        currentAttach.name = netAttach[i].metadata["name"];
-                        currentAttach.namespace = netAttach[i].metadata["namespace"];
-                        currentAttach.config = JSON.parse(netAttach[i].spec["config"]);
-                        this.netAttachList.push(currentAttach);
-                        networkSelectorOptions += "<option value=" + netAttach[i].metadata["name"] + ">" + netAttach[i].metadata["name"] + "</option>\n";
-                    }
-                }
-            } catch (e: any) {
-                console.log(e);
-            }
-        }
-        if (selectorNetworkField != null && networkSelectorOptions != "") {
-            selectorNetworkField.innerHTML = networkSelectorOptions;
-        }
-
-         /* Reset disk options */
-         if(selectorDiskOneType != null && selectorDiskTwoType != null && selectorDiskOneValue != null && selectorDiskTwoValue) {
-            let diskOptions = "<option value=none>None</option>\n<option value=blank>Blank Disk</option>\n<option value=image>Image</option>\n<option value=dv>DataVolume</option>";
-            selectorDiskOneType.innerHTML = diskOptions;
-            selectorDiskTwoType.innerHTML = diskOptions;
-            selectorDiskOneValue.innerHTML = "";
-            selectorDiskTwoValue.innerHTML = "";
-            selectorDiskOneValue.setAttribute("disabled", "disabled");
-            selectorDiskTwoValue.setAttribute("disabled", "disabled");
-        }
-
-        if(fieldDiskOneSize != null && fieldDiskTwoSize != null) {
-            fieldDiskOneSize.setAttribute("disabled", "disabled");
-            fieldDiskTwoSize.setAttribute("disabled", "disabled");
-        }
 
         /* Reset SSH Key Options */
         if(selectorAuthType != null && selectorSSHKey != null) {
@@ -1473,18 +1470,72 @@ export class VMPoolsComponent implements OnInit {
     }
 
     /*
-     * New POOL: Enable bridge/masquerade selector
+     * New POOL: Networking Options
      */
-    async onChangeNetwork(thisNetwork: string) {
-        let selectorNetworkTypeField = document.getElementById("newpool-networktype");
-        let networkTypeSelectorOptions = "<option value=bridge>bridge</option>\n";
-        if(thisNetwork.toLowerCase() == "podnetwork") {
-            networkTypeSelectorOptions += "<option value=masquerade>masquerade</option>\n";
-        } else {
-            networkTypeSelectorOptions += "<option value=macvtap>macvtap</option>\n";
+    async onChangeNetwork(frmIndex: number) {
+        let thisNetworkNameField = document.getElementById("networkName-" + frmIndex.toString());
+        if (thisNetworkNameField != null && thisNetworkNameField instanceof HTMLSelectElement) {
+            let thisNetwork = thisNetworkNameField.value;
+            let selectorNetworkTypeField = document.getElementById("networkType-" + frmIndex.toString());
+            let networkTypeSelectorOptions = "<option selected></option>\n<option value=bridge>bridge</option>\n";
+            if(frmIndex == 0) {
+                if(thisNetwork.toLowerCase() != "podnetwork") {
+                    networkTypeSelectorOptions += "<option value=macvtap>macvtap</option>\n";
+
+                } else {
+                    networkTypeSelectorOptions += "<option value=masquerade>masquerade</option>\n";
+                }
+
+                if(selectorNetworkTypeField != null) {
+                    selectorNetworkTypeField.innerHTML = networkTypeSelectorOptions;
+                }
+            } else {
+                if(thisNetwork.toLowerCase() == "podnetwork") {
+                    networkTypeSelectorOptions += "<option value=masquerade>masquerade</option>\n";
+                } else {
+                    networkTypeSelectorOptions += "<option value=macvtap>macvtap</option>\n";
+                }
+
+                if(selectorNetworkTypeField != null) {
+                    selectorNetworkTypeField.innerHTML = networkTypeSelectorOptions;
+                }
+            }
         }
-        if(selectorNetworkTypeField != null) {
-            selectorNetworkTypeField.innerHTML = networkTypeSelectorOptions;
+    }
+
+    /*
+     * New VM: Load Network Options
+     */
+    async loadNetworkOptions(frmIndex: number) {
+        let namespaceField = document.getElementById("newpool-namespace");
+        let netData = document.getElementById("newpool-netdata-tab");
+        let networkSelectorOptions = "<option selected></option>\n<option value=podNetwork>podNetwork</option>\n";
+
+        /* Set Networking options */
+        if(this.networkCheck) {
+            if(namespaceField != null && namespaceField instanceof HTMLSelectElement) {
+                let namespace = namespaceField.value;
+                let data = await lastValueFrom(this.k8sApisService.getNetworkAttachs());
+                let netAttach = data.items;
+                for (let i = 0; i < netAttach.length; i++) {
+                    if(namespace == netAttach[i].metadata["namespace"]) {
+                        let currentAttach = new NetworkAttach();
+                        currentAttach.name = netAttach[i].metadata["name"];
+                        currentAttach.namespace = netAttach[i].metadata["namespace"];
+                        currentAttach.config = JSON.parse(netAttach[i].spec["config"]);
+                        this.netAttachList.push(currentAttach);
+                        networkSelectorOptions += "<option value=" + netAttach[i].metadata["namespace"] + "/" + netAttach[i].metadata["name"] + ">" + netAttach[i].metadata["name"] + "</option>\n";
+                    }
+                }
+            }
+        }
+
+        let selectorNetworkField = document.getElementById("networkName-" + frmIndex.toString());
+        if (selectorNetworkField != null && networkSelectorOptions != "") {
+            selectorNetworkField.innerHTML = networkSelectorOptions;
+        }
+        if (netData != null && frmIndex == 0) {
+            netData.setAttribute("style","display: none;");
         }
     }
 
@@ -1616,7 +1667,7 @@ export class VMPoolsComponent implements OnInit {
      * New Pool: Load Image Options
      */
     async loadImageOptions(imgNamespace: string) {
-        let imgSelectorOptions = "";
+        let imgSelectorOptions = "<option selected></option>\n";
         try {
             let data = await lastValueFrom(await this.kubevirtMgrService.getNamespacedImages(imgNamespace));
             let images = data.items;
@@ -1659,15 +1710,6 @@ export class VMPoolsComponent implements OnInit {
             modalDiv.setAttribute("aria-hidden", "true");
             modalDiv.setAttribute("style","display: none;");
         }
-        this.myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
-    }
-
-    /*
-     * Reload this component
-     */
-    async reloadComponent(): Promise<void> {
-        await this.getPools();
-        await this.cdRef.detectChanges();
     }
 
     /*

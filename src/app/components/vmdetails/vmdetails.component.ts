@@ -29,7 +29,7 @@ export class VmdetailsComponent implements OnInit {
     urlSafe: SafeResourceUrl = "";
     promCheck: boolean = false;
 
-    myInterval = setInterval(() =>{ this.reloadChartsAndLogs(); }, 30000);
+    myInterval = setInterval(() =>{ this.reloadChartsAndLogs(); }, 120000);
 
     /* Prometheus query data */
     promStartTime = 0;
@@ -61,14 +61,14 @@ export class VmdetailsComponent implements OnInit {
     async ngOnInit(): Promise<void> {
         this.vmName = this.route.snapshot.params['name'];
         this.vmNamespace = this.route.snapshot.params['namespace'];
-        await this.loadVm();
-        await this.loadPrometheus();
-        await this.loadSerialLog();
-        this.loadNoVNC();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Virtual Machine Details");
         }
+        await this.loadVm();
+        await this.loadPrometheus();
+        await this.loadSerialLog();
+        this.loadNoVNC();
     }
 
     /*
@@ -1177,6 +1177,34 @@ export class VmdetailsComponent implements OnInit {
         let path = "/k8s/apis/subresources.kubevirt.io/v1alpha3/namespaces/" + this.activeVm.namespace + "/virtualmachineinstances/" + this.activeVm.name + "/vnc";
         let fullpath = url + path;
         this.urlSafe = this.sanitizer.bypassSecurityTrustResourceUrl(fullpath);
+    }
+
+    /*
+     * VM Basic Operations (start, stop, etc...)
+     */
+    async vmOperations(vmOperation: string, vmNamespace: string, vmName: string): Promise<void> {
+        if(vmOperation == "start"){
+            var data = await lastValueFrom(this.kubeVirtService.startVm(vmNamespace, vmName));
+            this.reloadComponent();
+        } else if (vmOperation == "stop") {
+            var data = await lastValueFrom(this.kubeVirtService.stopVm(vmNamespace, vmName));
+            this.reloadComponent();
+        } else if (vmOperation == "reboot"){
+            var data = await lastValueFrom(this.kubeVirtService.restartVm(vmNamespace, vmName));
+            this.reloadComponent();
+        } else if (vmOperation == "pause") {
+            const data = await lastValueFrom(this.kubeVirtService.pauseVm(vmNamespace, vmName));
+            this.reloadComponent();
+        } else if (vmOperation == "unpause") {
+            const data = await lastValueFrom(this.kubeVirtService.unpauseVm(vmNamespace, vmName));
+            this.reloadComponent();
+        } else if (vmOperation == "delete") {
+            const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
+            this.reloadComponent();
+        } else if (vmOperation == "migrate") {
+            const data = await lastValueFrom(this.kubeVirtService.migrateVm(vmNamespace, vmName));
+            this.reloadComponent();
+        }
     }
     
     /*

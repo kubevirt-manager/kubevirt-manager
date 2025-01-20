@@ -14,6 +14,7 @@ export interface KubevirtMachineTemplate {
                     metadata: {
                         namespace: string;
                         labels?: {};
+                        annotations?: {};
                     };
                     spec: {
                         dataVolumeTemplates: {};
@@ -25,6 +26,7 @@ export interface KubevirtMachineTemplate {
                         template: {
                             metadata: {
                                 labels?: {};
+                                annotations?: {};
                             };
                             spec: {
                                 priorityClassName?: string,

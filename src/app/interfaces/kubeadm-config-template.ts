@@ -11,6 +11,7 @@ export interface KubeadmConfigTemplate {
         template: {
             metadata: {
                 labels?: {};
+                annotations?: {};
             };
             spec: {
                 joinConfiguration: {
@@ -18,7 +19,13 @@ export interface KubeadmConfigTemplate {
                         kubeletExtraArgs: {};
                     };
                 };
-                useExperimentalRetryJoin: true;
+                useExperimentalRetryJoin: boolean;
+                format: string;
+                ignition?: {
+                    containerLinuxConfig: {
+                        additionalConfig: string;
+                    };
+                };
             };
         };
     };

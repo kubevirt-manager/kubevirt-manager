@@ -26,7 +26,13 @@ export interface KubeadmControlPlane {
                     criSocket: "/var/run/containerd/containerd.sock";
                 };
             };
-            useExperimentalRetryJoin: true;
+            useExperimentalRetryJoin: boolean;
+            format: string;
+            ignition?: {
+                containerLinuxConfig: {
+                    additionalConfig: string;
+                };
+            };
         };
         machineTemplate: {
             infrastructureRef: {

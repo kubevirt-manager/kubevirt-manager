@@ -29,10 +29,14 @@
               "src/assets"
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.css",
+              "node_modules/datatables.net-dt/css/dataTables.dataTables.min.css"
             ],
-            "scripts": [],
-            "browser": "src/main.ts",
+            "scripts": [
+              "node_modules/jquery/dist/jquery.min.js",
+              "node_modules/datatables.net/js/dataTables.min.js"
+            ],
+            "browser": "src/main.ts"
           },
           "configurations": {
             "production": {

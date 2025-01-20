@@ -2,9 +2,10 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { DebugElement } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-
+import { DataTablesModule } from 'angular-datatables';
 import { KClusterComponent } from './kcluster.component';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { ReactiveFormsModule } from '@angular/forms';
 
 describe('KClusterComponent', () => {
   let component: KClusterComponent;
@@ -13,7 +14,7 @@ describe('KClusterComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
     declarations: [KClusterComponent],
-    imports: [],
+    imports: [ReactiveFormsModule, DataTablesModule],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();
@@ -32,16 +33,22 @@ describe('KClusterComponent', () => {
     const contentValue = componentElem.querySelector('h3');
     expect(contentValue.textContent).toContain('Clusters');
   });
+  it('should contain Refresh item', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.query(By.css('.fa-sync'))
+    const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
+  });
   it('should contain Add Cluster item', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.query(By.css('.fa-plus-square'))
     const contentValue = componentElem.nativeElement;
     expect(contentValue).toBeTruthy();
   });
-  it('should contain Clusters table', () => {
+  it('should contain Main Datatable', () => {
     const componentDoc: DebugElement = fixture.debugElement;
-    const componentElem = componentDoc.query(By.css('.table-sm'))
-    const contentValue = componentElem.nativeElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#kclusterList_datatable');
     expect(contentValue).toBeTruthy();
   });
   it('should contain Delete screen', () => {

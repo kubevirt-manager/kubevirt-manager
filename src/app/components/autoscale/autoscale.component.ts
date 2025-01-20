@@ -1,11 +1,12 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { lastValueFrom } from 'rxjs';
+import { Subject, lastValueFrom } from 'rxjs';
 import { K8sHPA } from 'src/app/models/k8s-hpa.model';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { K8sService } from 'src/app/services/k8s.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
 import { HorizontalPodAutoscaler } from 'src/app/interfaces/horizontal-pod-autoscaler';
+import { Config } from 'datatables.net';
 
 @Component({
   selector: 'app-autoscale',
@@ -15,10 +16,28 @@ import { HorizontalPodAutoscaler } from 'src/app/interfaces/horizontal-pod-autos
 export class AutoscaleComponent implements OnInit {
 
     hpaList: K8sHPA[] = [];
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
+
+    /*
+     * Dynamic Tables
+     */
+    hpaList_dtOptions: Config = {
+        //pagingType: 'full_numbers',
+        //lengthMenu: [5,10,15,25,50,100,150,200],
+        //pageLength: 50,
+        paging: false,
+        info: false,
+        ordering: true,
+        orderMulti: true,
+        search: true,
+        destroy: false,
+        stateSave: false,
+        serverSide: false,
+        columnDefs: [{ orderable: false, targets: 0 }, { orderable: false, targets: 11 }],
+        order: [[1, 'asc']],
+    };
+    hpaList_dtTrigger: Subject<any> = new Subject<any>();
 
     constructor(
-        private cdRef: ChangeDetectorRef,
         private router: Router,
         private k8sService: K8sService,
         private k8sApisService: K8sApisService,
@@ -26,15 +45,16 @@ export class AutoscaleComponent implements OnInit {
     ) { }
 
     async ngOnInit(): Promise<void> {
-        await this.getHPAs();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Auto Scaling");
         }
+        await this.getHPAs();
+        this.hpaList_dtTrigger.next(null);
     }
 
     ngOnDestroy() {
-        clearInterval(this.myInterval);
+        this.hpaList_dtTrigger.unsubscribe();
     }
 
     /*
@@ -71,7 +91,6 @@ export class AutoscaleComponent implements OnInit {
      * Show Delete Window
      */
     showDelete(hpaNamespace: string, hpaName: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-delete");
         let modalTitle = document.getElementById("delete-title");
         let modalBody = document.getElementById("delete-value");
@@ -100,7 +119,6 @@ export class AutoscaleComponent implements OnInit {
      * Show New Window
      */
     async showNew(): Promise<void> {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-new");
         let modalTitle = document.getElementById("new-title");
         let modalBody = document.getElementById("new-value");
@@ -138,7 +156,6 @@ export class AutoscaleComponent implements OnInit {
                   minReplicas: number,
                   maxReplicas: number,
                   metricAvg: number): Promise<void> {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-edit");
         let modalTitle = document.getElementById("edit-title");
         let modalBody = document.getElementById("edit-value");
@@ -243,7 +260,6 @@ export class AutoscaleComponent implements OnInit {
             modalDiv.setAttribute("aria-hidden", "true");
             modalDiv.setAttribute("style","display: none;");
         }
-        this.myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
     }
 
     /*
@@ -303,14 +319,6 @@ export class AutoscaleComponent implements OnInit {
                 console.log(e);
             }
         }
-    }
-
-    /*
-     * Reload this component
-     */
-    async reloadComponent(): Promise<void> {
-        await this.getHPAs();
-        await this.cdRef.detectChanges();
     }
 
     /*

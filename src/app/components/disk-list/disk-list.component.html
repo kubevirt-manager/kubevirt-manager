@@ -9,16 +9,19 @@
             &nbsp;&nbsp;Data Volumes / Persistent Volumes
           </h3>
           <div class="card-tools">
-            <!--<button type="button" class="btn btn-tool">
-                <i class="fas fa-upload"></i>
+            <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="Refresh..." title="Refresh..." class="btn btn-tool" (click)="fullReload()">
+                  <i class="fas fa-sync" (click)="fullReload()" title="Refresh..."></i>
+              </button>
+            <!--<button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="Upload..." title="Upload..." class="btn btn-tool">
+                <i class="fas fa-upload" title="Upload..."></i>
             </button> -->
-            <button type="button" class="btn btn-tool"  (click)="showNew()" title="New Disk...">
-              <i class="fas fa-plus-square"></i>
+            <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="New Disk..." title="New Disk..."class="btn btn-tool"  (click)="showNew()">
+              <i class="fas fa-plus-square" (click)="showNew()" title="New Disk..."></i>
           </button>
           </div>
         </div>
         <div class="card-body">
-         <table class="table table-sm" style="vertical-align: middle !important;">
+         <table datatable id="diskList_datatable" [dtOptions]="diskList_dtOptions" [dtTrigger]="diskList_dtTrigger" class="table table-sm" style="vertical-align: middle !important;">
             <thead>
               <tr>
                 <th style="width: 10px">&nbsp;</th>
@@ -29,7 +32,7 @@
                 <th style="width: 20px">Progress</th>
                 <th style="width: 100px">Storage Class</th>
                 <th style="width: 100px">Access Mode</th>                
-                <th style="width: 80px">Actions</th>
+                <th style="width: 80px">&nbsp;</th>
               </tr>
             </thead>
             <tbody>
@@ -43,20 +46,28 @@
                   <td style="line-height: 2.2 !important;">{{thisDisk.storageClass}}</td>
                   <td style="line-height: 2.2 !important;">{{thisDisk.accessMode}}</td>
                   <td style="line-height: 0 !important;">
-                    <a class="btn">
-                      <i class="fas fa-info" (click)="showInfo(thisDisk.namespace, thisDisk.name)" title="Info..."></i>
-                    </a>
-                    <span [ngSwitch]="thisDisk.bound">
-                        <a class="btn" (click)="showResize(thisDisk.namespace, thisDisk.name)" title="Resize..." *ngSwitchCase="true"> 
-                            <i class="fas fa-arrow-up" ></i>
-                        </a>
-                        <a class="btn disabled" title="Resize..." *ngSwitchDefault> 
-                            <i class="fas fa-arrow-up"></i>
-                        </a>
-                    </span>
-                    <a class="btn" title="Delete...">
-                      <i class="fas fa-trash" (click)="showDelete(thisDisk.namespace, thisDisk.name)"></i>
-                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" href="#" aria-expanded="false">Actions</button>
+                        <div class="dropdown-menu">
+                            <!--- INFO BUTTON -->
+                            <a class="btn">
+                                <i class="fas fa-info" (click)="showInfo(thisDisk.namespace, thisDisk.name)" title="Info..."></i>
+                            </a>
+                            <!--- RESIZE BUTTON -->
+                            <span [ngSwitch]="thisDisk.bound">
+                                <a class="btn" (click)="showResize(thisDisk.namespace, thisDisk.name)" title="Resize..." *ngSwitchCase="true"> 
+                                    <i class="fas fa-arrow-up" ></i>
+                                </a>
+                                <a class="btn disabled" title="Resize..." *ngSwitchDefault> 
+                                    <i class="fas fa-arrow-up"></i>
+                                </a>
+                            </span>
+                            <!--- DELETE BUTTON -->
+                            <a class="btn" title="Delete...">
+                                <i class="fas fa-trash" (click)="showDelete(thisDisk.namespace, thisDisk.name)"></i>
+                            </a>
+                        </div>
+                    </div>
                   </td>
                 </tr>
             </tbody>

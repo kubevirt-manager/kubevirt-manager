@@ -1,6 +1,7 @@
 import { KubeVirtVM } from "./kube-virt-vm.model";
 import { LivenessProbe } from "./liveness-probe.model";
 import { ReadinessProbe } from "./readiness-probe.model";
+import { VMNewtork } from "./vmnewtork.model";
 
 export class KubeVirtVMPool {
     name:                   string  = "";
@@ -24,4 +25,5 @@ export class KubeVirtVMPool {
     livenessProbe:   LivenessProbe  = new LivenessProbe;
     hasReadiness:          boolean  = false;
     readinessProbe: ReadinessProbe  = new ReadinessProbe;
+    networkList:       VMNewtork[]  = [];
 }
