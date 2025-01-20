@@ -1,6 +1,6 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { lastValueFrom } from 'rxjs';
+import { Subject, lastValueFrom } from 'rxjs';
 import { KubeVirtVMPool } from 'src/app/models/kube-virt-vmpool.model';
 import { NetworkAttach } from 'src/app/models/network-attach.model';
 import { DataVolumesService } from 'src/app/services/data-volumes.service';
@@ -14,6 +14,7 @@ import { KubevirtMgrService } from 'src/app/services/kubevirt-mgr.service';
 import { FirewallLabels } from 'src/app/models/firewall-labels.model';
 import { FormGroup, FormArray, FormBuilder } from '@angular/forms';
 import { KubeVirtClusterInstanceType } from 'src/app/models/kube-virt-clusterinstancetype';
+import { Config } from 'datatables.net';
 
 @Component({
   selector: 'app-vmpools',
@@ -37,10 +38,27 @@ export class VMPoolsComponent implements OnInit {
     diskList: FormGroup;
     nicList: FormGroup;
 
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 120000);
+    /*
+     * Dynamic Tables
+     */
+    vmPool_dtOptions: Config = {
+        //pagingType: 'full_numbers',
+        //lengthMenu: [5,10,15,25,50,100,150,200],
+        //pageLength: 50,
+        paging: false,
+        info: false,
+        ordering: true,
+        orderMulti: true,
+        search: true,
+        destroy: false,
+        stateSave: false,
+        serverSide: false,
+        columnDefs: [{ orderable: false, targets: 8 }],
+        order: [[1, 'asc']],
+    };
+    vmPool_dtTrigger: Subject<any> = new Subject<any>();
 
     constructor(
-        private cdRef: ChangeDetectorRef,
         private router: Router,
         private k8sService: K8sService,
         private k8sApisService: K8sApisService,
@@ -64,13 +82,14 @@ export class VMPoolsComponent implements OnInit {
     }
 
     async ngOnInit(): Promise<void> {
-        await this.getClusterInstanceTypes();
-        await this.getPools();
-        await this.checkNetwork();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Virtual Machine Pools");
         }
+        await this.getClusterInstanceTypes();
+        await this.getPools();
+        this.vmPool_dtTrigger.next(null);
+        await this.checkNetwork();
         this.annotationList = this.fb.group({
             annotations: this.fb.array([]),
         });
@@ -86,7 +105,7 @@ export class VMPoolsComponent implements OnInit {
     }
 
     ngOnDestroy() {
-        clearInterval(this.myInterval);
+        this.vmPool_dtTrigger.unsubscribe();
     }
 
     /* Getting the Annotations FormArray */
@@ -375,7 +394,6 @@ export class VMPoolsComponent implements OnInit {
      * Show New Pool Window
      */
     async showNewPool(): Promise<void> {
-        clearInterval(this.myInterval);
         let i = 0;
         let modalDiv = document.getElementById("modal-newpool");
         let modalTitle = document.getElementById("newpool-title");
@@ -964,19 +982,18 @@ export class VMPoolsComponent implements OnInit {
      * VM Basic Operations (start, stop, etc...)
      */
     async vmOperations(vmOperation: string, vmNamespace: string, vmName: string): Promise<void> {
-        clearInterval(this.myInterval);
         if(vmOperation == "start"){
             var data = await lastValueFrom(this.kubeVirtService.startVm(vmNamespace, vmName));
-            this.reloadComponent();
+            this.fullReload();
         } else if (vmOperation == "stop") {
             var data = await lastValueFrom(this.kubeVirtService.stopVm(vmNamespace, vmName));
-            this.reloadComponent();
+            this.fullReload();
         } else if (vmOperation == "reboot"){
             var data = await lastValueFrom(this.kubeVirtService.restartVm(vmNamespace, vmName));
-            this.reloadComponent();
+            this.fullReload();
         } else if (vmOperation == "delete") {
             const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
-            this.reloadComponent();
+            this.fullReload();
         }
     }
 
@@ -986,7 +1003,7 @@ export class VMPoolsComponent implements OnInit {
     async removeVmFromPool(vmNamespace: string, vmName: string, vmNode: string) {
         try {
             const data = await lastValueFrom(this.kubeVirtService.removeVmFromPool(vmNamespace, vmName, vmNode));
-            this.reloadComponent();
+            this.fullReload();
         } catch (e: any) {
             alert(e.error.message);
             console.log(e);
@@ -997,16 +1014,15 @@ export class VMPoolsComponent implements OnInit {
      * Pool Basic Operations (start, stop, etc...)
      */
     async poolOperations(poolOperation: string, poolNamespace: string, poolName: string): Promise<void> {
-        clearInterval(this.myInterval);
         if(poolOperation == "start"){
             var data = await lastValueFrom(this.kubeVirtService.startPool(poolNamespace, poolName));
-            this.reloadComponent();
+            this.fullReload();
         } else if (poolOperation == "stop") {
             var data = await lastValueFrom(this.kubeVirtService.stopPool(poolNamespace, poolName));
-            this.reloadComponent();
+            this.fullReload();
         } else if (poolOperation == "delete") {
             const data = await lastValueFrom(this.kubeVirtService.deletePool(poolNamespace, poolName));
-            this.reloadComponent();
+            this.fullReload();
         }
     }
 
@@ -1014,7 +1030,6 @@ export class VMPoolsComponent implements OnInit {
      * Show Replicas Window
      */
     showReplicas(poolNamespace: string, poolName: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-replicas");
         let modalTitle = document.getElementById("replicas-title");
         let modalBody = document.getElementById("replicas-value");
@@ -1064,7 +1079,6 @@ export class VMPoolsComponent implements OnInit {
      * Show Delete Window
      */
     showDelete(poolNamespace: string, poolName: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-delete");
         let modalTitle = document.getElementById("delete-title");
         let modalBody = document.getElementById("delete-value");
@@ -1102,7 +1116,7 @@ export class VMPoolsComponent implements OnInit {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.deletePool(poolNamespace, poolName));
                     this.hideComponent("modal-delete");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -1115,7 +1129,6 @@ export class VMPoolsComponent implements OnInit {
      * Show Delete VM Window
      */
     showDeleteVM(vmName: string, vmNamespace: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-deletevm");
         let modalTitle = document.getElementById("deletevm-title");
         let modalBody = document.getElementById("deletevm-value");
@@ -1153,7 +1166,7 @@ export class VMPoolsComponent implements OnInit {
                 try {
                     const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
                     this.hideComponent("modal-deletevm");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -1166,7 +1179,6 @@ export class VMPoolsComponent implements OnInit {
      * Show Resize Pool Window
      */
     showResize(poolName: string, poolNamespace: string, poolSockets: number, poolCores: number, poolThreads: number, poolMemory: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-resize");
         let modalTitle = document.getElementById("resize-title");
         let modalBody = document.getElementById("resize-value");
@@ -1228,7 +1240,6 @@ export class VMPoolsComponent implements OnInit {
      * Show Pool Type Window
      */
     async showType(poolName: string, poolNamespace: string): Promise<void> {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-type");
         let modalTitle = document.getElementById("type-title");
         let modalBody = document.getElementById("type-value");
@@ -1699,15 +1710,6 @@ export class VMPoolsComponent implements OnInit {
             modalDiv.setAttribute("aria-hidden", "true");
             modalDiv.setAttribute("style","display: none;");
         }
-        this.myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
-    }
-
-    /*
-     * Reload this component
-     */
-    async reloadComponent(): Promise<void> {
-        await this.getPools();
-        await this.cdRef.detectChanges();
     }
 
     /*

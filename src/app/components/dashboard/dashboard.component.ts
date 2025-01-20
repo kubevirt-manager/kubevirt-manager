@@ -69,6 +69,10 @@ export class DashboardComponent implements OnInit {
     ) { }
 
     async ngOnInit(): Promise<void> {
+        let navTitle = document.getElementById("nav-title");
+        if(navTitle != null) {
+            navTitle.replaceChildren("Dashboard");
+        }
         await this.getNodes();   // Needed to calculate CPU Graph
         this.getVMs();
         this.getDisks();
@@ -79,10 +83,6 @@ export class DashboardComponent implements OnInit {
         this.getInstanceTypes();
         this.getLoadBalancers();
         this.loadPrometheus();
-        let navTitle = document.getElementById("nav-title");
-        if(navTitle != null) {
-            navTitle.replaceChildren("Dashboard");
-        }
     }
 
     ngOnDestroy() {
@@ -174,6 +174,7 @@ export class DashboardComponent implements OnInit {
         }
         this.nodeInfo.percent = Math.round((this.nodeInfo.running * 100) / this.nodeInfo.total);
         this.storageInfo = Math.round((this.storageInfo * 100) / 100);
+        this.memInfo = Math.round((this.memInfo * 100) / 100);
     }
 
     /*

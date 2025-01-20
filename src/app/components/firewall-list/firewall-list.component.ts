@@ -27,12 +27,12 @@ export class FirewallListComponent implements OnInit {
     ) { }
 
     async ngOnInit(): Promise<void> {
-        await this.getNamespaces();
-        await this.loadRules();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Firewall Policies");
         }
+        await this.getNamespaces();
+        await this.loadRules();
     }
 
     /*

@@ -5,18 +5,22 @@
         <div class="card card-outline">
           <div class="card-header">
             <h3 class="card-title">
-              Clusters
+              <i class="fas fa-cubes"></i>
+              &nbsp;&nbsp;Kubernetes Clusters
             </h3>
             <div class="card-tools">
-              <button type="button" (click)="showNew()" class="btn btn-tool">
-                  <i class="fas fa-plus-square" title="Create cluster..."></i>
+              <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="Refresh..." title="Refresh..." class="btn btn-tool" (click)="fullReload()">
+                  <i class="fas fa-sync" (click)="fullReload()" title="Refresh..."></i>
+              </button>
+              <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="Create cluster..." title="Create cluster..." class="btn btn-tool" (click)="showNew()">
+                  <i class="fas fa-plus-square" (click)="showNew()" title="Create cluster..."></i>
               </button>
             </div>
           </div>
           <div class="card-body">
             <div class="card card-outline">
             <tbody>
-                <table class="table table-sm" style="vertical-align: middle !important;">
+                <table datatable id="kclusterList_datatable" [dtOptions]="kclusterList_dtOptions" [dtTrigger]="kclusterList_dtTrigger" class="table table-sm" style="vertical-align: middle !important;">
                 <thead>
                     <tr>
                         <th style="width: 5px">&nbsp;</th>
@@ -27,7 +31,7 @@
                         <th style="width: 90px">Worker Pools</th>
                         <th style="width: 90px">Total Workers</th>
                         <th style="width: 120px">Control Plane Ready</th>
-                        <th style="width: 140px">Actions</th>
+                        <th style="width: 140px">&nbsp;</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -41,26 +45,35 @@
                     <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterdetails/{{thisCluster.namespace}}/{{thisCluster.name}}" title="Cluster details...">{{thisCluster.totalWorkers}}</a></td>
                     <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/kclusterdetails/{{thisCluster.namespace}}/{{thisCluster.name}}" title="Cluster details...">{{thisCluster.controlPlaneReady}}</a></td>
                     <td style="line-height: 2.2 !important;">
-                        <span>
-                            <a class="btn" routerLink="/kclusterdetails/{{thisCluster.namespace}}/{{thisCluster.name}}" title="Cluster details...">
-                            <i class="fas fa-info"></i>
-                            </a>
-                        </span>
-                        <span>
-                            <a class="btn" (click)="getKubeconfig(thisCluster.namespace, thisCluster.name)" title="Download Kubeconfig...">
-                            <i class="fas fa-download"></i>
-                            </a>
-                        </span>
-                        <span>
-                            <a class="btn" (click)="getSSHKey(thisCluster.namespace, thisCluster.name)" title="Download SSH Key...">
-                            <i class="fas fa-terminal"></i>
-                            </a>
-                        </span>
-                        <span>
-                            <a class="btn" (click)="showDelete(thisCluster.namespace, thisCluster.name)" title="Delete cluster...">
-                            <i class="fas fa-trash"></i>
-                            </a>
-                        </span>
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" href="#" aria-expanded="false">Actions</button>
+                            <div class="dropdown-menu">
+                                <!--- INFO BUTTON -->
+                                <span>
+                                    <a class="btn" routerLink="/kclusterdetails/{{thisCluster.namespace}}/{{thisCluster.name}}" title="Cluster details...">
+                                    <i class="fas fa-info"></i>
+                                    </a>
+                                </span>
+                                <!--- KUBECONFIG BUTTON -->
+                                <span>
+                                    <a class="btn" (click)="getKubeconfig(thisCluster.namespace, thisCluster.name)" title="Download Kubeconfig...">
+                                    <i class="fas fa-download"></i>
+                                    </a>
+                                </span>
+                                <!--- SSH BUTTON -->
+                                <span>
+                                    <a class="btn" (click)="getSSHKey(thisCluster.namespace, thisCluster.name)" title="Download SSH Key...">
+                                    <i class="fas fa-terminal"></i>
+                                    </a>
+                                </span>
+                                <!--- DELETE BUTTON -->
+                                <span>
+                                    <a class="btn" (click)="showDelete(thisCluster.namespace, thisCluster.name)" title="Delete cluster...">
+                                    <i class="fas fa-trash"></i>
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
                     </td>
                 </tr>
                 </tbody>

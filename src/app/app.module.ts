@@ -25,6 +25,7 @@ import { KClusterPoolDetailsComponent } from './components/kcluster-pool-details
 import { ImagesComponent } from './components/images/images.component';
 import { SSHKeysComponent } from './components/sshkeys/sshkeys.component';
 import { FirewallListComponent } from './components/firewall-list/firewall-list.component';
+import { DataTablesModule } from 'angular-datatables'
 
 @NgModule({ declarations: [
         AppComponent,
@@ -57,7 +58,8 @@ import { FirewallListComponent } from './components/firewall-list/firewall-list.
         BrowserModule,
         AppRoutingModule,
         FormsModule,
-        ReactiveFormsModule
+        ReactiveFormsModule,
+        DataTablesModule,
     ],
     providers: [
         provideHttpClient(withInterceptorsFromDi())

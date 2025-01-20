@@ -9,13 +9,16 @@
               &nbsp;&nbsp;Load Balancers
             </h3>
             <div class="card-tools">
-                <button type="button" class="btn btn-tool" (click)="showNew()" title="New Load Balancer...">
-                <i class="fas fa-plus-square" (click)="showNew()"></i>
+                <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="Refresh..." title="Refresh..." class="btn btn-tool" (click)="fullReload()">
+                    <i class="fas fa-sync" (click)="fullReload()" title="Refresh..."></i>
+                </button>
+                <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="New Load Balancer..." title="New Load Balancer..." class="btn btn-tool" (click)="showNew()">
+                    <i class="fas fa-plus-square" (click)="showNew()" title="New Load Balancer..."></i>
                 </button>
             </div>
           </div>
           <div class="card-body">
-            <table class="table table-sm" style="vertical-align: middle !important;">
+            <table datatable id="lbList_datatable" [dtOptions]="lbList_dtOptions" [dtTrigger]="lbList_dtTrigger" class="table table-sm" style="vertical-align: middle !important;">
                 <thead>
                   <tr>
                     <th style="width: 10px">&nbsp;</th>
@@ -25,7 +28,7 @@
                     <th style="width: 20px">ClusterIP</th>
                     <th style="width: 20px">Load Balancer</th>
                     <th style="width: 80px">Target Resource</th>
-                    <th style="width: 90px">Actions</th>
+                    <th style="width: 90px">&nbsp;</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -38,15 +41,23 @@
                     <td style="line-height: 2.2 !important;">{{thisLoadBalancer.loadBalancer}}</td>
                     <td style="line-height: 2.2 !important;">{{thisLoadBalancer.targetResource}}</td>
                     <td style="line-height: 0 !important;">
-                        <a class="btn" (click)="showInfo(thisLoadBalancer.namespace, thisLoadBalancer.name)" title="Info...">
-                          <i class="fas fa-info" (click)="showInfo(thisLoadBalancer.namespace, thisLoadBalancer.name)"></i>
-                        </a>
-                        <a class="btn" (click)="showType(thisLoadBalancer.namespace, thisLoadBalancer.name)" title="Config...">
-                            <i class="fas fa-cog" (click)="showType(thisLoadBalancer.namespace, thisLoadBalancer.name)"></i>
-                          </a>
-                        <a class="btn" (click)="showDelete(thisLoadBalancer.namespace, thisLoadBalancer.name)" title="Delete...">
-                          <i class="fas fa-trash" (click)="showDelete(thisLoadBalancer.namespace, thisLoadBalancer.name)"></i>
-                        </a>
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" href="#" aria-expanded="false">Actions</button>
+                            <div class="dropdown-menu">
+                                <!--- INFO BUTTON -->
+                                <a class="btn" (click)="showInfo(thisLoadBalancer.namespace, thisLoadBalancer.name)" title="Info...">
+                                <i class="fas fa-info" (click)="showInfo(thisLoadBalancer.namespace, thisLoadBalancer.name)"></i>
+                                </a>
+                                <!--- TYPE BUTTON -->
+                                <a class="btn" (click)="showType(thisLoadBalancer.namespace, thisLoadBalancer.name)" title="Config...">
+                                    <i class="fas fa-cog" (click)="showType(thisLoadBalancer.namespace, thisLoadBalancer.name)"></i>
+                                </a>
+                                <!--- DELETE BUTTON -->
+                                <a class="btn" (click)="showDelete(thisLoadBalancer.namespace, thisLoadBalancer.name)" title="Delete...">
+                                    <i class="fas fa-trash" (click)="showDelete(thisLoadBalancer.namespace, thisLoadBalancer.name)"></i>
+                                </a>
+                            </div>
+                        </div>
                     </td>
                 </tbody>
             </table>

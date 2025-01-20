@@ -2,164 +2,162 @@
   <div class="container-fluid">
     <div class="content-wrapper">
       &nbsp;<br>
-      <div class="card card-outline" *ngFor="let thisNode of nodeList">
+      <div class="card card-outline">
         <div class="card-header">
-          <h3 class="card-title">
-            <i class="fas fa-hdd"></i>
-            &nbsp;&nbsp;{{thisNode.name}} 
-          </h3>
-          <div class="card-tools">
-            <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="Tooltip on bottom" class="btn btn-tool" (click)="showNewVm(thisNode.name)">
-                <i class="fas fa-plus-square"></i>
-            </button>
-          </div>
+            <h3 class="card-title">
+              <i class="fas fa-desktop"></i>
+              &nbsp;&nbsp;Virtual Machines 
+            </h3>
+            <div class="card-tools">
+              <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="Refresh..." title="Refresh..." class="btn btn-tool" (click)="fullReload()">
+                  <i class="fas fa-sync" (click)="fullReload()" title="Refresh..."></i>
+              </button>
+              <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="New VM..." title="New VM..." class="btn btn-tool" (click)="showNewVm()">
+                  <i class="fas fa-plus-square" (click)="showNewVm()" title="New VM..."></i>
+              </button>
+            </div>
         </div>
         <div class="card-body">
-         <table class="table table-sm" style="vertical-align: middle !important;">
-            <thead>
-              <tr>
-                <th style="width: 10px">&nbsp;</th>
-                <th style="width: 130px">Namespace</th>
-                <th style="width: 160px">Name</th>
-                <th style="width: 70px">VM Type</th>
-                <th style="width: 18px">vCPU</th>
-                <th style="width: 18px">Memory</th>
-                <th style="width: 80px">Status</th>
-                <th style="width: 80px">IP Address</th>
-                <th style="width: 250px">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let thisVM of thisNode.vmlist">
-                  <td style="line-height: 2.2 !important; align-content: center;">
-                    <span [ngSwitch]="thisVM.status">
-                      <span *ngSwitchCase="'running'">
-                        <span class="badge bg-success"><i class="fas fa-check-circle"></i></span>
-                      </span>
-                      <span *ngSwitchDefault>
-                        <span class="badge bg-danger"><i class="fas fa-times-circle"></i></span>
-                      </span>
-                    </span>
-                  </td>
-                  <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.namespace}}</a></td>
-                  <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.name}}</a></td>
-                  <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.instType}}</a></td>
-                  <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{(thisVM.cores || 0) * (thisVM.sockets || 0) * (thisVM.threads || 0)}}</a></td>
-                  <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.memory}}</a></td>
-                  <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.status}}</a></td>
-                  <td style="line-height: 2.2 !important;">
-                    <span [ngSwitch]="thisVM.status">
-                      <span *ngSwitchCase="'running'">
-                        {{thisVM.vmi.ifAddr}}
-                      </span>
-                      <span *ngSwitchDefault>
-                        &nbsp;
-                      </span>
-                    </span>
-                  </td>
-                  <td style="line-height: 0 !important;">
-                    <!--- INFO BUTTON -->
-                    <span>
-                      <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="Show info...">
-                        <i class="fas fa-info"></i>
-                      </a>
-                    </span>
-                    <!--- PAUSE BUTTON -->
-                    <span [ngSwitch]="thisVM.status">
-                        <a class="btn" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' title="Pause..." *ngSwitchCase="'running'">
-                          <i class="fas fa-pause"></i>
-                        </a>
-                        <a class="btn disabled" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' title="Pause..." *ngSwitchDefault>
-                          <i class="fas fa-pause disabled"></i>
-                        </a>
-                      </span>
-                    <!--- PLAY BUTTON -->
-                    <span [ngSwitch]="thisVM.status">
-                      <a class="btn" (click)='vmOperations("unpause", thisVM.namespace, thisVM.name)' title="Resume..." *ngSwitchCase="'paused'">
-                        <i class="fas fa-play"></i>
-                      </a>
-                      <a class="btn disabled" (click)='vmOperations("unpause", thisVM.namespace, thisVM.name)' title="Resume..." *ngSwitchDefault>
-                        <i class="fas fa-play disabled"></i>
-                      </a>
-                    </span>
-                    <!--- VNC BUTTON -->
-                    <span [ngSwitch]="thisVM.status">
-                      <a class="btn" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchCase="'running'">
-                        <i class="fas fa-desktop"></i>
-                      </a>
-                      <a class="btn disabled" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchDefault>
-                        <i class="fas fa-desktop disabled"></i>
-                      </a>
-                    </span>
-                    <!--- CONFIG BUTTON -->
-                    <span [ngSwitch]="thisVM.running">
-                      <a class="btn disabled" title="Config..." *ngSwitchCase="true">
-                        <i class="fas fa-cog disabled"></i>
-                      </a>
-                      <!-- Check if this VM is custom or not -->
-                      <span *ngSwitchDefault>
-                        <span [ngSwitch]="thisVM.instType">
-                          <a class="btn" (click)="showResize(thisVM.name, thisVM.namespace, thisVM.sockets, thisVM.cores, thisVM.threads, thisVM.memory)" title="Config..." *ngSwitchCase="'custom'">
-                            <i class="fas fa-cog"></i>
-                          </a>
-                          <a class="btn" (click)="showType(thisVM.name, thisVM.namespace)" title="Config..." *ngSwitchDefault>
-                            <i class="fas fa-cog"></i>
-                          </a>
+            <table datatable id="vmList_datatable" [dtOptions]="vmList_dtOptions" [dtTrigger]="vmList_dtTrigger" class="table table-sm" style="vertical-align: middle !important;">
+               <thead>
+                 <tr>
+                    <th style="width: 10px">&nbsp;</th>
+                    <th style="width: 130px">Namespace</th>
+                    <th style="width: 160px">Name</th>
+                    <th style="width: 10px">Node</th>
+                    <th style="width: 70px">VM Type</th>
+                    <th style="width: 18px">vCPU</th>
+                    <th style="width: 18px">Memory</th>
+                    <!-- <th style="width: 80px">Status</th> -->
+                    <th style="width: 250px">&nbsp;</th>
+                 </tr>
+               </thead>
+               <tbody>
+                <tr *ngFor="let thisVM of vmList">
+                    <td style="line-height: 2.2 !important; align-content: center;">
+                        <p style="display: none;">{{thisVM.status}}</p>
+                        <span [ngSwitch]="thisVM.status">
+                          <span *ngSwitchCase="'running'">
+                            <span class="badge bg-success"><i class="fas fa-check-circle" title="{{thisVM.status}}"></i></span>
                           </span>
-                      </span>
-                    </span>
-                    <!--- POWER ON BUTTON -->
-                    <span [ngSwitch]="thisVM.running">
-                      <a class="btn disabled" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchCase="true">
-                        <i class="fas fa-plug disabled"></i>
-                      </a>
-                      <a class="btn" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchDefault>
-                        <i class="fas fa-plug"></i>
-                      </a>
-                    </span>
-                    <!--- POWER OFF BUTTON -->
-                    <span [ngSwitch]="thisVM.running">
-                      <a class="btn" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchCase="true">
-                        <i class="fas fa-power-off"></i>
-                      </a>
-                      <a class="btn disabled" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchDefault>
-                        <i class="fas fa-power-off disabled"></i>
-                      </a>
-                    </span>
-                    <!--- RESTART BUTTON -->
-                    <span [ngSwitch]="thisVM.running">
-                      <a class="btn" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchCase="true">
-                        <i class="fas fa-redo"></i>
-                      </a>
-                      <a class="btn disabled" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchDefault>
-                        <i class="fas fa-redo disabled"></i>
-                      </a>
-                    </span>
-                    <!--- LIVEMIGRATE BUTTON -->
-                    <span [ngSwitch]="thisVM.running">
-                      <a class="btn" (click)='vmOperations("migrate", thisVM.namespace, thisVM.name)' title="Live Migrate..." *ngSwitchCase="true">
-                        <i class="fas fa-angle-double-right"></i>
-                      </a>
-                      <a class="btn disabled" (click)='vmOperations("migrate", thisVM.namespace, thisVM.name)' title="Live Migrate..." *ngSwitchDefault>
-                        <i class="fas fa-angle-double-right disabled"></i>
-                      </a>
-                    </span>
-                     <!--- DELETE BUTTON -->
-                     <span [ngSwitch]="thisVM.running">
-                      <a class="btn disabled" (click)="showDelete(thisVM.name, thisVM.namespace)" title="Delete..." *ngSwitchCase="true">
-                        <i class="fas fa-trash disabled"></i>
-                      </a>
-                      <a class="btn" (click)="showDelete(thisVM.name, thisVM.namespace)" title="Delete..." *ngSwitchDefault>
-                        <i class="fas fa-trash"></i>
-                      </a>
-                    </span>
-                  </td>
+                          <span *ngSwitchDefault>
+                            <span class="badge bg-danger"><i class="fas fa-times-circle" title="{{thisVM.status}}"></i></span>
+                          </span>
+                        </span>
+                      </td>
+                      <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.namespace}}</a></td>
+                      <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.name}}</a></td>
+                      <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.nodeSel}}</a></td>
+                      <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.instType}}</a></td>
+                      <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{(thisVM.cores || 0) * (thisVM.sockets || 0) * (thisVM.threads || 0)}}</a></td>
+                      <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.memory}}</a></td>
+                      <!-- <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="VM details...">{{thisVM.status}}</a></td> -->
+                      <td style="line-height: 0 !important;">
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" href="#" aria-expanded="false">Actions</button>
+                            <div class="dropdown-menu">
+                                <!--- INFO BUTTON -->
+                                <span>
+                                    <a class="btn" routerLink="/vmdetail/{{thisVM.namespace}}/{{thisVM.name}}" title="Show info...">
+                                    <i class="fas fa-info"></i>
+                                    </a>
+                                </span>
+                                <!--- PAUSE BUTTON -->
+                                <span [ngSwitch]="thisVM.status">
+                                    <a class="btn" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' title="Pause..." *ngSwitchCase="'running'">
+                                        <i class="fas fa-pause"></i>
+                                    </a>
+                                    <a class="btn disabled" (click)='vmOperations("pause", thisVM.namespace, thisVM.name)' title="Pause..." *ngSwitchDefault>
+                                        <i class="fas fa-pause disabled"></i>
+                                    </a>
+                                    </span>
+                                <!--- PLAY BUTTON -->
+                                <span [ngSwitch]="thisVM.status">
+                                    <a class="btn" (click)='vmOperations("unpause", thisVM.namespace, thisVM.name)' title="Resume..." *ngSwitchCase="'paused'">
+                                    <i class="fas fa-play"></i>
+                                    </a>
+                                    <a class="btn disabled" (click)='vmOperations("unpause", thisVM.namespace, thisVM.name)' title="Resume..." *ngSwitchDefault>
+                                    <i class="fas fa-play disabled"></i>
+                                    </a>
+                                </span>
+                                <!--- VNC BUTTON -->
+                                <span [ngSwitch]="thisVM.status">
+                                    <a class="btn" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchCase="'running'">
+                                    <i class="fas fa-desktop"></i>
+                                    </a>
+                                    <a class="btn disabled" (click)='openNoVNC(thisVM.namespace, thisVM.name)' title="Open console..." *ngSwitchDefault>
+                                    <i class="fas fa-desktop disabled"></i>
+                                    </a>
+                                </span>
+                                <!--- CONFIG BUTTON -->
+                                <span [ngSwitch]="thisVM.running">
+                                    <a class="btn disabled" title="Config..." *ngSwitchCase="true">
+                                    <i class="fas fa-cog disabled"></i>
+                                    </a>
+                                    <!-- Check if this VM is custom or not -->
+                                    <span *ngSwitchDefault>
+                                    <span [ngSwitch]="thisVM.instType">
+                                        <a class="btn" (click)="showResize(thisVM.name, thisVM.namespace, thisVM.sockets, thisVM.cores, thisVM.threads, thisVM.memory)" title="Config..." *ngSwitchCase="'custom'">
+                                        <i class="fas fa-cog"></i>
+                                        </a>
+                                        <a class="btn" (click)="showType(thisVM.name, thisVM.namespace)" title="Config..." *ngSwitchDefault>
+                                        <i class="fas fa-cog"></i>
+                                        </a>
+                                        </span>
+                                    </span>
+                                </span>
+                                <!--- POWER ON BUTTON -->
+                                <span [ngSwitch]="thisVM.running">
+                                    <a class="btn disabled" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchCase="true">
+                                    <i class="fas fa-plug disabled"></i>
+                                    </a>
+                                    <a class="btn" (click)='vmOperations("start", thisVM.namespace, thisVM.name)' title="Power on..." *ngSwitchDefault>
+                                    <i class="fas fa-plug"></i>
+                                    </a>
+                                </span>
+                                <!--- POWER OFF BUTTON -->
+                                <span [ngSwitch]="thisVM.running">
+                                    <a class="btn" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchCase="true">
+                                    <i class="fas fa-power-off"></i>
+                                    </a>
+                                    <a class="btn disabled" (click)='vmOperations("stop", thisVM.namespace, thisVM.name)' title="Power off..." *ngSwitchDefault>
+                                    <i class="fas fa-power-off disabled"></i>
+                                    </a>
+                                </span>
+                                <!--- RESTART BUTTON -->
+                                <span [ngSwitch]="thisVM.running">
+                                    <a class="btn" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchCase="true">
+                                    <i class="fas fa-redo"></i>
+                                    </a>
+                                    <a class="btn disabled" (click)='vmOperations("reboot", thisVM.namespace, thisVM.name)' title="Restart..." *ngSwitchDefault>
+                                    <i class="fas fa-redo disabled"></i>
+                                    </a>
+                                </span>
+                                <!--- LIVEMIGRATE BUTTON -->
+                                <span [ngSwitch]="thisVM.running">
+                                    <a class="btn" (click)='vmOperations("migrate", thisVM.namespace, thisVM.name)' title="Live Migrate..." *ngSwitchCase="true">
+                                    <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                    <a class="btn disabled" (click)='vmOperations("migrate", thisVM.namespace, thisVM.name)' title="Live Migrate..." *ngSwitchDefault>
+                                    <i class="fas fa-angle-double-right disabled"></i>
+                                    </a>
+                                </span>
+                                <!--- DELETE BUTTON -->
+                                <span [ngSwitch]="thisVM.running">
+                                    <a class="btn disabled" (click)="showDelete(thisVM.name, thisVM.namespace)" title="Delete..." *ngSwitchCase="true">
+                                    <i class="fas fa-trash disabled"></i>
+                                    </a>
+                                    <a class="btn" (click)="showDelete(thisVM.name, thisVM.namespace)" title="Delete..." *ngSwitchDefault>
+                                    <i class="fas fa-trash"></i>
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
+                      </td>
                 </tr>
-            </tbody>
-          </table>
+               </tbody>
+            </table>
         </div>
-        <!-- /.card-body -->
-      </div>
     </div>
 
     <!--               -->
@@ -217,7 +215,10 @@
                     <select #newvmnamespace class="custom-select rounded-0" name="newvm-namespace" id="newvm-namespace" (change)="onChangeNamespace(newvmnamespace.value)">
                       <option>Value 1</option>
                     </select>
-                    <input #newvmnode type="hidden" class="form-control" id="newvm-node" name="newvm-node">
+                    <label for="newvm-node">Node:</label>
+                    <select #newvmnode class="custom-select rounded-0" name="newvm-node" id="newvm-node">
+                      <option value="auto-select">auto-select</option>
+                    </select>
                   </div>
                   <!-- METADATA TAB -->
                   <div class="tab-pane fade" id="newvm-meta" role="tabpanel" aria-labelledby="newvm-meta-tab">

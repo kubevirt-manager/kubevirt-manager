@@ -17,11 +17,11 @@ export class NodelistComponent implements OnInit {
     ) { }
 
     async ngOnInit(): Promise<void> {
-        await this.getNodes();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Nodes");
         }
+        await this.getNodes();
     }
 
     /*

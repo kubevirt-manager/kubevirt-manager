@@ -52,14 +52,14 @@ export class KClusterDetailsComponent implements OnInit {
         this.clusterName = this.route.snapshot.params['name'];
         this.clusterNamespace = this.route.snapshot.params['namespace'];
         let navTitle = document.getElementById("nav-title");
+        if(navTitle != null) {
+            navTitle.replaceChildren("Kubernetes Cluster Details");
+        }
         await this.loadCluster();
         await this.loadControlPlaneVMs();
         await this.loadClusterFeatures();
         await this.loadLoadBalancers();
         await this.loadClusterImages();
-        if(navTitle != null) {
-            navTitle.replaceChildren("Kubernetes Cluster Details");
-        }
     }
 
     /*

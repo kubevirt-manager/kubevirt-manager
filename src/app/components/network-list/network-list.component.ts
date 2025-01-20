@@ -17,11 +17,11 @@ export class NetworkListComponent implements OnInit {
     ) { }
 
     async ngOnInit(): Promise<void> {
-        await this.getNetworks();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Network");
         }
+        await this.getNetworks();
     }
 
     /*

@@ -1,12 +1,13 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { lastValueFrom } from 'rxjs';
+import { Subject, lastValueFrom } from 'rxjs';
 import { K8sNode } from 'src/app/models/k8s-node.model';
 import { VMDisk } from 'src/app/models/vmdisk.model';
 import { DataVolumesService } from 'src/app/services/data-volumes.service';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { K8sService } from 'src/app/services/k8s.service';
 import { DataVolume } from 'src/app/interfaces/data-volume';
+import { Config } from 'datatables.net';
 
 @Component({
   selector: 'app-disk-list',
@@ -19,10 +20,28 @@ export class DiskListComponent implements OnInit {
     diskList: VMDisk[] = [];
     storageClassesList: string[] = [];
     namespacesList: string[] = [];
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 120000);
+
+    /*
+     * Dynamic Tables
+     */
+    diskList_dtOptions: Config = {
+        //pagingType: 'full_numbers',
+        //lengthMenu: [5,10,15,25,50,100,150,200],
+        //pageLength: 50,
+        paging: false,
+        info: false,
+        ordering: true,
+        orderMulti: true,
+        search: true,
+        destroy: false,
+        stateSave: false,
+        serverSide: false,
+        columnDefs: [{ orderable: false, targets: 0 }, { orderable: false, targets: 8 }],
+        order: [[1, 'asc']],
+    };
+    diskList_dtTrigger: Subject<any> = new Subject<any>();
 
     constructor(
-        private cdRef: ChangeDetectorRef,
         private router: Router,
         private k8sService: K8sService,
         private k8sApisService: K8sApisService,
@@ -30,17 +49,18 @@ export class DiskListComponent implements OnInit {
     ) { }
 
     async ngOnInit(): Promise<void> {
-        await this.getDVs();
-        await this.getStorageClasses();
-        await this.getNamespaces();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Virtual Machine Data Volumes");
         }
+        await this.getDVs();
+        await this.getStorageClasses();
+        this.diskList_dtTrigger.next(null);
+        await this.getNamespaces();
     }
 
     ngOnDestroy() {
-        clearInterval(this.myInterval);
+        this.diskList_dtTrigger.unsubscribe();
     }
     
     /*
@@ -118,7 +138,6 @@ export class DiskListComponent implements OnInit {
      * Show Resize Window
      */
     showResize(diskNamespace: string, diskName: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-resize");
         let modalTitle = document.getElementById("resize-title");
         let modalBody = document.getElementById("resize-value");
@@ -169,7 +188,6 @@ export class DiskListComponent implements OnInit {
      * Show Info Window
      */
     async showInfo(diskNamespace: string, diskName: string): Promise<void> {
-        clearInterval(this.myInterval);
         let myInnerHTML = "";
         let volumedata = await lastValueFrom(this.dataVolumesService.getDataVolumeInfo(diskNamespace, diskName));
         myInnerHTML += "<li class=\"nav-item\">Data Volume: <span class=\"float-right badge bg-primary\">" + volumedata.metadata["name"] + "</span></li>";
@@ -220,7 +238,6 @@ export class DiskListComponent implements OnInit {
      * Show New Window
      */
     async showNew(): Promise<void> {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-new");
         let modalTitle = document.getElementById("new-title");
         let modalBody = document.getElementById("new-value");
@@ -307,7 +324,6 @@ export class DiskListComponent implements OnInit {
     * Show Delete Window
     */
     showDelete(diskNamespace: string, diskName: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-delete");
         let modalTitle = document.getElementById("delete-title");
         let modalBody = document.getElementById("delete-value");
@@ -373,16 +389,6 @@ export class DiskListComponent implements OnInit {
             modalDiv.setAttribute("aria-hidden", "true");
             modalDiv.setAttribute("style","display: none;");
         }
-        this.myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
-    }
-
-    /*
-     * Reload this component
-     */
-    async reloadComponent(): Promise<void> {
-        await this.getDVs();
-        await this.getStorageClasses();
-        await this.cdRef.detectChanges();
     }
 
     /*

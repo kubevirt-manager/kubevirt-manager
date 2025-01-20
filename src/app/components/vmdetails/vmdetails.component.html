@@ -7,6 +7,62 @@
             <h3 class="card-title">
                 <b> &nbsp; {{activeVm.name}} &nbsp; </b>
             </h3>
+            <div class="card-tools">
+                <!--- PAUSE BUTTON -->
+                <span [ngSwitch]="activeVm.printableStatus">
+                    <a class="btn" (click)='vmOperations("pause", activeVm.namespace, activeVm.name)' title="Pause..." *ngSwitchCase="'running'">
+                        <i class="fas fa-pause"></i>
+                    </a>
+                    <a class="btn disabled" (click)='vmOperations("pause", activeVm.namespace, activeVm.name)' title="Pause..." *ngSwitchDefault>
+                        <i class="fas fa-pause disabled"></i>
+                    </a>
+                </span>
+                <!--- PLAY BUTTON -->
+                <span [ngSwitch]="activeVm.printableStatus">
+                    <a class="btn" (click)='vmOperations("unpause", activeVm.namespace, activeVm.name)' title="Resume..." *ngSwitchCase="'paused'">
+                        <i class="fas fa-play"></i>
+                    </a>
+                    <a class="btn disabled" (click)='vmOperations("unpause", activeVm.namespace, activeVm.name)' title="Resume..." *ngSwitchDefault>
+                        <i class="fas fa-play disabled"></i>
+                    </a>
+                </span>
+                <!--- POWER ON BUTTON -->
+                <span [ngSwitch]="activeVm.running">
+                    <a class="btn disabled" (click)='vmOperations("start", activeVm.namespace, activeVm.name)' title="Power on..." *ngSwitchCase="true">
+                        <i class="fas fa-plug disabled"></i>
+                    </a>
+                    <a class="btn" (click)='vmOperations("start", activeVm.namespace, activeVm.name)' title="Power on..." *ngSwitchDefault>
+                        <i class="fas fa-plug"></i>
+                    </a>
+                </span>
+                <!--- POWER OFF BUTTON -->
+                <span [ngSwitch]="activeVm.running">
+                    <a class="btn" (click)='vmOperations("stop", activeVm.namespace, activeVm.name)' title="Power off..." *ngSwitchCase="true">
+                        <i class="fas fa-power-off"></i>
+                    </a>
+                    <a class="btn disabled" (click)='vmOperations("stop", activeVm.namespace, activeVm.name)' title="Power off..." *ngSwitchDefault>
+                        <i class="fas fa-power-off disabled"></i>
+                    </a>
+                </span>
+                <!--- RESTART BUTTON -->
+                <span [ngSwitch]="activeVm.running">
+                    <a class="btn" (click)='vmOperations("reboot", activeVm.namespace, activeVm.name)' title="Restart..." *ngSwitchCase="true">
+                        <i class="fas fa-redo"></i>
+                    </a>
+                    <a class="btn disabled" (click)='vmOperations("reboot", activeVm.namespace, activeVm.name)' title="Restart..." *ngSwitchDefault>
+                        <i class="fas fa-redo disabled"></i>
+                    </a>
+                </span>
+                <!--- LIVEMIGRATE BUTTON -->
+                <span [ngSwitch]="activeVm.running">
+                    <a class="btn" (click)='vmOperations("migrate", activeVm.namespace, activeVm.name)' title="Live Migrate..." *ngSwitchCase="true">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                    <a class="btn disabled" (click)='vmOperations("migrate", activeVm.namespace, activeVm.name)' title="Live Migrate..." *ngSwitchDefault>
+                        <i class="fas fa-angle-double-right disabled"></i>
+                    </a>
+                </span>
+            </div>
           </div>
           <div class="card-body">
             <div class="card">

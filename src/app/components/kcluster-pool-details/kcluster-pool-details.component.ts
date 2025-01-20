@@ -74,12 +74,12 @@ export class KClusterPoolDetailsComponent implements OnInit {
     async ngOnInit(): Promise<void> {
         this.poolName = this.route.snapshot.params['name'];
         this.poolNamespace = this.route.snapshot.params['namespace'];
-        await this.loadPoolDetails();
-        await this.loadWorkerPoolsVMs();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Kubernetes Cluster - Pool Details");
         }
+        await this.loadPoolDetails();
+        await this.loadWorkerPoolsVMs();
     }
 
     /*

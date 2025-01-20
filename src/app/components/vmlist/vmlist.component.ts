@@ -1,10 +1,9 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { K8sService } from 'src/app/services/k8s.service';
 import { KubeVirtService } from 'src/app/services/kube-virt.service';
 import { K8sNode } from 'src/app/models/k8s-node.model';
 import { KubeVirtVM } from 'src/app/models/kube-virt-vm.model';
-import { KubeVirtVMI } from 'src/app/models/kube-virt-vmi.model';
-import { lastValueFrom } from 'rxjs';
+import { Subject, lastValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
 import { NetworkAttach } from 'src/app/models/network-attach.model';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
@@ -15,12 +14,13 @@ import { KubevirtMgrService } from 'src/app/services/kubevirt-mgr.service';
 import { FirewallLabels } from 'src/app/models/firewall-labels.model';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { KubeVirtClusterInstanceType } from 'src/app/models/kube-virt-clusterinstancetype';
-
+import { Config } from 'datatables.net';
+import { KubeVirtVMI } from 'src/app/models/kube-virt-vmi.model';
 
 @Component({
-  selector: 'app-vmlist',
-  templateUrl: './vmlist.component.html',
-  styleUrls: ['./vmlist.component.css']
+    selector: 'app-vmlist',
+    templateUrl: './vmlist.component.html',
+    styleUrls: ['./vmlist.component.css']
 })
 export class VmlistComponent implements OnInit {
 
@@ -42,10 +42,27 @@ export class VmlistComponent implements OnInit {
     diskList: FormGroup;
     nicList: FormGroup;
 
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 120000);
+    /*
+     * Dynamic Tables
+     */
+    vmList_dtOptions: Config = {
+        //pagingType: 'full_numbers',
+        //lengthMenu: [5,10,15,25,50,100,150,200],
+        //pageLength: 50,
+        paging: false,
+        info: false,
+        ordering: true,
+        orderMulti: true,
+        search: true,
+        destroy: false,
+        stateSave: false,
+        serverSide: false,
+        columnDefs: [{ orderable: false, targets: 7 }],
+        order: [[1, 'asc']],
+    };
+    vmList_dtTrigger: Subject<any> = new Subject<any>();
 
     constructor(
-        private cdRef: ChangeDetectorRef,
         private router: Router,
         private k8sService: K8sService,
         private dataVolumesService: DataVolumesService,
@@ -69,15 +86,16 @@ export class VmlistComponent implements OnInit {
     }
 
     async ngOnInit(): Promise<void> {
-        await this.getClusterInstanceTypes();
-        await this.getVMIs();
-        await this.getVMs();
-        await this.getNodes();
-        await this.checkNetwork();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Virtual Machines");
         }
+        await this.getNodes();
+        await this.getClusterInstanceTypes();
+        await this.getVMIs();
+        await this.getVMs();
+        this.vmList_dtTrigger.next(null);
+        await this.checkNetwork();
         this.annotationList = this.fb.group({
             annotations: this.fb.array([]),
         });
@@ -93,7 +111,7 @@ export class VmlistComponent implements OnInit {
     }
 
     ngOnDestroy() {
-        clearInterval(this.myInterval);
+        this.vmList_dtTrigger.unsubscribe();
     }
 
     /* Getting the Annotations FormArray */
@@ -304,10 +322,6 @@ export class VmlistComponent implements OnInit {
             let currentNode = new K8sNode;
             /* auto-selects node when power on vm */
             currentNode.name = "auto-select";
-            for(let j = 0; j < this.vmList.length; j++) {
-                if (this.vmList[j].nodeSel == currentNode.name)
-                    currentNode.vmlist.push(this.vmList[j]);
-            }
             this.nodeList.push(currentNode);
             currentNode = new K8sNode();
             const data = await lastValueFrom(this.k8sService.getNodes());
@@ -315,10 +329,6 @@ export class VmlistComponent implements OnInit {
             for (let i = 0; i < nodes.length; i++) {
                 currentNode = new K8sNode();
                 currentNode.name = nodes[i].metadata["name"];
-                for(let j = 0; j < this.vmList.length; j++) {
-                    if (this.vmList[j].nodeSel == currentNode.name)
-                        currentNode.vmlist.push(this.vmList[j]);
-                }
                 this.nodeList.push(currentNode);
             }
         } catch (e: any) {
@@ -406,6 +416,7 @@ export class VmlistComponent implements OnInit {
                     }
                 }
             }
+
             this.vmList.push(currentVm);
         }
     }
@@ -478,8 +489,7 @@ export class VmlistComponent implements OnInit {
     /*
      * Show New VM Window
      */
-    async showNewVm(nodeName: string): Promise<void> {
-        clearInterval(this.myInterval);
+    async showNewVm(): Promise<void> {
 
         let i = 0;
         let modalDiv = document.getElementById("modal-newvm");
@@ -489,13 +499,14 @@ export class VmlistComponent implements OnInit {
         let selectorNamespacesField = document.getElementById("newvm-namespace");
         let selectorTypeField = document.getElementById("newvm-type");
         let selectorPCField = document.getElementById("newvm-pc");
-        let inputNewvmNode = document.getElementById("newvm-node");
+        let selectorNewNodeField = document.getElementById("newvm-node");
 
         let data: any;
 
         /* Set Node for VM */
-        if(inputNewvmNode != null) {
-            inputNewvmNode.setAttribute("value", nodeName);
+        let nodeSelectorOptions = "";
+        for (i = 0; i < this.nodeList.length; i++) {
+            nodeSelectorOptions += "<option value=" + this.nodeList[i].name +">" + this.nodeList[i].name + "</option>\n";
         }
 
         /* Load Namespace List and Set Selector */
@@ -515,7 +526,7 @@ export class VmlistComponent implements OnInit {
          * to avoid delays
          */
         if(modalTitle != null) {
-            modalTitle.replaceChildren("New Virtual Machine: " + nodeName);
+            modalTitle.replaceChildren("New Virtual Machine");
         }
         if(modalDiv != null) {
             modalDiv.setAttribute("class", "modal fade show");
@@ -550,6 +561,10 @@ export class VmlistComponent implements OnInit {
             }
         } catch (e: any) {
             console.log(e.error.message);
+        }
+
+        if (selectorNewNodeField != null) {
+            selectorNewNodeField.innerHTML = nodeSelectorOptions;
         }
 
         if (selectorNamespacesField != null) {
@@ -1025,7 +1040,6 @@ export class VmlistComponent implements OnInit {
      * Show Resize Window
      */
     showResize(vmName: string, vmNamespace: string, vmSockets: number, vmCores: number, vmThreads: number, vmMemory: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-resize");
         let modalTitle = document.getElementById("resize-title");
         let modalBody = document.getElementById("resize-value");
@@ -1087,7 +1101,6 @@ export class VmlistComponent implements OnInit {
      * Show Delete Window
      */
     showDelete(vmName: string, vmNamespace: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-delete");
         let modalTitle = document.getElementById("delete-title");
         let modalBody = document.getElementById("delete-value");
@@ -1139,7 +1152,6 @@ export class VmlistComponent implements OnInit {
      * Show Type Window
      */
     async showType(vmName: string, vmNamespace: string): Promise<void> {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-type");
         let modalTitle = document.getElementById("type-title");
         let modalBody = document.getElementById("type-value");
@@ -1199,28 +1211,27 @@ export class VmlistComponent implements OnInit {
      * VM Basic Operations (start, stop, etc...)
      */
     async vmOperations(vmOperation: string, vmNamespace: string, vmName: string): Promise<void> {
-        clearInterval(this.myInterval);
         if(vmOperation == "start"){
             var data = await lastValueFrom(this.kubeVirtService.startVm(vmNamespace, vmName));
-            this.reloadComponent();
+            this.fullReload();
         } else if (vmOperation == "stop") {
             var data = await lastValueFrom(this.kubeVirtService.stopVm(vmNamespace, vmName));
-            this.reloadComponent();
+            this.fullReload();
         } else if (vmOperation == "reboot"){
             var data = await lastValueFrom(this.kubeVirtService.restartVm(vmNamespace, vmName));
-            this.reloadComponent();
+            this.fullReload();
         } else if (vmOperation == "pause") {
             const data = await lastValueFrom(this.kubeVirtService.pauseVm(vmNamespace, vmName));
-            this.reloadComponent();
+            this.fullReload();
         } else if (vmOperation == "unpause") {
             const data = await lastValueFrom(this.kubeVirtService.unpauseVm(vmNamespace, vmName));
-            this.reloadComponent();
+            this.fullReload();
         } else if (vmOperation == "delete") {
             const data = await lastValueFrom(this.kubeVirtService.deleteVm(vmNamespace, vmName));
-            this.reloadComponent();
+            this.fullReload();
         } else if (vmOperation == "migrate") {
             const data = await lastValueFrom(this.kubeVirtService.migrateVm(vmNamespace, vmName));
-            this.reloadComponent();
+            this.fullReload();
         }
     }
 
@@ -1538,7 +1549,6 @@ export class VmlistComponent implements OnInit {
             modalDiv.setAttribute("aria-hidden", "true");
             modalDiv.setAttribute("style","display: none;");
         }
-        this.myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
     }
 
     /*
@@ -1549,15 +1559,6 @@ export class VmlistComponent implements OnInit {
         let path = "/k8s/apis/subresources.kubevirt.io/v1alpha3/namespaces/" + namespace + "/virtualmachineinstances/" + name + "/vnc";
         let fullpath = url + path;
         window.open(fullpath, "kubevirt-manager.io: CONSOLE", "width=800,height=600,location=no,toolbar=no,menubar=no,resizable=yes");
-    }
-
-    /*
-     * Reload this component
-     */
-    async reloadComponent(): Promise<void> {
-        await this.getVMs();
-        await this.getNodes();
-        this.cdRef.detectChanges();
     }
 
     /*

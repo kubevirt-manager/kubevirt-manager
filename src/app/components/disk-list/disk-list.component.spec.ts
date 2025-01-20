@@ -4,6 +4,7 @@ import { DiskListComponent } from './disk-list.component';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { DataTablesModule } from 'angular-datatables';
 
 describe('DiskListComponent', () => {
   let component: DiskListComponent;
@@ -12,7 +13,7 @@ describe('DiskListComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
     declarations: [DiskListComponent],
-    imports: [],
+    imports: [DataTablesModule],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();
@@ -31,10 +32,22 @@ describe('DiskListComponent', () => {
     const contentValue = componentElem.querySelector('h3');
     expect(contentValue.textContent).toContain('Data Volumes');
   });
+  it('should contain Refresh item', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.query(By.css('.fa-sync'))
+    const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
+  });
   it('should contain New Disk item', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.query(By.css('.fa-plus-square'))
     const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain Main Datatable', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#diskList_datatable');
     expect(contentValue).toBeTruthy();
   });
   it('should contain Window: Resize Disk', () => {

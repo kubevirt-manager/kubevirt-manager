@@ -9,20 +9,23 @@
               &nbsp;&nbsp;Cluster Instance Types
             </h3>
             <div class="card-tools">
-              <button type="button" class="btn btn-tool" (click)="showNew()" title="New Type...">
-                <i class="fas fa-plus-square"></i>
+              <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="Refresh..." title="Refresh..." class="btn btn-tool" (click)="fullReload()">
+                  <i class="fas fa-sync" (click)="fullReload()" title="Refresh..."></i>
+              </button>
+              <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="New Type..." title="New Type..." class="btn btn-tool" (click)="showNew()">
+                <i class="fas fa-plus-square" (click)="showNew()" title="New Type..."></i>
             </button>
             </div>
           </div>
           <div class="card-body">
-           <table class="table table-sm" style="vertical-align: middle !important;">
+           <table datatable id="citList_datatable" [dtOptions]="citList_dtOptions" [dtTrigger]="citList_dtTrigger" class="table table-sm" style="vertical-align: middle !important;">
               <thead>
                 <tr>
                   <th style="width: 10px">&nbsp;</th>
                   <th style="width: 180px">Name</th>
                   <th style="width: 100px">CPU</th>
                   <th style="width: 100px">Memory</th>
-                  <th style="width: 80px">Actions</th>
+                  <th style="width: 80px">&nbsp;</th>
                 </tr>
               </thead>
               <tbody>
@@ -32,12 +35,19 @@
                     <td style="line-height: 2.2 !important;">{{thisType.cpu}}</td>
                     <td style="line-height: 2.2 !important;">{{thisType.memory}}</td>
                     <td style="line-height: 0 !important;">
-                      <a class="btn" (click)="showEdit(thisType.name)" title="Edit...">
-                        <i class="fas fa-pen"></i>
-                      </a>
-                      <a class="btn" (click)="showDelete(thisType.name)" title="Delete...">
-                        <i class="fas fa-trash"></i>
-                      </a>
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" href="#" aria-expanded="false">Actions</button>
+                            <div class="dropdown-menu">
+                                <!--- EDIT BUTTON -->
+                                <a class="btn" (click)="showEdit(thisType.name)" title="Edit...">
+                                    <i class="fas fa-pen"></i>
+                                </a>
+                                <!--- DELETE BUTTON -->
+                                <a class="btn" (click)="showDelete(thisType.name)" title="Delete...">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </div>
                     </td>
                   </tr>
               </tbody>

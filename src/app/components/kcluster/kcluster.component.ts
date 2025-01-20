@@ -1,10 +1,7 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Buffer } from 'buffer';
-import { lastValueFrom } from 'rxjs';
-import { KClusterKubeadmControlPlane } from 'src/app/models/kcluster-kubeadm-control-plane.model';
-import { KClusterKubevirtMachineTemplate } from 'src/app/models/kcluster-kubevirt-machine-template.model';
-import { KClusterMachineDeployment } from 'src/app/models/kcluster-machine-deployment.model';
+import { Subject, lastValueFrom } from 'rxjs';
 import { KCluster } from 'src/app/models/kcluster.model';
 import { K8sApisService } from 'src/app/services/k8s-apis.service';
 import { K8sService } from 'src/app/services/k8s.service';
@@ -27,6 +24,7 @@ import { Deployment } from 'src/app/interfaces/deployment';
 import { ClusterRoleBinding } from 'src/app/interfaces/cluster-role-binding';
 import { FirewallLabels } from 'src/app/models/firewall-labels.model';
 import { FormGroup, FormBuilder, FormArray } from '@angular/forms';
+import { Config } from 'datatables.net';
 
 @Component({
   selector: 'app-kcluster',
@@ -42,8 +40,6 @@ export class KClusterComponent implements OnInit {
     charDot = '.';
     firewallLabels: FirewallLabels = new FirewallLabels;
 
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 120000);
-
     /*
      * Dynamic Forms
      */
@@ -51,8 +47,27 @@ export class KClusterComponent implements OnInit {
     annotationList: FormGroup;
     labelList: FormGroup;
 
+    /*
+     * Dynamic Tables
+     */
+    kclusterList_dtOptions: Config = {
+        //pagingType: 'full_numbers',
+        //lengthMenu: [5,10,15,25,50,100,150,200],
+        //pageLength: 50,
+        paging: false,
+        info: false,
+        ordering: true,
+        orderMulti: true,
+        search: true,
+        destroy: false,
+        stateSave: false,
+        serverSide: false,
+        columnDefs: [{ orderable: false, targets: 0 }, { orderable: false, targets: 8 }],
+        order: [[1, 'asc']],
+    };
+    kclusterList_dtTrigger: Subject<any> = new Subject<any>();
+
     constructor(
-        private cdRef: ChangeDetectorRef,
         private router: Router,
         private kubevirtMgrCapk: KubevirtMgrCapk,
         private k8sService: K8sService,
@@ -73,11 +88,12 @@ export class KClusterComponent implements OnInit {
      }
 
     async ngOnInit(): Promise<void> {
-        await this.getClusters();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Kubernetes Clusters");
         }
+        await this.getClusters();
+        this.kclusterList_dtTrigger.next(null);
         this.ctrlPlaneAnnotationList = this.fb.group({
             ctrlannotations: this.fb.array([]),
         });
@@ -90,7 +106,7 @@ export class KClusterComponent implements OnInit {
     }
 
     ngOnDestroy() {
-        clearInterval(this.myInterval);
+        this.kclusterList_dtTrigger.unsubscribe();
     }
 
     /* Getting the Control Plane Annotations FormArray */
@@ -416,7 +432,6 @@ export class KClusterComponent implements OnInit {
      * Show New Window
      */
     showNew(): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-new");
         let modalTitle = document.getElementById("new-title");
         let modalBody = document.getElementById("new-value");
@@ -437,7 +452,6 @@ export class KClusterComponent implements OnInit {
      * Show Delete Window
      */
     showDelete(namespace: string, name: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-delete");
         let modalTitle = document.getElementById("delete-title");
         let modalBody = document.getElementById("delete-value");
@@ -531,7 +545,6 @@ export class KClusterComponent implements OnInit {
      */
     async showNewCluster(): Promise<void> {
         this.hideComponent("modal-new");
-        clearInterval(this.myInterval);
         let i = 0;
         let modalDiv = document.getElementById("modal-newcluster");
         let modalTitle = document.getElementById("newcluster-title");
@@ -641,7 +654,6 @@ export class KClusterComponent implements OnInit {
      */
     async showNewClusterCustom(): Promise<void> {
         this.hideComponent("modal-new");
-        clearInterval(this.myInterval);
         let i = 0;
         let modalDiv = document.getElementById("modal-newclustercustom");
         let modalTitle = document.getElementById("newclustercustom-title");
@@ -2479,7 +2491,6 @@ export class KClusterComponent implements OnInit {
             modalDiv.setAttribute("aria-hidden", "true");
             modalDiv.setAttribute("style","display: none;");
         }
-        this.myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
     }
 
     /*
@@ -2802,14 +2813,6 @@ export class KClusterComponent implements OnInit {
                 secureBootValueField.setAttribute("disabled", "disabled");
             }
         }
-    }
-
-    /*
-     * Reload this component
-     */
-    async reloadComponent(): Promise<void> {
-        await this.getClusters();
-        await this.cdRef.detectChanges();
     }
 
     /*

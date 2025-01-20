@@ -1,6 +1,6 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { lastValueFrom } from 'rxjs';
+import { Subject, lastValueFrom } from 'rxjs';
 import { LoadBalancerPort } from 'src/app/models/load-balancer-port.model';
 import { LoadBalancer } from 'src/app/models/load-balancer.model';
 import { K8sService } from 'src/app/services/k8s.service';
@@ -8,6 +8,7 @@ import { KubeVirtService } from 'src/app/services/kube-virt.service';
 import { Services } from 'src/app/interfaces/services';
 import { ServicesPort } from 'src/app/interfaces/services-port';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { Config } from 'datatables.net';
 
 @Component({
   selector: 'app-load-balancers',
@@ -17,7 +18,6 @@ import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 export class LoadBalancersComponent implements OnInit {
 
     loadBalancerList: LoadBalancer[] = [];
-    myInterval = setInterval(() =>{ this.reloadComponent(); }, 120000);
     charDot = '.';
 
     /*
@@ -27,8 +27,27 @@ export class LoadBalancersComponent implements OnInit {
     annotationList: FormGroup;
     labelList: FormGroup;
 
+    /*
+     * Dynamic Tables
+     */
+    lbList_dtOptions: Config = {
+        //pagingType: 'full_numbers',
+        //lengthMenu: [5,10,15,25,50,100,150,200],
+        //pageLength: 50,
+        paging: false,
+        info: false,
+        ordering: true,
+        orderMulti: true,
+        search: true,
+        destroy: false,
+        stateSave: false,
+        serverSide: false,
+        columnDefs: [{ orderable: false, targets: 0 }, { orderable: false, targets: 7 }],
+        order: [[1, 'asc']],
+    };
+    lbList_dtTrigger: Subject<any> = new Subject<any>();
+
     constructor(
-        private cdRef: ChangeDetectorRef,
         private router: Router,
         private k8sService: K8sService,
         private kubeVirtService: KubeVirtService,
@@ -45,7 +64,11 @@ export class LoadBalancersComponent implements OnInit {
         });
     }
 
-    ngOnInit(): void {
+    async ngOnInit(): Promise<void> {
+        let navTitle = document.getElementById("nav-title");
+        if(navTitle != null) {
+            navTitle.replaceChildren("Load Balancers");
+        }
         this.portList = this.fb.group({
             ports: this.fb.array([this.createPortGroup()]),
         });
@@ -55,15 +78,12 @@ export class LoadBalancersComponent implements OnInit {
         this.labelList = this.fb.group({
             labels: this.fb.array([]),
         });
-        this.getLoadBalancers();
-        let navTitle = document.getElementById("nav-title");
-        if(navTitle != null) {
-            navTitle.replaceChildren("Load Balancers");
-        }
+        await this.getLoadBalancers();
+        this.lbList_dtTrigger.next(null);
     }
 
     ngOnDestroy() {
-        clearInterval(this.myInterval);
+        this.lbList_dtTrigger.unsubscribe();
     }
 
     /* Getting the Ports FormArray */
@@ -262,7 +282,6 @@ export class LoadBalancersComponent implements OnInit {
      * Show Info Window
      */
     async showInfo(lbNamespace: string, lbName: string): Promise<void> {
-        clearInterval(this.myInterval);
         let myInnerHTML = "";
         try {
             let data = await lastValueFrom(this.k8sService.getService(lbNamespace, lbName));
@@ -330,7 +349,6 @@ export class LoadBalancersComponent implements OnInit {
      * Show Delete Window
      */
     showDelete(lbNamespace: string, lbName: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-delete");
         let modalTitle = document.getElementById("delete-title");
         let modalBody = document.getElementById("delete-value");
@@ -368,7 +386,7 @@ export class LoadBalancersComponent implements OnInit {
                 try {
                     let deleteService = await lastValueFrom(this.k8sService.deleteService(lbNamespace, lbName));
                     this.hideComponent("modal-delete");
-                    this.reloadComponent();
+                    this.fullReload();
                 } catch (e: any) {
                     alert(e.error.message);
                     console.log(e);
@@ -381,7 +399,6 @@ export class LoadBalancersComponent implements OnInit {
      * Show Change Type Window
      */
     showType(lbNamespace: string, lbName: string): void {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-type");
         let modalTitle = document.getElementById("type-title");
         let modalBody = document.getElementById("type-value");
@@ -431,7 +448,6 @@ export class LoadBalancersComponent implements OnInit {
      * Show New Window
      */
     async showNew(): Promise<void> {
-        clearInterval(this.myInterval);
         let modalDiv = document.getElementById("modal-new");
         let modalTitle = document.getElementById("new-title");
         let modalBody = document.getElementById("new-value");
@@ -617,15 +633,6 @@ export class LoadBalancersComponent implements OnInit {
             modalDiv.setAttribute("aria-hidden", "true");
             modalDiv.setAttribute("style","display: none;");
         }
-        this.myInterval = setInterval(() =>{ this.reloadComponent(); }, 30000);
-    }
-
-    /*
-     * Reload this component
-     */
-    async reloadComponent(): Promise<void> {
-        await this.getLoadBalancers();
-        await this.cdRef.detectChanges();
     }
 
     /*

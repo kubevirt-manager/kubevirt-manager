@@ -4,6 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { AutoscaleComponent } from './autoscale.component';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { DataTablesModule } from 'angular-datatables';
 
 describe('AutoscaleComponent', () => {
   let component: AutoscaleComponent;
@@ -12,7 +13,7 @@ describe('AutoscaleComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
     declarations: [AutoscaleComponent],
-    imports: [],
+    imports: [DataTablesModule],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();
@@ -31,10 +32,22 @@ describe('AutoscaleComponent', () => {
     const contentValue = componentElem.querySelector('h3');
     expect(contentValue.textContent).toContain('Scaling Groups');
   });
-  it('should contain Scaling Group item', () => {
+  it('should contain Refresh item', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.query(By.css('.fa-sync'))
+    const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain Add Scaling Group item', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.query(By.css('.fa-plus-square'))
     const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain Main Datatable', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#hpaList_datatable');
     expect(contentValue).toBeTruthy();
   });
   it('should contain Window: New Auto Scaling Group', () => {

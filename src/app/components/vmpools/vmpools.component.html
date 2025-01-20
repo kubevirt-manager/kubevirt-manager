@@ -5,18 +5,21 @@
         <div class="card card-outline">
           <div class="card-header">
             <h3 class="card-title">
-              VM Pools
+              <i class="fas fa-server"></i>
+              &nbsp;&nbsp;Virtual Machine Pools
             </h3>
             <div class="card-tools">
-              <button type="button" class="btn btn-tool" (click)='showNewPool()'>
-                  <i class="fas fa-plus-square" (click)='showNewPool()' title="Create pool..."></i>
+              <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="Refresh..." title="Refresh..." class="btn btn-tool" (click)="fullReload()">
+                  <i class="fas fa-sync" (click)="fullReload()" title="Refresh..."></i>
+              </button>
+              <button type="button" data-placement="bottom" data-toggle="tooltip" data-original-title="New VM Pool..." title="New VM Pool..." class="btn btn-tool" (click)='showNewPool()'>
+                  <i class="fas fa-plus-square" (click)='showNewPool()' title="New VM Pool..."></i>
               </button>
             </div>
           </div>
           <div class="card-body">
             <div class="card card-outline">
-            <tbody>
-                <table class="table table-sm" style="vertical-align: middle !important;">
+                <table datatable id="vmPool_datatable" [dtOptions]="vmPool_dtOptions" [dtTrigger]="vmPool_dtTrigger" class="table table-sm" style="vertical-align: middle !important;">
                 <thead>
                     <tr>
                         <th style="width: 10px">&nbsp;</th>
@@ -25,74 +28,88 @@
                         <th style="width: 60px">VM Type</th>
                         <th style="width: 18px">vCPU</th>
                         <th style="width: 18px">Memory</th>
-                        <th style="width: 18px">Running</th>
+                        <!-- <th style="width: 18px">Running</th> -->
                         <th style="width: 25px">Replicas</th>
                         <th style="width: 25px">Ready</th>
-                        <th style="width: 180px">Actions</th>
+                        <th style="width: 180px">&nbsp;</th>
                     </tr>
                 </thead>
                 <tbody>
                 <tr *ngFor="let thisPool of poolList">
-                    <td style="line-height: 2.2 !important;"><i class="fas fa-server"></i></td>
+                    <td style="line-height: 2.2 !important;">
+                        <p style="display: none;">{{thisPool.running}}</p>
+                        <span [ngSwitch]="thisPool.running">
+                          <span *ngSwitchCase="true">
+                            <span class="badge bg-success"><i class="fas fa-check-circle" title="{{thisPool.running}}"></i></span>
+                          </span>
+                          <span *ngSwitchDefault>
+                            <span class="badge bg-danger"><i class="fas fa-times-circle" title="{{thisPool.running}}"></i></span>
+                          </span>
+                        </span>
+                    </td>
                     <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.namespace}}</a></td>
                     <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.name}}</a></td>
                     <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.instType}}</a></td>
                     <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.cores * thisPool.sockets * thisPool.threads}}</a></td>
                     <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.memory}}</a></td>
-                    <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.running}}</a></td>
+                    <!-- <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.running}}</a></td> -->
                     <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.replicas}}</a></td>
                     <td style="line-height: 2.2 !important;"><a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">{{thisPool.readyReplicas || "0"}}</a></td>
                     <td style="line-height: 2.2 !important;">
-                        <!--- INFO BUTTON -->
-                        <span>
-                            <a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">
-                              <i class="fas fa-info"></i>
-                            </a>
-                        </span>
-                        <!--- POWER ON BUTTON -->
-                        <span [ngSwitch]="thisPool.running">
-                            <a class="btn disabled" (click)='poolOperations("start", thisPool.namespace, thisPool.name)' title="Power on..." *ngSwitchCase="true">
-                              <i class="fas fa-plug disabled"></i>
-                            </a>
-                            <a class="btn" (click)='poolOperations("start", thisPool.namespace, thisPool.name)' title="Power on..." *ngSwitchDefault>
-                              <i class="fas fa-plug"></i>
-                            </a>
-                        </span>
-                        <!--- POWER OFF BUTTON -->
-                        <span [ngSwitch]="thisPool.running">
-                            <a class="btn" (click)='poolOperations("stop", thisPool.namespace, thisPool.name)' title="Power off..." *ngSwitchCase="true">
-                              <i class="fas fa-power-off"></i>
-                            </a>
-                            <a class="btn disabled" (click)='poolOperations("stop", thisPool.namespace, thisPool.name)' title="Power off..." *ngSwitchDefault>
-                              <i class="fas fa-power-off disabled"></i>
-                            </a>
-                        </span>
-                        <!--- SCALE REPLICAS -->
-                        <span>
-                            <a class="btn"  (click)='showReplicas(thisPool.namespace, thisPool.name)' title="Scale...">
-                            <i class="fas fa-arrow-up"></i>
-                            </a>
-                        </span>
-                        <!--- CONFIG BUTTON -->
-                        <span [ngSwitch]="thisPool.instType">
-                            <a class="btn" (click)="showResize(thisPool.name, thisPool.namespace, thisPool.sockets, thisPool.cores, thisPool.threads, thisPool.memory)" title="Config..." *ngSwitchCase="'custom'">
-                              <i class="fas fa-cog"></i>
-                            </a>
-                            <a class="btn" (click)="showType(thisPool.name, thisPool.namespace)" title="Config..." *ngSwitchDefault>
-                              <i class="fas fa-cog"></i>
-                            </a>
-                        </span>
-                        <!--- DELETE BUTTON -->
-                        <span>
-                            <a class="btn" (click)='showDelete(thisPool.namespace, thisPool.name)' title="Delete...">
-                            <i class="fas fa-trash"></i>
-                            </a>
-                        </span>
+                        <div class="dropdown">
+                            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" href="#" aria-expanded="false">Actions</button>
+                            <div class="dropdown-menu">
+                                <!--- INFO BUTTON -->
+                                <span>
+                                    <a class="btn" routerLink="/vmpooldetail/{{thisPool.namespace}}/{{thisPool.name}}" title="Pool details...">
+                                    <i class="fas fa-info"></i>
+                                    </a>
+                                </span>
+                                <!--- POWER ON BUTTON -->
+                                <span [ngSwitch]="thisPool.running">
+                                    <a class="btn disabled" (click)='poolOperations("start", thisPool.namespace, thisPool.name)' title="Power on..." *ngSwitchCase="true">
+                                    <i class="fas fa-plug disabled"></i>
+                                    </a>
+                                    <a class="btn" (click)='poolOperations("start", thisPool.namespace, thisPool.name)' title="Power on..." *ngSwitchDefault>
+                                    <i class="fas fa-plug"></i>
+                                    </a>
+                                </span>
+                                <!--- POWER OFF BUTTON -->
+                                <span [ngSwitch]="thisPool.running">
+                                    <a class="btn" (click)='poolOperations("stop", thisPool.namespace, thisPool.name)' title="Power off..." *ngSwitchCase="true">
+                                    <i class="fas fa-power-off"></i>
+                                    </a>
+                                    <a class="btn disabled" (click)='poolOperations("stop", thisPool.namespace, thisPool.name)' title="Power off..." *ngSwitchDefault>
+                                    <i class="fas fa-power-off disabled"></i>
+                                    </a>
+                                </span>
+                                <!--- SCALE REPLICAS -->
+                                <span>
+                                    <a class="btn"  (click)='showReplicas(thisPool.namespace, thisPool.name)' title="Scale...">
+                                    <i class="fas fa-arrow-up"></i>
+                                    </a>
+                                </span>
+                                <!--- CONFIG BUTTON -->
+                                <span [ngSwitch]="thisPool.instType">
+                                    <a class="btn" (click)="showResize(thisPool.name, thisPool.namespace, thisPool.sockets, thisPool.cores, thisPool.threads, thisPool.memory)" title="Config..." *ngSwitchCase="'custom'">
+                                    <i class="fas fa-cog"></i>
+                                    </a>
+                                    <a class="btn" (click)="showType(thisPool.name, thisPool.namespace)" title="Config..." *ngSwitchDefault>
+                                    <i class="fas fa-cog"></i>
+                                    </a>
+                                </span>
+                                <!--- DELETE BUTTON -->
+                                <span>
+                                    <a class="btn" (click)='showDelete(thisPool.namespace, thisPool.name)' title="Delete...">
+                                    <i class="fas fa-trash"></i>
+                                    </a>
+                                </span>
+                            </div>
+                        </div>
                     </td>
                 </tr>
                 </tbody>
                 </table>
-            </tbody>
             </div>
           </div>
           <!-- /.card-body -->

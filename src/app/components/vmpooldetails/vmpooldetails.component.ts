@@ -82,13 +82,13 @@ export class VmpooldetailsComponent implements OnInit {
     async ngOnInit(): Promise<void> {
         this.poolName = this.route.snapshot.params['name'];
         this.poolNamespace = this.route.snapshot.params['namespace'];
-        await this.getClusterInstanceTypes();
-        await this.getVMIs();
-        await this.loadPool();
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Virtual Machine Pool Details");
         }
+        await this.getClusterInstanceTypes();
+        await this.getVMIs();
+        await this.loadPool();
     }
 
     /*
@@ -1003,6 +1003,22 @@ export class VmpooldetailsComponent implements OnInit {
         let path = "/k8s/apis/subresources.kubevirt.io/v1alpha3/namespaces/" + namespace + "/virtualmachineinstances/" + name + "/vnc";
         let fullpath = url + path;
         window.open(fullpath, "kubevirt-manager.io: CONSOLE", "width=800,height=600,location=no,toolbar=no,menubar=no,resizable=yes");
+    }
+
+    /*
+     * Pool Basic Operations (start, stop, etc...)
+     */
+    async poolOperations(poolOperation: string, poolNamespace: string, poolName: string): Promise<void> {
+        if(poolOperation == "start"){
+            var data = await lastValueFrom(this.kubeVirtService.startPool(poolNamespace, poolName));
+            this.reloadComponent();
+        } else if (poolOperation == "stop") {
+            var data = await lastValueFrom(this.kubeVirtService.stopPool(poolNamespace, poolName));
+            this.reloadComponent();
+        } else if (poolOperation == "delete") {
+            const data = await lastValueFrom(this.kubeVirtService.deletePool(poolNamespace, poolName));
+            this.reloadComponent();
+        }
     }
 
     /*

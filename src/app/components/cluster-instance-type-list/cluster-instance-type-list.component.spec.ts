@@ -4,6 +4,7 @@ import { ClusterInstanceTypeListComponent } from './cluster-instance-type-list.c
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { DataTablesModule } from 'angular-datatables';
 
 describe('ClusterInstanceTypeListComponent', () => {
   let component: ClusterInstanceTypeListComponent;
@@ -12,7 +13,7 @@ describe('ClusterInstanceTypeListComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
     declarations: [ClusterInstanceTypeListComponent],
-    imports: [],
+    imports: [DataTablesModule],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();
@@ -31,10 +32,22 @@ describe('ClusterInstanceTypeListComponent', () => {
     const contentValue = componentElem.querySelector('h3');
     expect(contentValue.textContent).toContain('Cluster Instance Types');
   });
+  it('should contain Refresh item', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.query(By.css('.fa-sync'))
+    const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
+  });
   it('should contain New Type item', () => {
     const componentDoc: DebugElement = fixture.debugElement;
     const componentElem = componentDoc.query(By.css('.fa-plus-square'))
     const contentValue = componentElem.nativeElement;
+    expect(contentValue).toBeTruthy();
+  });
+  it('should contain Main Datatable', () => {
+    const componentDoc: DebugElement = fixture.debugElement;
+    const componentElem = componentDoc.nativeElement;
+    const contentValue = componentElem.querySelector('#citList_datatable');
     expect(contentValue).toBeTruthy();
   });
   it('should contain Window: New Cluster Instance Type', () => {
