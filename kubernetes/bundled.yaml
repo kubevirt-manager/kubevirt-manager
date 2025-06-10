@@ -39,7 +39,7 @@ spec:
                 http:
                   type: object
                   properties:
-                    url: 
+                    url:
                       type: string
                 registry:
                   type: object
