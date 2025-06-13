@@ -845,7 +845,7 @@ export class VmlistComponent implements OnInit {
                     } else {
                         diskObject = { 'name': "disk" + i.toString(), 'disk': {}};
                     }
-                    deviceObject = { 'name': "disk" + i.toString(), 'dataVolume': { 'name': actualDiskName}};
+                    deviceObject = { 'name': "disk" + i.toString(), 'dataVolume': { 'name': actualDisk.diskValue }}; 
                     volumes.push(deviceObject);
                     disks.push(diskObject);
                 }
