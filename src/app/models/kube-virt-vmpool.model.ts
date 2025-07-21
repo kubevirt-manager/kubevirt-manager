@@ -9,6 +9,7 @@ export class KubeVirtVMPool {
     creationTimestamp:        Date  = new Date;
     replicas:               number  = 0;
     readyReplicas:          number  = 0;
+    runStrategy:            string  = "";
     running:               boolean  = false;
     status:                 string  = "";
     cores:                  number  = 0;

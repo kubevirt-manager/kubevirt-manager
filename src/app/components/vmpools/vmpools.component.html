@@ -373,19 +373,31 @@
                                         </div>
                                         <div class="card-body" style="display: block;">
                                             <div class="row">
-                                                <div class="col-5" name="newpool-netname-col">
+                                                <div class="col-3" name="newpool-netname-col">
                                                     <label for="newpool-netname-{{j}}">Network:</label>
                                                     <select style="min-width: 300px;" class="custom-select rounded-0" name="newpool-netname-{{j}}" id="networkName-{{j}}" formControlName="networkName" (change)="onChangeNetwork(j)">
                                                         <option value="" selected></option>
                                                     </select>
                                                 </div>
                                                 <div class="col-1">&nbsp;</div>
-                                                <div class="col-5" name="newpool-nettype-col">
+                                                <div class="col-3" name="newpool-nettype-col">
                                                     <label for="newpool-nettype-{{j}}">Type:</label>
                                                     <select #nettype style="min-width: 300px;" class="custom-select rounded-0" name="newpool-nettype-{{j}}" id="networkType-{{j}}" formControlName="networkType">
                                                         <option value=bridge>bridge</option>
                                                         <option value=macvtap>macvtap</option>
                                                         <option value=masquerade>masquerade</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-1">&nbsp;</div>
+                                                <div class="col-3" name="newpool-netdrv-col">
+                                                    <label for="newpool-netdrv-{{j}}">Driver:</label>
+                                                    <select #netdrv style="min-width: 300px;" class="custom-select rounded-0" name="newpool-netdrv-{{j}}" id="networkDriver-{{j}}" formControlName="networkDriver">
+                                                        <option value=virtio selected>virtio</option>
+                                                        <option value=e1000>e1000</option>
+                                                        <option value=e1000e>e1000e</option>
+                                                        <option value=ne2k_pci>ne2k_pci</option>
+                                                        <option value=pcnet>pcnet</option>
+                                                        <option value=rtl8139>rtl8139</option>
                                                     </select>
                                                 </div>
                                                 <div class="col-1">&nbsp;</div>

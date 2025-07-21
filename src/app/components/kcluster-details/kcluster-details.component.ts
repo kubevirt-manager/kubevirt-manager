@@ -93,8 +93,14 @@ export class KClusterDetailsComponent implements OnInit {
                 } else {
                     currentLoadBalancer.targetResource = "N/A";
                 }
-                if(currentLoadBalancer.type.toLowerCase() == "loadbalancer" && services[i].status.loadBalancer.ingress[0].ip != null) {
-                    currentLoadBalancer.loadBalancer = services[i].status.loadBalancer.ingress[0].ip;
+                if(currentLoadBalancer.type.toLowerCase() == "loadbalancer" && services[i].status.loadBalancer.ingress) {
+                    if(services[i].status.loadBalancer.ingress[0].ip != null) {
+                        currentLoadBalancer.loadBalancer = services[i].status.loadBalancer.ingress[0].ip;
+                    } else {
+                        currentLoadBalancer.loadBalancer = "N/A";
+                    }
+                } else {
+                    currentLoadBalancer.loadBalancer = "N/A";
                 }
                 let servicePorts = services[i].spec.ports;
                 for(let j = 0; j < servicePorts.length; j++) {
@@ -449,7 +455,11 @@ export class KClusterDetailsComponent implements OnInit {
                 console.log(e);
             }
             try {
-                currentVm.nodeSel = vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"];
+                if(vms[i].spec.template.spec.nodeSelector) {
+                    currentVm.nodeSel = vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"];
+                } else {
+                    currentVm.nodeSel = "auto-select";
+                }
             } catch (e: any) {
                 currentVm.nodeSel = "auto-select";
                 console.log(e);

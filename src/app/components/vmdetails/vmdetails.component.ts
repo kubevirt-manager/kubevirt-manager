@@ -13,6 +13,7 @@ import { VMDisk } from 'src/app/models/vmdisk.model';
 import { VMNewtork } from 'src/app/models/vmnewtork.model';
 import { removeVolumeOptions } from 'src/app/interfaces/removeVolumeOptions';
 import { addVolumeOptions } from 'src/app/interfaces/addVolumeOptions';
+import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 
 
 @Component({
@@ -26,7 +27,8 @@ export class VmdetailsComponent implements OnInit {
     vmNamespace: string = "";
     activeVm: KubeVirtVM = new KubeVirtVM;
     customTemplate: boolean = false;
-    urlSafe: SafeResourceUrl = "";
+    urlSafeVnc: SafeResourceUrl = "";
+    urlSafeXterm: SafeResourceUrl = "";
     promCheck: boolean = false;
 
     myInterval = setInterval(() =>{ this.reloadChartsAndLogs(); }, 120000);
@@ -43,6 +45,11 @@ export class VmdetailsComponent implements OnInit {
     netChart: any;
     stgChart: any;
 
+    /*
+     * Dynamic Forms
+     */
+    diskList: FormGroup;
+
     /* Console Reader */
     consoleMessages: Array<string> = new Array();
     newConsoleMessages: { text: string, style: string }[] = [];
@@ -55,12 +62,22 @@ export class VmdetailsComponent implements OnInit {
         private dataVolumesService: DataVolumesService,
         private prometheusService: PrometheusService,
         private kubeVirtService: KubeVirtService,
-        private cdRef: ChangeDetectorRef
-    ) { }
+        private cdRef: ChangeDetectorRef,
+        private fb: FormBuilder
+    ) {
+        this.diskList = this.fb.group({
+            disks: this.fb.array([]),
+        });
+    }
 
     async ngOnInit(): Promise<void> {
         this.vmName = this.route.snapshot.params['name'];
         this.vmNamespace = this.route.snapshot.params['namespace'];
+
+        this.diskList = this.fb.group({
+            disks: this.fb.array([]),
+        });
+
         let navTitle = document.getElementById("nav-title");
         if(navTitle != null) {
             navTitle.replaceChildren("Virtual Machine Details");
@@ -68,6 +85,7 @@ export class VmdetailsComponent implements OnInit {
         await this.loadVm();
         await this.loadPrometheus();
         await this.loadSerialLog();
+        this.loadXterm();
         this.loadNoVNC();
     }
 
@@ -76,6 +94,7 @@ export class VmdetailsComponent implements OnInit {
      */
     async loadSerialLog(): Promise<void> {
         let podName = "";
+        this.newConsoleMessages = [];
         try {
             let data = await lastValueFrom(this.kubeVirtService.findVMPod(this.vmNamespace, this.activeVm.vmi.uid));
             podName = data.items[0].metadata["name"];
@@ -86,6 +105,7 @@ export class VmdetailsComponent implements OnInit {
             }
             
         } catch (e: any) {
+            console.log("Error loading serial log....");
             console.log(e);
         }
     }
@@ -142,6 +162,35 @@ export class VmdetailsComponent implements OnInit {
             // Add more codes as needed
             default: return currentStyle;
         }
+    }
+
+    /* Getting the Disks FormArray */
+    get disks(): FormArray {
+        return this.diskList.get('disks') as FormArray;
+    }
+
+    /* Disk FormGroup */
+    createDiskGroup(diskName: string, bootOrder: number, diskBus: string): FormGroup {
+        return this.fb.group({
+            diskName: [diskName],
+            diskBootOrder: [bootOrder],
+            diskBus: [diskBus]
+        });
+    }
+
+    /* Add a new Disk entry to the Group */
+    async addDisk(diskName: string, bootOrder: number, diskBus: string): Promise<void> {
+        this.disks.push(this.createDiskGroup(diskName, bootOrder, diskBus));
+    }
+
+    /* Remove Disk entry from the Group */
+    removeDisk(index: number): void {
+        this.disks.removeAt(index);
+    }
+
+    /* Getting all the Disks */
+    getDisks(): any[] {
+        return this.diskList.value.disks;
     }
 
     /*
@@ -626,18 +675,31 @@ export class VmdetailsComponent implements OnInit {
             this.activeVm.labels = data.metadata.labels;
         }
         this.activeVm.creationTimestamp = new Date(data.metadata["creationTimestamp"]);
-        this.activeVm.running = data.spec["running"];
+        if(data.spec["running"]) {
+            this.activeVm.running = data.spec["running"];
+        }
         if (data.status) {
             this.activeVm.printableStatus = data.status["printableStatus"].toLowerCase();
             if (this.activeVm.printableStatus.toLowerCase() == "running") {
                 this.activeVm.running = true;
             }
         }
+        try {
+            this.activeVm.runStrategy = data.spec["runStrategy"];
+        } catch (e: any) {
+            this.activeVm.runStrategy = "";
+            console.log("Error loading VM runStrategy");
+        }
 
         /* Getting VM Type */
         try {
-            this.activeVm.instType = data.spec.instancetype.name;
-            this.customTemplate = false;
+            if(data.spec.instancetype) {
+                this.activeVm.instType = data.spec.instancetype.name;
+                this.customTemplate = false;
+            } else {
+                this.activeVm.instType = "custom";
+                this.customTemplate = true;
+            }
         } catch(e: any) {
             this.activeVm.instType = "custom";
             this.customTemplate = true;
@@ -790,6 +852,16 @@ export class VmdetailsComponent implements OnInit {
                 } catch (e: any) {
                     netInfo.type = "bridge";
                 }
+
+                try {
+                    if(interfaces[i].model != null) {
+                        netInfo.driver = interfaces[i].model;
+                    } else {
+                        netInfo.driver = "virtio";
+                    }
+                } catch (e: any) {
+                    netInfo.driver = "N/A";
+                }
                 this.activeVm.networkList.push(netInfo);
             }
         }
@@ -804,13 +876,18 @@ export class VmdetailsComponent implements OnInit {
         for (let i = 0; i < disks.length; i++) {
 
             let diskInfo: VMDisk = new VMDisk;
-
             diskInfo.id = i;
             diskInfo.name = disks[i].name;
+            
             diskInfo.cacheMode = disks[i].cache;
-            diskInfo.bus = disks[i].disk.bus;
+            if(disks[i].disk.bus != "") {
+                diskInfo.bus = disks[i].disk.bus;
+            }
             if(diskInfo.cacheMode == null) {
                 diskInfo.cacheMode = "N/A";
+            }
+            if(disks[i].bootOrder != 9999) {
+                diskInfo.bootOrder = disks[i].bootOrder
             }
 
             let keys = Object.keys(disks[i]);
@@ -841,6 +918,8 @@ export class VmdetailsComponent implements OnInit {
                     }
                 }
             }
+
+            this.addDisk(disks[i].name, disks[i].bootOrder, disks[i].disk.bus);
 
             try {
                 /* Fetching Data Volume Template */
@@ -913,6 +992,34 @@ export class VmdetailsComponent implements OnInit {
             modalDiv.setAttribute("role", "");
             modalDiv.setAttribute("aria-hidden", "true");
             modalDiv.setAttribute("style","display: none;");
+        }
+    }
+
+    /*
+     * Show VM Strategy Window
+     */
+    async showRunStrategy(): Promise<void> {
+        let modalDiv = document.getElementById("modal-runstrategy");
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+    }
+
+    /*
+     * Change VM Strategy
+     */
+    async applyStrategy(strategy: string): Promise<void> {
+        try {
+            const data = await lastValueFrom(this.kubeVirtService.changeVmStrategy(this.activeVm.namespace, this.activeVm.name, strategy));
+            this.hideComponent("modal-type");
+            this.reloadComponent();
+        } catch (e: any) {
+            alert(e.message.error);
+            console.log(e);
         }
     }
 
@@ -1078,6 +1185,57 @@ export class VmdetailsComponent implements OnInit {
     }
 
     /*
+     * Show Hotplug Window
+     */
+    async showDisk(): Promise<void> {
+        let modalDiv = document.getElementById("modal-disk");
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+    }
+
+    /*
+     * Change Disk Config
+     */
+    async applyDisk(): Promise<void> {
+        let thisDiskList = this.getDisks();
+        let newDiskList = []
+        for(let i = 0; i < thisDiskList.length; i++) {
+            let actualDisk = thisDiskList[i];
+            if (actualDisk.diskBootOrder != null) {
+                let thisDisk = {
+                    "bootOrder": actualDisk.diskBootOrder,
+                    "disk":{
+                        "bus": actualDisk.diskBus
+                    },
+                    "name": actualDisk.diskName
+                }
+                newDiskList.push(thisDisk);
+            } else {
+                let thisDisk = {
+                    "disk":{
+                        "bus": actualDisk.diskBus
+                    },
+                    "name": actualDisk.diskName
+                }
+                newDiskList.push(thisDisk);
+            }
+        }
+        try {
+            const data = await lastValueFrom(this.kubeVirtService.patchVmDisks(this.activeVm.namespace, this.activeVm.name, JSON.stringify(newDiskList)));
+            this.hideComponent("modal-disk");
+            this.reloadComponent();
+        } catch (e: any) {
+            alert(e.error.message);
+            console.log(e);
+        }
+    }
+
+    /*
      * Show Resize VM Window
      */
     showResize(sockets: number, cores: number, threads: number, memory: string): void {
@@ -1169,15 +1327,25 @@ export class VmdetailsComponent implements OnInit {
     }
 
     /*
+     * Load Xterm
+     */
+    loadXterm(): void {
+        let url = "/assets/xterm.html?";
+        let params = "namespace=" + this.activeVm.namespace + "&vm="+ this.activeVm.name;
+        let fullpath = url + params;
+        this.urlSafeXterm = this.sanitizer.bypassSecurityTrustResourceUrl(fullpath);
+    }
+
+    /*
      * Load NoVNC
-     * REVER PARAMETROS
      */
     loadNoVNC(): void {
         let url = "/assets/noVNC/vnc.html?resize=scale&autoconnect=1&path=";
         let path = "/k8s/apis/subresources.kubevirt.io/v1alpha3/namespaces/" + this.activeVm.namespace + "/virtualmachineinstances/" + this.activeVm.name + "/vnc";
         let fullpath = url + path;
-        this.urlSafe = this.sanitizer.bypassSecurityTrustResourceUrl(fullpath);
+        this.urlSafeVnc = this.sanitizer.bypassSecurityTrustResourceUrl(fullpath);
     }
+    
 
     /*
      * VM Basic Operations (start, stop, etc...)

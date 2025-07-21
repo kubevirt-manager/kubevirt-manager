@@ -11,6 +11,8 @@ export interface DataVolume {
     };
     spec: {
         pvc?: {
+            volumeName?: string;
+            volumeMode?: string;
             storageClassName: string;
             accessModes: string[];
             resources: {
@@ -19,7 +21,18 @@ export interface DataVolume {
                 };
             };
         };
-        storage?: {};
+        storage?: {
+            volumeName?: string;
+            volumeMode?: string;
+            storageClassName: string;
+            accessModes: string[];
+            resources: {
+                requests: {
+                    storage: string;
+                };
+            };
+
+        };
         source: {
             blank?: {};
             gcs?: {

@@ -216,7 +216,11 @@ export class KClusterPoolDetailsComponent implements OnInit {
 
         this.poolNetwork.name = workertemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.domain.devices.interfaces[0].name;
         try {
-            this.poolNetwork.network = workertemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.networks[0].multus.networkName;
+            if(workertemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.networks[0].multus) {
+                this.poolNetwork.network = workertemplate.spec.template.spec.virtualMachineTemplate.spec.template.spec.networks[0].multus.networkName;
+            } else {
+                this.poolNetwork.network = "podNetwork";
+            }
         } catch (e: any) {
             this.poolNetwork.network = "podNetwork";
             console.log(e);
@@ -272,7 +276,11 @@ export class KClusterPoolDetailsComponent implements OnInit {
                     console.log(e);
                 }
                 try {
-                    currentVm.nodeSel = vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"];
+                    if(vms[i].spec.template.spec.nodeSelector) {
+                        currentVm.nodeSel = vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"];
+                    } else {
+                        currentVm.nodeSel = "auto-select";
+                    }
                 } catch (e: any) {
                     currentVm.nodeSel = "auto-select";
                     console.log(e);

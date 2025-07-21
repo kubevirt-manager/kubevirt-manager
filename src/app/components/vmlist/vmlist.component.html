@@ -219,6 +219,14 @@
                     <select #newvmnode class="custom-select rounded-0" name="newvm-node" id="newvm-node">
                       <option value="auto-select">auto-select</option>
                     </select>
+                    <label for="newvm-runstrategy">Run Strategy:</label>
+                    <select #newvmrunstrategy class="custom-select rounded-0" name="newvm-runstrategy" id="newvm-runstrategy">
+                      <option value="Always">Always</option>
+                      <option value="Halted">Halted</option>
+                      <option value="Manual">Manual</option>
+                      <option value="Once">Once</option>
+                      <option value="RerunOnFailure">RerunOnFailure</option>
+                    </select>
                   </div>
                   <!-- METADATA TAB -->
                   <div class="tab-pane fade" id="newvm-meta" role="tabpanel" aria-labelledby="newvm-meta-tab">
@@ -342,7 +350,7 @@
                                     </div>
                                     <div class="card-body" style="display: block;">
                                         <div class="row">
-                                            <div class="col-2" name="newvm-disk-type-col">
+                                            <div class="col-3" name="newvm-disk-type-col">
                                                 <label for="newvm-disktype-{{i}}">Type:</label>
                                                 <select #disktype class="custom-select rounded-0" name="newvm-disktype-{{i}}" id="diskType-{{i}}" formControlName="diskType" (change)="onChangeDisk(newvmnamespace.value, i)">
                                                     <option selected></option>
@@ -351,38 +359,61 @@
                                                     <option value="dv">DataVolume</option>
                                                 </select>
                                             </div>
-                                            <div class="col-2">
-                                                <label for="newvm-disksc-{{i}}">Storage Class:</label>
-                                                <select #newvmdisksc class="custom-select rounded-0" name="newvm-disksc-{{i}}" id="diskStorageClass-{{i}}" formControlName="diskStorageClass">
-                                                </select>
-                                            </div>
-                                            <div class="col-2">
-                                                <label for="newvm-diskam-{{i}}">Access Mode:</label>
-                                                <select #newvmdiskam class="custom-select rounded-0" name="newvm-diskeam-{{i}}" id="diskAccessMode-{{i}}" formControlName="diskAccessMode">
-                                                    <option selected></option>
-                                                    <option>ReadWriteOnce</option>
-                                                    <option>ReadOnlyMany</option>
-                                                    <option>ReadWriteMany</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-3">
+                                            <div class="col-5">
                                                 <label for="newvm-diskvalue-{{i}}">Value:</label>
                                                 <select #newvmdiskvalue class="custom-select rounded-0" name="newvm-diskvalue-{{i}}" id="diskValue-{{i}}" formControlName="diskValue">
                                                 </select>
                                             </div>
-                                            <div class="col-1">
+                                            <div class="col-2">
                                                 <label for="newvm-disksize-{{i}}">Size/GB:</label>
                                                 <input #newvmdisksize type=number class="form-control" name="newvm-disksize-{{i}}" id="diskSize-{{i}}" formControlName="diskSize">
                                             </div>
                                             <div class="col-2">
-                                                <label for="newvm-diskcm-{{i}}">Cache Mode:</label>
-                                                <select #newvmdiskcm class="custom-select rounded-0" name="newvm-diskcm-{{i}}" id="diskCacheMode-{{i}}" formControlName="diskCacheMode">
-                                                    <option value="" selected>Automatic</option>
-                                                    <option value="none">None</option>
-                                                    <option value="writethrough">WriteThrough</option>
-                                                    <option value="writeback">WriteBack</option>
-                                                </select>
+                                              <label for="newvm-bootorder-{{i}}">Boot Order:</label>
+                                              <input #newvmdiskbootorder type=number class="form-control" name="newvm-diskbootorder-{{i}}" id="diskBootOrder-{{i}}" formControlName="diskBootOrder">
                                             </div>
+                                        </div>
+                                        <div class="row">&nbsp;</div>
+                                        <div class="row">
+                                          <div class="col-3">
+                                            <label for="newvm-disksc-{{i}}">Storage Class:</label>
+                                            <select #newvmdisksc class="custom-select rounded-0" name="newvm-disksc-{{i}}" id="diskStorageClass-{{i}}" formControlName="diskStorageClass">
+                                            </select>
+                                          </div>
+                                          <div class="col-3">
+                                            <label for="newvm-diskam-{{i}}">Access Mode:</label>
+                                            <select #newvmdiskam class="custom-select rounded-0" name="newvm-diskeam-{{i}}" id="diskAccessMode-{{i}}" formControlName="diskAccessMode">
+                                                <option selected></option>
+                                                <option>ReadWriteOnce</option>
+                                                <option>ReadOnlyMany</option>
+                                                <option>ReadWriteMany</option>
+                                            </select>
+                                          </div>
+                                          <div class="col-2">
+                                            <label for="newvm-diskcm-{{i}}">Cache Mode:</label>
+                                            <select #newvmdiskcm class="custom-select rounded-0" name="newvm-diskcm-{{i}}" id="diskCacheMode-{{i}}" formControlName="diskCacheMode">
+                                                <option value="" selected>Automatic</option>
+                                                <option value="none">None</option>
+                                                <option value="writethrough">WriteThrough</option>
+                                                <option value="writeback">WriteBack</option>
+                                            </select>
+                                          </div>
+                                          <div class="col-2">
+                                            <label for="newvm-diskcm-{{i}}">Bus:</label>
+                                            <select #newvmdiskbus class="custom-select rounded-0" name="newvm-diskbus-{{i}}" id="diskBus-{{i}}" formControlName="diskBus">
+                                                <option value="" selected></option>
+                                                <option value="virtio">virtio</option>
+                                                <option value="sata">sata</option>
+                                                <option value="scsi">scsi</option>
+                                            </select>
+                                          </div>
+                                          <div class="col-2">
+                                            <label for="newvm-diskmode-{{i}}">Volume Mode:</label>
+                                            <select #newvmdiskbus class="custom-select rounded-0" name="newvm-diskmode-{{i}}" id="diskMode-{{i}}" formControlName="diskMode">
+                                                <option value="Filesystem" selected>Filesystem</option>
+                                                <option value="Block">Block</option>
+                                            </select>
+                                          </div>
                                         </div>
                                     </div>
                                 </div>
@@ -416,19 +447,31 @@
                                     </div>
                                     <div class="card-body" style="display: block;">
                                         <div class="row">
-                                            <div class="col-5" name="newvm-netname-col">
+                                            <div class="col-3" name="newvm-netname-col">
                                                 <label for="newvm-netname-{{j}}">Network:</label>
                                                 <select style="min-width: 300px;" class="custom-select rounded-0" name="newvm-netname-{{j}}" id="networkName-{{j}}" formControlName="networkName" (change)="onChangeNetwork(j)">
                                                     <option value="" selected></option>
                                                 </select>
                                             </div>
                                             <div class="col-1">&nbsp;</div>
-                                            <div class="col-5" name="newvm-nettype-col">
+                                            <div class="col-3" name="newvm-nettype-col">
                                                 <label for="newvm-nettype-{{j}}">Type:</label>
                                                 <select #nettype style="min-width: 300px;" class="custom-select rounded-0" name="newvm-nettype-{{j}}" id="networkType-{{j}}" formControlName="networkType">
                                                     <option value=bridge>bridge</option>
                                                     <option value=macvtap>macvtap</option>
                                                     <option value=masquerade>masquerade</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-1">&nbsp;</div>
+                                            <div class="col-3" name="newvm-netdrv-col">
+                                                <label for="newvm-netdrv-{{j}}">Driver:</label>
+                                                <select #netdrv style="min-width: 300px;" class="custom-select rounded-0" name="newvm-netdrv-{{j}}" id="networkDriver-{{j}}" formControlName="networkDriver">
+                                                    <option value=virtio selected>virtio</option>
+                                                    <option value=e1000>e1000</option>
+                                                    <option value=e1000e>e1000e</option>
+                                                    <option value=ne2k_pci>ne2k_pci</option>
+                                                    <option value=pcnet>pcnet</option>
+                                                    <option value=rtl8139>rtl8139</option>
                                                 </select>
                                             </div>
                                             <div class="col-1">&nbsp;</div>
@@ -483,7 +526,7 @@
           </div>
           <div class="modal-footer justify-content-between">
             <button type="button" class="btn btn-default" (click)='hideComponent("modal-newvm")'>Close</button>
-            <button type="button" class="btn btn-primary" (click)="applyNewVm(newvmname.value, newvmnamespace.value, newvmnode.value, newvmtype.value, newvmcpumemsockets.value, newvmcpumemcores.value, newvmcpumemthreads.value, newvmcpumemmemory.value, newvmpc.value, newvmfirmware.value, newvmsecureboot.value, newvmuserdatausername.value, newvmuserdataauth.value, newvmuserdatapassword.value, newvmuserdatassh.value, newvmnetdataip.value, newvmnetdatanetmask.value, newvmnetdatagw.value, newvmnetdatadns1.value, newvmnetdatadns2.value, newpoolinitscript.value)">Create</button>
+            <button type="button" class="btn btn-primary" (click)="applyNewVm(newvmname.value, newvmnamespace.value, newvmnode.value, newvmrunstrategy.value, newvmtype.value, newvmcpumemsockets.value, newvmcpumemcores.value, newvmcpumemthreads.value, newvmcpumemmemory.value, newvmpc.value, newvmfirmware.value, newvmsecureboot.value, newvmuserdatausername.value, newvmuserdataauth.value, newvmuserdatapassword.value, newvmuserdatassh.value, newvmnetdataip.value, newvmnetdatanetmask.value, newvmnetdatagw.value, newvmnetdatadns1.value, newvmnetdatadns2.value, newpoolinitscript.value)">Create</button>
           </div>
         </div>
         </div>

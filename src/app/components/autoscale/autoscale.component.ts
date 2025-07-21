@@ -21,9 +21,6 @@ export class AutoscaleComponent implements OnInit {
      * Dynamic Tables
      */
     hpaList_dtOptions: Config = {
-        //pagingType: 'full_numbers',
-        //lengthMenu: [5,10,15,25,50,100,150,200],
-        //pageLength: 50,
         paging: false,
         info: false,
         ordering: true,

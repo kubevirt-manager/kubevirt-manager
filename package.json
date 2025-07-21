@@ -1,13 +1,13 @@
 {
   "name": "kubevirtmgr-webui",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test --watch=false --browsers=ChromeHeadless",
-    "test-coverage": "ng test --code-coverage --watch=false --browsers=ChromeHeadless",
+    "test": "ng test --watch=false",
+    "test-coverage": "ng test --code-coverage --watch=false",
     "clean": "rm -rf node_modules && rm -rf .angular && rm -rf dist && rm -rf coverage"
   },
   "private": true,

@@ -1,0 +1,10 @@
+# Chrome Headless Image
+FROM cypress/browsers:node-22.7.0-chrome-127.0.6533.119-1-ff-129.0.1-edge-127.0.2651.98-1
+
+WORKDIR /usr/src/app
+COPY . /usr/src/app
+
+RUN cd /usr/src/app/src/assets/ && git clone https://github.com/novnc/noVNC.git
+RUN cd /usr/src/app && npm install -g npm@10.8.2 && npm run clean && npm install -g @angular/cli@18.1.1 && npm install && npm run build
+
+CMD ["ng", "test", "--watch=false"]

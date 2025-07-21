@@ -60,15 +60,11 @@
                            <li>{{thisLabel.key}} : {{thisLabel.value}}</li>
                        </ul>
                        <hr>
-                       <dt>
-                        Spec
-                        <a class="btn float-right" title="Edit...">
-                            <i class="fas fa-pen" (click)="showReplicas()"></i>
-                        </a>
-                      </dt>
+                       <dt>Spec</dt>
                       <br>
-                       <dd>Desired Replicas: {{activePool.replicas}} </dd>
+                       <dd>Desired Replicas: {{activePool.replicas}} <a class="btn float-right" title="Edit..."><i class="fas fa-pen" (click)="showReplicas()"></i></a></dd>
                        <dd>Ready Replicas: {{activePool.readyReplicas}} </dd>
+                       <dd>Run Strategy: {{activePool.runStrategy}} <a class="btn float-right" title="Edit..."><i class="fas fa-pen" (click)="showRunStrategy()"></i></a></dd>
                        <dd>Running: {{activePool.running}} </dd>
                        <hr>
                        <dt>Status</dt>
@@ -137,6 +133,7 @@
                             <div class="card-body">
                                     <li>Name: {{actualNet.name}}</li>
                                     <li>Type: {{actualNet.type}}</li>
+                                    <li>Driver: {{actualNet.driver}}</li>
                                     <li>Network: {{actualNet.network}}</li>
                             </div>
                        </div>
@@ -406,6 +403,38 @@
         </div>
         <!-- /.modal-dialog -->
       </div> 
+
+    <!--                           -->
+    <!-- Modal: Change RunStrategy -->
+    <!--                           -->
+    <div class="modal fade" id="modal-runstrategy" style="display: none;" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="type-title">Run Strategpy: {{activePool.namespace}} - {{activePool.name}}</h4>
+            <button type="button" class="close" (click)='hideComponent("modal-runstrategy")'>
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="modal-body" id="type-value">
+            <label for="newType">Run Strategy:</label>
+            <select #changepoolrunstrategy class="custom-select rounded-0" name="changepool-runstrategy" id="changepool-runstrategy">
+              <option value="Always">Always</option>
+              <option value="Halted">Halted</option>
+              <option value="Manual">Manual</option>
+              <option value="Once">Once</option>
+              <option value="RerunOnFailure">RerunOnFailure</option>
+            </select>
+          </div>
+          <div class="modal-footer justify-content-between">
+            <button type="button" class="btn btn-default" (click)='hideComponent("modal-runstrategy")'>Close</button>
+            <button type="button" class="btn btn-primary" (click)="applyStrategy(changepoolrunstrategy.value)">Save changes</button>
+          </div>
+        </div>
+        <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+    </div>
 
     <!--                    -->
     <!-- Modal: Change Type -->

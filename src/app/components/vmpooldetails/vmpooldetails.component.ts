@@ -105,7 +105,14 @@ export class VmpooldetailsComponent implements OnInit {
         }
         this.activePool.creationTimestamp = new Date(data.metadata["creationTimestamp"]);
         this.activePool.replicas = data.spec["replicas"];
-        this.activePool.running = data.spec.virtualMachineTemplate.spec["running"];
+        
+        try {
+            this.activePool.runStrategy = data.spec.virtualMachineTemplate.spec["runStrategy"];
+        } catch (e: any) {
+            this.activePool.runStrategy = "";
+            console.log("Error loading Pool runStrategy");
+        }
+
         /* Getting VM Type */
         try {
             this.activePool.instType = data.spec.virtualMachineTemplate.spec.instancetype.name;
@@ -118,7 +125,16 @@ export class VmpooldetailsComponent implements OnInit {
 
         /* Getting Ready Replicas */
         if(data.status["readyReplicas"] != null) {
-            this.activePool.readyReplicas = Number(data.status["readyReplicas"]) || 0;
+            try {
+                this.activePool.readyReplicas = Number(data.status["readyReplicas"]);
+                this.activePool.running = true;
+            } catch (e: any) {
+                this.activePool.running = false;
+                this.activePool.readyReplicas = 0;
+                console.log(e);
+            }
+        } else {
+            this.activePool.running = false;
         }
 
         /* Liveness Probe */
@@ -269,6 +285,16 @@ export class VmpooldetailsComponent implements OnInit {
                     }
                 } catch (e: any) {
                     netInfo.type = "bridge";
+                }
+
+                try {
+                    if(interfaces[i].model != null) {
+                        netInfo.driver = interfaces[i].model;
+                    } else {
+                        netInfo.driver = "virtio";
+                    }
+                } catch (e: any) {
+                    netInfo.driver = "N/A";
                 }
                 this.activePool.networkList.push(netInfo);
             }
@@ -1020,6 +1046,35 @@ export class VmpooldetailsComponent implements OnInit {
             this.reloadComponent();
         }
     }
+
+    /*
+     * Show VM Strategy Window
+     */
+    async showRunStrategy(): Promise<void> {
+        let modalDiv = document.getElementById("modal-runstrategy");
+        if(modalDiv != null) {
+            modalDiv.setAttribute("class", "modal fade show");
+            modalDiv.setAttribute("aria-modal", "true");
+            modalDiv.setAttribute("role", "dialog");
+            modalDiv.setAttribute("aria-hidden", "false");
+            modalDiv.setAttribute("style","display: block;");
+        }
+    }
+
+    /*
+     * Change VM Strategy
+     */
+    async applyStrategy(strategy: string): Promise<void> {
+        try {
+            const data = await lastValueFrom(this.kubeVirtService.changePoolStrategy(this.activePool.namespace, this.activePool.name, strategy));
+            this.hideComponent("modal-type");
+            this.reloadComponent();
+        } catch (e: any) {
+            alert(e.message.error);
+            console.log(e);
+        }
+    }
+
 
     /*
      * Reload this component

@@ -31,9 +31,6 @@ export class LoadBalancersComponent implements OnInit {
      * Dynamic Tables
      */
     lbList_dtOptions: Config = {
-        //pagingType: 'full_numbers',
-        //lengthMenu: [5,10,15,25,50,100,150,200],
-        //pageLength: 50,
         paging: false,
         info: false,
         ordering: true,
@@ -255,8 +252,12 @@ export class LoadBalancersComponent implements OnInit {
                 } else if(services[i].spec.selector["kubevirt.io/domain"] != null) {
                     currentLoadBalancer.targetResource = services[i].spec.selector["kubevirt.io/domain"];
                 }
-                if(currentLoadBalancer.type.toLowerCase() == "loadbalancer" && services[i].status.loadBalancer.ingress[0].ip != null) {
-                    currentLoadBalancer.loadBalancer = services[i].status.loadBalancer.ingress[0].ip;
+                if(currentLoadBalancer.type.toLowerCase() == "loadbalancer" && services[i].status.loadBalancer.ingress) {
+                    if(services[i].status.loadBalancer.ingress[0].ip != null) {
+                        currentLoadBalancer.loadBalancer = services[i].status.loadBalancer.ingress[0].ip;
+                    } else {
+                        currentLoadBalancer.loadBalancer = "N/A";
+                    }
                 } else {
                     currentLoadBalancer.loadBalancer = "N/A";
                 }

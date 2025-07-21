@@ -1,3 +1,10 @@
 div.dt-container .dt-search input {
     width: 300px;
 }
+:root {
+  --font-family-sans-serif: 'Source Sans 3', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+body {
+  font-family: var(--font-family-sans-serif);
+}
+

@@ -29,6 +29,8 @@ export interface KubevirtMachineTemplate {
                                 annotations?: {};
                             };
                             spec: {
+                                evictionStrategy?: string,
+                                nodeSelector?: {};
                                 priorityClassName?: string,
                                 domain: {
                                     firmware?: {

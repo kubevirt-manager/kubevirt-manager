@@ -44,6 +44,7 @@ export class KClusterComponent implements OnInit {
      * Dynamic Forms
      */
     ctrlPlaneAnnotationList: FormGroup;
+    ctrlPlaneLabelList: FormGroup;
     annotationList: FormGroup;
     labelList: FormGroup;
 
@@ -51,9 +52,6 @@ export class KClusterComponent implements OnInit {
      * Dynamic Tables
      */
     kclusterList_dtOptions: Config = {
-        //pagingType: 'full_numbers',
-        //lengthMenu: [5,10,15,25,50,100,150,200],
-        //pageLength: 50,
         paging: false,
         info: false,
         ordering: true,
@@ -79,6 +77,9 @@ export class KClusterComponent implements OnInit {
         this.ctrlPlaneAnnotationList = this.fb.group({
             ctrlannotations: this.fb.array([]),
         });
+        this.ctrlPlaneLabelList = this.fb.group({
+            ctrllabels: this.fb.array([]),
+        });
         this.annotationList = this.fb.group({
             annotations: this.fb.array([]),
         });
@@ -96,6 +97,9 @@ export class KClusterComponent implements OnInit {
         this.kclusterList_dtTrigger.next(null);
         this.ctrlPlaneAnnotationList = this.fb.group({
             ctrlannotations: this.fb.array([]),
+        });
+        this.ctrlPlaneLabelList = this.fb.group({
+            ctrllabels: this.fb.array([]),
         });
         this.annotationList = this.fb.group({
             annotations: this.fb.array([]),
@@ -144,7 +148,7 @@ export class KClusterComponent implements OnInit {
         let toValidate = this.getCtrlAnnotations();
         if (toValidate.length > 0) {
             for (let i = 0; i < toValidate.length; i ++) {
-                if (toValidate[i].crtlAnnotKey == "" || toValidate[i].crtlAnnotValue == "") {
+                if (toValidate[i].ctrlAnnotKey == "" || toValidate[i].ctrlAnnotValue == "") {
                     alert("Control Plane Service Annotation " + i + " should have Key and Value filled in.")
                     return false;
                 } 
@@ -152,6 +156,57 @@ export class KClusterComponent implements OnInit {
         }
         return true;
     }
+
+
+    /* Getting the Control Plane Labels FormArray */
+    get ctrllabels(): FormArray {
+        return this.ctrlPlaneLabelList.get('ctrllabels') as FormArray;
+    }
+
+    /* Control Plane Label FormGroup */
+    createCtrlLabelGroup(): FormGroup {
+        return this.fb.group({
+            ctrlLabelKey: [''],
+            ctrlLabelValue: [''],
+        })
+    }
+
+    /* Add a new Control Plane Label entry to the Group */
+    addCtrlLabel(): void {
+        this.ctrllabels.push(this.createCtrlLabelGroup());
+    }
+
+    /* Remove Control Plane Label entry from the Group */
+    removeCtrlLabel(index: number): void {
+        this.ctrllabels.removeAt(index);
+    }
+
+    /* Getting all the Control Plane labels */
+    getCtrlLabels(): any[] {
+        return this.ctrlPlaneLabelList.value.ctrllabels;
+    }
+
+    /*
+     * Control Plane Label Form Validation
+     */
+    validateCtrlLabels(): boolean {
+        let toValidate = this.getCtrlLabels();
+        if (toValidate.length > 0) {
+            for (let i = 0; i < toValidate.length; i ++) {
+                if (toValidate[i].ctrlLabelKey == "" || toValidate[i].ctrlLabelValue == "") {
+                    alert("Control Plane Service Label " + i + " should have Key and Value filled in.")
+                    return false;
+                } 
+            }
+        }
+        return true;
+    }
+
+
+
+
+
+
 
     /* Getting the Annotations FormArray */
     get annotations(): FormArray {
@@ -843,7 +898,7 @@ export class KClusterComponent implements OnInit {
             alert("Control Plane machines needs at least 2 vCPU!");
         } else if(clustercontrolplanetype != "custom" && controlPlaneTypedCpus < 2) {
             alert("Control Plane machines needs at least 2 vCPU, choose a bigger VM Type!");
-        } else if (this.validateAnnotations() && this.validateCtrlAnnotations() && this.validateLabels()) {
+        } else if (this.validateAnnotations() && this.validateCtrlAnnotations() && this.validateLabels() && this.validateCtrlLabels()) {
 
             /* Auto Fill CIDR Blocks */
             if(clusterpodcidr == "") {
@@ -1055,7 +1110,7 @@ export class KClusterComponent implements OnInit {
             alert("Control Plane machines needs at least 2 vCPU!");
         } else if(clustercontrolplanetype != "custom" && controlPlaneTypedCpus < 2) {
             alert("Control Plane machines needs at least 2 vCPU, choose a bigger VM Type!");
-        } else if (this.validateAnnotations() && this.validateCtrlAnnotations() && this.validateLabels()) {
+        } else if (this.validateAnnotations() && this.validateCtrlAnnotations() && this.validateLabels() && this.validateCtrlLabels()) {
 
             /* Auto Fill CIDR Blocks */
             if(clusterpodcidr == "") {
@@ -1177,11 +1232,13 @@ export class KClusterComponent implements OnInit {
         /* Load Custom Labels OPTIONAL */
         let labelsForm = this.getLabels();
         let tmpLabels = {};
+        let tmpctrlLabels = {};
         for (let i = 0; i < labelsForm.length; i++) {
             let thisLabel = {
                 [labelsForm[i].labelKey.toString()] : labelsForm[i].labelValue
             };
             Object.assign(tmpLabels, thisLabel);
+            Object.assign(tmpctrlLabels, thisLabel)
         }
 
         /* Load Annotations OPTIONAL */
@@ -1194,22 +1251,33 @@ export class KClusterComponent implements OnInit {
             Object.assign(tmpAnnotations, thisAnnotation);
         }
 
-        /* Load Control Plane Annotations OPTIONAL */
-        let crtlAnnotationsForm = this.getCtrlAnnotations();
-        let tmpCrtlAnnotations = {};
-        for (let i = 0; i < crtlAnnotationsForm.length; i++) {
-            let thisAnnotation = {
-                [crtlAnnotationsForm[i].ctrlAnnotKey.toString()] : crtlAnnotationsForm[i].crtlAnnotValue
+        /* Load Control Plane Labels OPTIONAL */
+        let ctrlLabelsForm = this.getCtrlLabels();
+        for (let i = 0; i < ctrlLabelsForm.length; i++) {
+            let thisLabel = {
+                [ctrlLabelsForm[i].ctrlLabelKey.toString()] : ctrlLabelsForm[i].ctrlLabelValue
             };
-            Object.assign(tmpCrtlAnnotations, thisAnnotation);
+            Object.assign(tmpctrlLabels, thisLabel);
+        }
+
+        /* Load Control Plane Annotations OPTIONAL */
+        let ctrlAnnotationsForm = this.getCtrlAnnotations();
+        let tmpctrlAnnotations = {};
+        for (let i = 0; i < ctrlAnnotationsForm.length; i++) {
+            let thisAnnotation = {
+                [ctrlAnnotationsForm[i].ctrlAnnotKey.toString()] : ctrlAnnotationsForm[i].ctrlAnnotValue
+            };
+            Object.assign(tmpctrlAnnotations, thisAnnotation);
         }
 
         /* Load other labels */
         let clusterNameLabel = { 'kubevirt-manager.io/cluster-name': name };
         Object.assign(tmpLabels, clusterNameLabel);
+        Object.assign(tmpctrlLabels, clusterNameLabel);
 
         let kubevirtManagerLabel = { 'kubevirt-manager.io/managed': "true" };
         Object.assign(tmpLabels, kubevirtManagerLabel);
+        Object.assign(tmpctrlLabels, kubevirtManagerLabel);
 
         let clusterAutoscalerLabel = { 'capk.kubevirt-manager.io/autoscaler': clusterautoscaler };
         Object.assign(tmpLabels, clusterAutoscalerLabel);
@@ -1281,8 +1349,8 @@ export class KClusterComponent implements OnInit {
         cluster.metadata.labels = tmpLabels;
         kubevirtCluster.metadata.labels = tmpLabels;
         kubevirtCluster.metadata.annotations = tmpAnnotations;
-        kubevirtCluster.spec.controlPlaneServiceTemplate.metadata.labels = tmpLabels;
-        kubevirtCluster.spec.controlPlaneServiceTemplate.metadata.annotations = tmpCrtlAnnotations;
+        kubevirtCluster.spec.controlPlaneServiceTemplate.metadata.labels = tmpctrlLabels;
+        kubevirtCluster.spec.controlPlaneServiceTemplate.metadata.annotations = tmpctrlAnnotations;
 
         try {
             let data = await lastValueFrom(this.xK8sService.createCluster(cluster));

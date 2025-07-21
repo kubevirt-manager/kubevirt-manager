@@ -8,12 +8,12 @@ export interface VirtualMachine {
         labels?: {};
     };
     spec: {
+        runStrategy: string;
         dataVolumeTemplates?: {};
         instancetype?: {
             kind: "VirtualMachineClusterInstancetype";
             name: string;
         };
-        running: false;
         template: {
             metadata: {
                 annotations?: {};

@@ -84,7 +84,7 @@ metadata:
   name: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.5.0
+    kubevirt-manager.io/version: 1.5.1
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -93,7 +93,7 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.5.0
+    kubevirt-manager.io/version: 1.5.1
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -102,7 +102,10 @@ metadata:
   name: kubevirt-manager
 rules:
   - apiGroups: [""]
-    resources: ["nodes", "namespaces"]
+    resources: ["nodes", "namespaces", "pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
     verbs: ["get", "list"]
   - apiGroups: [""]
     resources: ["customresourcedefinitions"]
@@ -178,7 +181,7 @@ metadata:
   name: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.5.0
+    kubevirt-manager.io/version: 1.5.1
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -214,7 +217,7 @@ metadata:
   name: kubevirt-manager-kccm
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.5.0
+    kubevirt-manager.io/version: 1.5.1
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -281,7 +284,7 @@ metadata:
   name: kubevirt-manager-cas-workload
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.5.0
+    kubevirt-manager.io/version: 1.5.1
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -298,7 +301,7 @@ metadata:
   name: kubevirt-manager-cas-management
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.5.0
+    kubevirt-manager.io/version: 1.5.1
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -316,7 +319,7 @@ metadata:
   name: vm-standard
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.5.0
+    kubevirt-manager.io/version: 1.5.1
     kubevirt-manager.io/managed: "true"
 preemptionPolicy: Never
 value: 999999999
@@ -329,7 +332,7 @@ metadata:
   name: vm-preemptible
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.5.0
+    kubevirt-manager.io/version: 1.5.1
     kubevirt-manager.io/managed: "true"
 preemptionPolicy: PreemptLowerPriority
 value: 1000000
@@ -342,12 +345,12 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.5.0
+    kubevirt-manager.io/version: 1.5.1
 spec:
   selector:
     matchLabels:
       app: kubevirt-manager
-      kubevirt-manager.io/version: 1.5.0
+      kubevirt-manager.io/version: 1.5.1
   replicas: 1
   strategy:
     type: Recreate
@@ -355,11 +358,11 @@ spec:
     metadata:
       labels:
         app: kubevirt-manager
-        kubevirt-manager.io/version: 1.5.0
+        kubevirt-manager.io/version: 1.5.1
     spec:
       containers:
         - name: kubevirtmgr
-          image: kubevirtmanager/kubevirt-manager:1.5.0
+          image: kubevirtmanager/kubevirt-manager:1.5.1
           imagePullPolicy: IfNotPresent
           ports:
           - name: http
@@ -408,7 +411,7 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.5.0
+    kubevirt-manager.io/version: 1.5.1
 spec:
   type: ClusterIP
   selector:

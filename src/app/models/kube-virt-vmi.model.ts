@@ -2,6 +2,7 @@ export class KubeVirtVMI {
   name:               string   = "";
   namespace:          string   = "";
   uid:                string   = "";
+  runStrategy:        string   = "";
   running:           boolean   = false;
   labels:                 {}   = {};
   creationTimestamp:    Date   = new Date;
