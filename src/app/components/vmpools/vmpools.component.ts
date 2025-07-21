@@ -268,6 +268,7 @@ export class VMPoolsComponent implements OnInit {
         return this.fb.group({
             networkName: [''],
             networkType: [''],
+            networkDriver: [''],
         });
     }
 
@@ -321,7 +322,7 @@ export class VMPoolsComponent implements OnInit {
             currentPool.namespace = pools[i].metadata["namespace"];
             currentPool.creationTimestamp = new Date(pools[i].metadata["creationTimestamp"]);
             currentPool.replicas = pools[i].spec["replicas"];
-            currentPool.running = pools[i].spec.virtualMachineTemplate.spec["running"];
+
             /* Getting VM Type */
             try {
                 currentPool.instType = pools[i].spec.virtualMachineTemplate.spec.instancetype.name;
@@ -330,14 +331,25 @@ export class VMPoolsComponent implements OnInit {
                 console.log(e);
             }
 
+            try {
+                currentPool.runStrategy = pools[i].spec.virtualMachineTemplate.spec["runStrategy"];
+            } catch (e: any) {
+                currentPool.runStrategy = "";
+                console.log("Error loading Pool runStrategy");
+            }
+
             /* Getting Ready Replicas */
-            if(currentPool.readyReplicas != null) {
+            if(pools[i].status["readyReplicas"] != null) {
                 try {
                     currentPool.readyReplicas = Number(pools[i].status["readyReplicas"]);
+                    currentPool.running = true;
                 } catch (e: any) {
+                    currentPool.running = false;
                     currentPool.readyReplicas = 0;
                     console.log(e);
                 }
+            } else {
+                currentPool.running = false;
             }
 
             if(currentPool.instType == "custom") {
@@ -564,7 +576,7 @@ export class VMPoolsComponent implements OnInit {
                         metadata: {},
                         spec: {
                             dataVolumeTemplates: {},
-                            running: true,
+                            runStrategy: "Always",
                             template: {
                                 metadata: {},
                                 spec: {
@@ -767,7 +779,7 @@ export class VMPoolsComponent implements OnInit {
                     } else {
                         diskObject = { 'name': "disk" + i.toString(), 'disk': {}};
                     }
-                    deviceObject = { 'name': "disk" + i.toString(), 'dataVolume': { 'name': actualDiskName}};
+                    deviceObject = { 'name': "disk" + i.toString(), 'dataVolume': { 'name': actualDisk.diskValue }};
                 }
                 volumes.push(deviceObject);
                 disks.push(diskObject);
@@ -777,7 +789,7 @@ export class VMPoolsComponent implements OnInit {
             /* UserData Setup */
             if(newpooluserdatausername != "") {
                 cloudconfig += "user: " + newpooluserdatausername + "\n";
-                Object.assign(thisVirtualMachinePool.metadata.labels, { "cloud-init.kubevirt-manager.io/username" : newpooluserdatassh });
+                Object.assign(thisVirtualMachinePool.metadata.labels, { "cloud-init.kubevirt-manager.io/username" : newpooluserdatausername });
                 Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.metadata.labels, { "cloud-init.kubevirt-manager.io/username" : newpooluserdatassh });
                 Object.assign(thisVirtualMachinePool.spec.virtualMachineTemplate.spec.template.metadata.labels, { "cloud-init.kubevirt-manager.io/username" : newpooluserdatassh });
             }
@@ -858,13 +870,18 @@ export class VMPoolsComponent implements OnInit {
                 } else {
                     netObject = {'name': "net" + i.toString(), 'pod': {}};
                 }
+
+                let nicDriver = "virtio"
+                if(thisNIC.networkDriver != "") {
+                    nicDriver = thisNIC.networkDriver
+                }
                 
                 if(thisNIC.networkType == "bridge") {
-                    ifaceObject = {'name': "net" + i.toString(), 'bridge': {}}; 
+                    ifaceObject = {'name': "net" + i.toString(), 'bridge': {}, 'model': nicDriver}; 
                 } else if(thisNIC.networkType == "macvtap") {
-                    ifaceObject = {'name': "net" + i.toString(), 'binding': {'name': 'macvtap'}};
+                    ifaceObject = {'name': "net" + i.toString(), 'binding': {'name': 'macvtap'}, 'model': nicDriver};
                 } else {
-                    ifaceObject = {'name': "net" + i.toString(), 'masquerade': {}};
+                    ifaceObject = {'name': "net" + i.toString(), 'masquerade': {}, 'model': nicDriver};
                 }
                 networks.push(netObject);
                 interfaces.push(ifaceObject);

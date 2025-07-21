@@ -74,6 +74,7 @@
                     <li class="nav-item"><a class="nav-link" href="#disks" data-toggle="tab">Disks</a></li>
                     <li class="nav-item"><a class="nav-link" href="#logging" data-toggle="tab">Logs</a></li>
                     <li class="nav-item"><a class="nav-link" href="#vmmonitoring" data-toggle="tab" *ngIf="promCheck">Monitoring</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#vmserial" data-toggle="tab">Serial</a></li>
                     <li class="nav-item"><a class="nav-link" href="#vmconsole" data-toggle="tab">Console</a></li>
                   </ul>
                 </div>
@@ -89,6 +90,14 @@
                        <ul *ngFor="let thisLabel of activeVm.labels | keyvalue">
                            <li>{{thisLabel.key}} : {{thisLabel.value}}</li>
                        </ul>
+                       <hr>
+                       <dt>Spec
+                           <a class="btn float-right" title="Edit...">
+                           <i class="fas fa-pen" (click)="showRunStrategy()"></i>
+                      </a>
+                       </dt>
+                       <br>
+                       <dd>Run Stragegy: {{activeVm.runStrategy}} </dd>
                        <hr>
                        <dt>Status</dt>
                        <br>
@@ -165,6 +174,7 @@
                             <div class="card-body">
                                     <li>Name: {{actualNet.name}}</li>
                                     <li>Type: {{actualNet.type}}</li>
+                                    <li>Driver: {{actualNet.driver}}</li>
                                     <li>Network: {{actualNet.network}}</li>
                                     <li>IP Address: {{actualNet.ip}}</li>
                             </div>
@@ -177,6 +187,15 @@
                             <a class="btn float-right" title="Hotplug...">
                                 <i class="fas fa-plus" (click)="showHotplug()"></i>
                             </a>
+                            
+                            <span [ngSwitch]="activeVm.running">
+                              <a class="btn float-right disabled" title="Edit..." *ngSwitchCase="true">
+                                <i class="fas fa-pen disabled" (click)="showDisk()"></i>
+                              </a>
+                              <a class="btn float-right" title="Edit..." *ngSwitchDefault>
+                                <i class="fas fa-pen" (click)="showDisk()"></i>
+                              </a>
+                             </span>
                             
                         </dt>
                        <br>
@@ -203,6 +222,7 @@
                                 <li>Data Volume Source Value: {{actualDisk.dataVolume.sourceValue}} </li>
                                 <li>Access Mode: {{actualDisk.accessMode}}</li>
                                 <li>Cache Mode: {{actualDisk.cacheMode}} </li>
+                                <li>Boot Order: {{actualDisk.bootOrder}} </li>
                                 <li>Capacity: {{actualDisk.size}} </li>
                                 <li>Storage Class: {{actualDisk.storageClass}}</li>
                                 <li>Hotplugged: {{actualDisk.hotplug}}</li>
@@ -297,9 +317,13 @@
                         </div>
                       </div>
                     </div>
+                    <!-- VM Serial -->
+                    <div class="tab-pane" id="vmserial">
+                      <iframe id="xtermfram" width="60%" height="100%" frameBorder="0" style="height: 360px; width: 680px" [src]="urlSafeXterm"></iframe>
+                    </div>
                     <!-- VM Console -->
                     <div class="tab-pane" id="vmconsole">  
-                        <iframe width="100%" height="100%" frameBorder="0" style="height: 600px" [src]="urlSafe"></iframe>
+                        <iframe id="vncframe" width="100%" height="100%" frameBorder="0" style="height: 600px" [src]="urlSafeVnc"></iframe>
                         <br>
                         <p><a href="#" (click)='openNoVNC()' title="Open console...">Open Full noVNC Client</a></p>
                     </div>
@@ -311,6 +335,38 @@
           <!-- /.card-body -->
         </div>
       </div>
+
+    <!--                           -->
+    <!-- Modal: Change RunStrategy -->
+    <!--                           -->
+    <div class="modal fade" id="modal-runstrategy" style="display: none;" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="type-title">Run Strategpy: {{activeVm.namespace}} - {{activeVm.name}}</h4>
+            <button type="button" class="close" (click)='hideComponent("modal-runstrategy")'>
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="modal-body" id="type-value">
+            <label for="newType">Run Strategy:</label>
+            <select #changevmrunstrategy class="custom-select rounded-0" name="changevm-runstrategy" id="changevm-runstrategy">
+              <option value="Always">Always</option>
+              <option value="Halted">Halted</option>
+              <option value="Manual">Manual</option>
+              <option value="Once">Once</option>
+              <option value="RerunOnFailure">RerunOnFailure</option>
+            </select>
+          </div>
+          <div class="modal-footer justify-content-between">
+            <button type="button" class="btn btn-default" (click)='hideComponent("modal-runstrategy")'>Close</button>
+            <button type="button" class="btn btn-primary" (click)="applyStrategy(changevmrunstrategy.value)">Save changes</button>
+          </div>
+        </div>
+        <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+    </div>
 
     <!--                    -->
     <!-- Modal: Change Type -->
@@ -332,7 +388,7 @@
             </div>
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-type")'>Close</button>
-              <button type="button" class="btn btn-primary" (click)="applyType( changevmtype.value)">Save changes</button>
+              <button type="button" class="btn btn-primary" (click)="applyType(changevmtype.value)">Save changes</button>
             </div>
           </div>
           <!-- /.modal-content -->
@@ -436,6 +492,58 @@
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" (click)='hideComponent("modal-resize")'>Close</button>
               <button type="button" class="btn btn-primary" (click)="applyResize(resizeSockets.value, resizeCores.value, resizeThreads.value, resizeMemory.value)">Save changes</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <!--                  -->
+    <!-- Modal: Edit Disk -->
+    <!--                  -->
+    <div class="modal fade" id="modal-disk" style="display: none;" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="disk-title">Edit Disk: {{activeVm.namespace}} - {{activeVm.name}}</h4>
+              <button type="button" class="close" (click)='hideComponent("modal-disk")'>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <div class="modal-body" id="disk-value">
+              <form [formGroup]="diskList">
+                <div formArrayName="disks">
+                    <div class="card card-outline" *ngFor="let disk of disks.controls; let i = index" [formGroupName]="i">
+                        <div class="card-body" style="display: block;">
+                            <div class="row">
+                                <div class="col-4" name="newvm-disk-type-col">
+                                    <label for="editvm-diskname-{{i}}">Name:</label>
+                                    <br>disk{{i}}
+                                    <input #newvmdiskname type=hidden class="form-control" name="newvm-diskname-{{i}}" id="diskName-{{i}}" formControlName="diskName">
+                                </div>
+                                <div class="col-4">
+                                    <label for="editvm-diskbus-{{i}}">BUS:</label>
+                                    <select #newvmdiskbus class="custom-select rounded-0" name="newvm-diskbus-{{i}}" id="diskBus-{{i}}" formControlName="diskBus">
+                                      <option value=""></option>
+                                      <option value="virtio">virtio</option>
+                                      <option value="sata">sata</option>
+                                      <option value="scsi">scsi</option>
+                                  </select>
+                                </div>
+                                <div class="col-4">
+                                  <label for="newvm-bootorder-{{i}}">Boot Order:</label>
+                                  <input #newvmdiskbootorder type=number class="form-control" name="newvm-diskbootorder-{{i}}" id="diskBootOrder-{{i}}" formControlName="diskBootOrder">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" (click)='hideComponent("modal-disk")'>Close</button>
+              <button type="button" class="btn btn-primary" (click)="applyDisk()">Apply</button>
             </div>
           </div>
           <!-- /.modal-content -->

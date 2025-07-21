@@ -321,11 +321,43 @@
                       </select>
                       <br><br>
                       <div class="row">
-                            <label for="newcluster-crtlannotations">Endpoint Service Annotations:&nbsp;
-                            <a class="btn" (click)="addCtrlAnnotation()" title="Add new annotation...">
+                            <label for="newcluster-ctrllabels">Endpoint Service Labels:&nbsp;
+                            <a class="btn" (click)="addCtrlLabel()" title="Add new label...">
                                 <i class="fas fa-plus"></i>
                             </a>
                             </label>
+                      </div>
+                      <div class="row">
+                            <form [formGroup]="ctrlPlaneLabelList"> 
+                                <table class="table table-sm" style="vertical-align: middle !important;">
+                                    <thead>
+                                        <tr>
+                                        <th style="width: 500px">Key</th>
+                                        <th style="width: 500px">Value</th>
+                                        <th style="width: 100px">&nbsp;</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody formArrayName="ctrllabels"> 
+                                        <tr *ngFor="let ctrllabel of ctrllabels?.controls; let i = index" [formGroupName]="i">
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newcluster-svc-labelkey" id="ctrlLabelKey{{i}}" formControlName="ctrlLabelKey"></td>
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newcluster-svc-labelvalue" id="ctrlLabelValue{{i}}" formControlName="ctrlLabelValue"></td>
+                                        <td style="line-height: 2.2 !important;">
+                                            <a class="btn" (click)="removeCtrlLabel(i)" title="Remove label...">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </form>
+                      </div>
+                      <br>
+                      <div class="row">
+                        <label for="newcluster-ctrlannotations">Endpoint Service Annotations:&nbsp;
+                        <a class="btn" (click)="addCtrlAnnotation()" title="Add new annotation...">
+                            <i class="fas fa-plus"></i>
+                        </a>
+                        </label>
                       </div>
                       <div class="row">
                             <form [formGroup]="ctrlPlaneAnnotationList"> 
@@ -744,7 +776,39 @@
                       </select>
                       <br><br>
                       <div class="row">
-                            <label for="newcluster-crtlannotations">Endpoint Service Annotations:&nbsp;
+                            <label for="newcluster-ctrllabels">Endpoint Service Labels:&nbsp;
+                            <a class="btn" (click)="addCtrlLabel()" title="Add new label...">
+                                <i class="fas fa-plus"></i>
+                            </a>
+                            </label>
+                      </div>
+                      <div class="row">
+                            <form [formGroup]="ctrlPlaneLabelList">
+                                <table class="table table-sm" style="vertical-align: middle !important;">
+                                    <thead>
+                                        <tr>
+                                        <th style="width: 500px">Key</th>
+                                        <th style="width: 500px">Value</th>
+                                        <th style="width: 100px">&nbsp;</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody formArrayName="ctrllabels"> 
+                                        <tr *ngFor="let ctrllabel of ctrllabels.controls; let i = index" [formGroupName]="i">
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newcluster-labelkey" id="ctrlLabelKey{{i}}" formControlName="ctrlLabelKey"></td>
+                                        <td style="line-height: 2.2 !important;"><input type="text" class="form-control" name="newcluster-labelvalue" id="ctrlLabelValue{{i}}" formControlName="ctrlLabelValue"></td>
+                                        <td style="line-height: 2.2 !important;">
+                                            <a class="btn" (click)="removeCtrlLabel(i)" title="Remove label...">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </form>
+                      </div>
+                      <br>
+                      <div class="row">
+                            <label for="newcluster-ctrlannotations">Endpoint Service Annotations:&nbsp;
                             <a class="btn" (click)="addCtrlAnnotation()" title="Add new annotation...">
                                 <i class="fas fa-plus"></i>
                             </a>

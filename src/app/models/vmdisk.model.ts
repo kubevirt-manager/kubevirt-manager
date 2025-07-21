@@ -14,6 +14,7 @@ export class VMDisk {
     storageClass:    string  = "";
     accessMode:      string  = "";
     cacheMode:       string  = "";
+    bootOrder:       number  = 99999;
     creationTime:    string  = "";
     succeeded:       boolean = false;
     bound:           boolean = false;

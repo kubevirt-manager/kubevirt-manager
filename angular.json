@@ -14,7 +14,8 @@
           "builder": "@angular-devkit/build-angular:application",
           "options": {
             "allowedCommonJsDependencies": [
-              "buffer"
+              "buffer",
+              "xterm"
             ],
             "outputPath": {
               "base": "dist/kubevirtmgr-webui"
@@ -65,7 +66,7 @@
                   "minify": true,
                   "inlineCritical": false
                 },
-                "fonts": true
+                "fonts": { "inline": false }
               }
             },
             "development": {
@@ -114,5 +115,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }

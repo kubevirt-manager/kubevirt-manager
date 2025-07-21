@@ -23,7 +23,7 @@ export interface VirtualMachinePool {
                     kind: "VirtualMachineClusterInstancetype";
                     name: string;
                 };
-                running: true;
+                runStrategy: string;
                 template: {
                     metadata: {
                         labels?: {}

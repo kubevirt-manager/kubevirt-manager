@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+  <title>Debug Console</title>
+  <link rel="stylesheet" href="./dist/css/xterm.css" />
+  <style>
+    body, html { margin: 0; padding: 0; height: 100%; background-color: #000; scrollbar-width: none; overflow-x: hidden;}
+    #terminal { width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <div id="terminal"></div>
+  <script src="./dist/js/xterm.js"></script>
+  <script>
+    const terminal = new Terminal({ cursorBlink: true, fontSize: 14, theme: { background: '#000', foreground: '#fff' } });
+    terminal.open(document.getElementById('terminal'));
+
+    const params = new URLSearchParams(window.location.search);
+    const namespace = params.get('namespace');
+    const vm = params.get('vm');
+    const wsURL = "/k8s/apis/subresources.kubevirt.io/v1alpha3/namespaces/" + namespace + "/virtualmachineinstances/" + vm + "/console";
+
+    let socket;
+    let reconnectTimeout;
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT_ATTEMPTS = 10; /* Max reconnect retry */
+    const INITIAL_RECONNECT_DELAY_MS = 5000; /* 5 seconds */
+    const MAX_RECONNECT_DELAY_MS = 40000; /* 40 seconds */
+
+    /* calculate recoonect delay */
+    function getReconnectDelay() {
+      const delay = Math.min(
+        MAX_RECONNECT_DELAY_MS,
+        INITIAL_RECONNECT_DELAY_MS * Math.pow(2, reconnectAttempts)
+      );
+      return delay;
+    }
+
+    /* schedule reconnect */
+    function scheduleReconnect() {
+      if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        return;
+      }
+
+      const delay = getReconnectDelay();
+      reconnectAttempts++;
+      console.log(`Attempting reconnect in ${delay / 1000} seconds (Attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
+      
+      /* clean previous timeouts */
+      clearTimeout(reconnectTimeout); 
+      reconnectTimeout = setTimeout(connectWebSocket, delay);
+      
+    }
+
+    function connectWebSocket() {
+      reconnectTimeout = null;
+      
+      if (reconnectAttempts > 0) { 
+        terminal.clear(); 
+      }
+      
+
+      socket = new WebSocket(wsURL);
+      socket.binaryType = "arraybuffer";
+
+      socket.onopen = () => {
+        terminal.writeln('🔗 WebSocket connected.');
+        reconnectAttempts = 0; /* reset retry attempts */
+      };
+
+      socket.onerror = (e) => {
+        terminal.writeln('❌ Failure in WebSocket. Check console for details.');
+        console.error('WebSocket Error:', e);
+        scheduleReconnect();
+      };
+
+      socket.onclose = () => {
+        terminal.writeln('\r\n🔌 Connection closed.');
+        scheduleReconnect();
+      };
+
+      socket.onmessage = (event) => {
+        const data = new Uint8Array(event.data);
+        try {
+          const text = new TextDecoder().decode(data);
+          terminal.write(text);
+        } catch (e) {
+          terminal.write(`[RAW:${data.join(",")}]`);
+        }
+      };
+
+      terminal.onData((data) => {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          const encoder = new TextEncoder();
+          const payload = encoder.encode(data);
+          socket.send(payload);
+        }
+      });
+    }
+
+    /* initial connection */
+    connectWebSocket();
+  </script>
+</body>
+</html>

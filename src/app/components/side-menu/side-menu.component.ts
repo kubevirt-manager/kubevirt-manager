@@ -33,7 +33,7 @@ export class SideMenuComponent implements OnInit {
             const data = await lastValueFrom(this.k8sApisService.getCrds());
             this.crdList = data.items;
         } catch (e: any) {
-            console.log(e);
+            this.crdList = [];
         }
     }
 

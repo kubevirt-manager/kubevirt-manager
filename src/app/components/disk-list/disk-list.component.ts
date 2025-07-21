@@ -25,9 +25,6 @@ export class DiskListComponent implements OnInit {
      * Dynamic Tables
      */
     diskList_dtOptions: Config = {
-        //pagingType: 'full_numbers',
-        //lengthMenu: [5,10,15,25,50,100,150,200],
-        //pageLength: 50,
         paging: false,
         info: false,
         ordering: true,
@@ -106,8 +103,16 @@ export class DiskListComponent implements OnInit {
                 currentDisk = new VMDisk();
                 currentDisk["namespace"] = disks[i].metadata["namespace"];
                 currentDisk["name"] = disks[i].metadata["name"];
-                currentDisk["status"] = disks[i].status["phase"];
-                currentDisk["progress"] = disks[i].status["progress"];
+                try {
+                    currentDisk["status"] = disks[i].status["phase"];
+                } catch (e: any) {
+                    currentDisk["status"] = "Undefined";
+                }
+                try {
+                    currentDisk["progress"] = disks[i].status["progress"];
+                } catch (e: any) {
+                    currentDisk["progress"] = "Undefined";
+                }
                 try {                
                     currentDisk["storageClass"] = disks[i].spec.pvc["storageClassName"];
                     currentDisk["accessMode"] = disks[i].spec.pvc.accessModes[0];

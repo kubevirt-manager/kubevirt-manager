@@ -4,5 +4,6 @@ export class VMNewtork {
     type:      string  = "";
     network:   string  = "";
     ip:        string  = "";
+    driver:    string  = "";
     hotplug:  boolean  = true;
 }

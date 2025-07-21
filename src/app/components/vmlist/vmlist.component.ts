@@ -46,9 +46,6 @@ export class VmlistComponent implements OnInit {
      * Dynamic Tables
      */
     vmList_dtOptions: Config = {
-        //pagingType: 'full_numbers',
-        //lengthMenu: [5,10,15,25,50,100,150,200],
-        //pageLength: 50,
         paging: false,
         info: false,
         ordering: true,
@@ -213,9 +210,12 @@ export class VmlistComponent implements OnInit {
             diskType: [''],
             diskValue: [''],
             diskSize: [''],
+            diskBootOrder: this.disks.length + 1,
             diskStorageClass: [''],
             diskAccessMode: [''],        
             diskCacheMode: [''],
+            diskBus: [''],
+            diskMode: ['']
         });
     }
 
@@ -241,6 +241,7 @@ export class VmlistComponent implements OnInit {
      */
     validateDisks(): boolean {
         let toValidate = this.getDisks();
+        const bootOrderCheck = new Set<number>();
         if (toValidate.length > 0) {
             for (let i = 0; i < toValidate.length; i ++) {
                 if (toValidate[i].diskType == "") {
@@ -258,7 +259,14 @@ export class VmlistComponent implements OnInit {
                 } else if (toValidate[i].diskStorageClass == "") {
                     alert("Disk " + i + " has no Storage Class set.");
                     return false;
+                } else if (toValidate[i].diskBootOrder == "" || toValidate[i].diskBootOrder == 0) {
+                    alert("Disk " + i + " has an invalid Boot Order value.");
+                    return false;
+                } else if (bootOrderCheck.has(toValidate[i].diskBootOrder)) {
+                    alert("Disk " + i + " has an invalid Boot Order value. The boot order is already in use.");
+                    return false;
                 }
+                bootOrderCheck.add(toValidate[i].diskBootOrder)
             }
         }
         return true;
@@ -274,6 +282,7 @@ export class VmlistComponent implements OnInit {
         return this.fb.group({
             networkName: [''],
             networkType: [''],
+            networkDriver: [''],
         });
     }
 
@@ -363,6 +372,12 @@ export class VmlistComponent implements OnInit {
                 currentVm.status = "";
                 currentVm.running = false;
                 console.log("Error loading VM status");
+            }
+            try {
+                currentVm.runStrategy = vms[i].spec["runStrategy"];
+            } catch (e: any) {
+                currentVm.runStrategy = "";
+                console.log("Error loading VM runStrategy");
             }
             if (vms[i].spec.template.spec.nodeSelector !== undefined && vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"] !== undefined && vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"] != "") { 
                 currentVm.nodeSel = vms[i].spec.template.spec.nodeSelector["kubernetes.io/hostname"];
@@ -611,6 +626,7 @@ export class VmlistComponent implements OnInit {
         newvmname: string,
         newvmnamespace: string,
         newvmnode: string,
+        newvmrunstrategy: string,
         newvmtype: string,
         newvmcpumemsockets: string,
         newvmcpumemcores: string,
@@ -651,7 +667,7 @@ export class VmlistComponent implements OnInit {
                     namespace: newvmnamespace,
                 },
                 spec: {
-                    running: false,
+                    runStrategy: newvmrunstrategy,
                     template: {
                         metadata: {},
                         spec: {
@@ -732,6 +748,9 @@ export class VmlistComponent implements OnInit {
                 let deviceObject = {};
                 let actualDisk = thisDiskList[i];
                 let actualDiskName = newvmnamespace + "-"+ newvmname + "-disk" + i.toString();
+                if (actualDisk.diskMode == "") {
+                    actualDisk.diskMode = "Filesystem";
+                }
                 let diskDataVolume: DataVolume = {
                     apiVersion: "cdi.kubevirt.io/v1beta1",
                     kind: "DataVolume",
@@ -745,6 +764,7 @@ export class VmlistComponent implements OnInit {
                     spec: {
                         pvc: {
                             storageClassName: actualDisk.diskStorageClass,
+                            volumeMode: actualDisk.diskMode,
                             accessModes:[
                                 actualDisk.diskAccessMode
                             ],
@@ -807,13 +827,22 @@ export class VmlistComponent implements OnInit {
                     try {
                         let diskData = await lastValueFrom(this.dataVolumesService.createDataVolume(diskDataVolume));
                         if(actualDisk.diskCacheMode != "") {
-                            diskObject = { 'name': "disk" + i.toString(), 'cache': actualDisk.diskCacheMode, 'disk': {}};
+                            if(actualDisk.diskBus != "") {
+                                diskObject = { 'name': "disk" + i.toString(), 'cache': actualDisk.diskCacheMode, 'bootOrder': actualDisk.diskBootOrder, 'disk': {'bus': actualDisk.diskBus}};
+                            } else {
+                                diskObject = { 'name': "disk" + i.toString(), 'cache': actualDisk.diskCacheMode, 'bootOrder': actualDisk.diskBootOrder, 'disk': {}};
+                            }
                         } else {
-                            diskObject = { 'name': "disk" + i.toString(), 'disk': {}};
+                            if(actualDisk.diskBus != "") {
+                                diskObject = { 'name': "disk" + i.toString(), 'bootOrder': actualDisk.diskBootOrder, 'disk': {'bus': actualDisk.diskBus}};
+                            } else {
+                                diskObject = { 'name': "disk" + i.toString(), 'bootOrder': actualDisk.diskBootOrder, 'disk': {}};
+                            }
                         }
                         deviceObject = { 'name': "disk" + i.toString(), 'dataVolume': { 'name': actualDiskName}};
                         volumes.push(deviceObject);
                         disks.push(diskObject);
+                        console.log(diskObject)
                     } catch (e: any) {
                         alert(e.error.message);
                         console.log(e.error.message);
@@ -826,13 +855,22 @@ export class VmlistComponent implements OnInit {
                     try {
                         let disk1data = await lastValueFrom(this.dataVolumesService.createDataVolume(diskDataVolume));
                         if(actualDisk.diskCacheMode != "") {
-                            diskObject = { 'name': "disk" + i.toString(), 'cache': actualDisk.diskCacheMode, 'disk': {}};
+                            if(actualDisk.diskBus != "") {
+                                diskObject = { 'name': "disk" + i.toString(), 'cache': actualDisk.diskCacheMode, 'bootOrder': actualDisk.diskBootOrder, 'disk': {'bus': actualDisk.diskBus}};
+                            } else {
+                                diskObject = { 'name': "disk" + i.toString(), 'cache': actualDisk.diskCacheMode, 'bootOrder': actualDisk.diskBootOrder, 'disk': {}};
+                            }
                         } else {
-                            diskObject = { 'name': "disk" + i.toString(), 'disk': {}};
+                            if(actualDisk.diskBus != "") {
+                                diskObject = { 'name': "disk" + i.toString(), 'bootOrder': actualDisk.diskBootOrder, 'disk': {'bus': actualDisk.diskBus}};
+                            } else {
+                                diskObject = { 'name': "disk" + i.toString(), 'bootOrder': actualDisk.diskBootOrder, 'disk': {}};
+                            }
                         }
                         deviceObject = { 'name': "disk" + i.toString(), 'dataVolume': { 'name': actualDiskName}};
                         volumes.push(deviceObject);
                         disks.push(diskObject);
+                        console.log(diskObject)
                     } catch (e: any) {
                         alert(e.error.message);
                         console.log(e.error.message);
@@ -841,13 +879,22 @@ export class VmlistComponent implements OnInit {
                 } else if (actualDisk.diskType == "dv") {
                     /* Use Existing DataVolume */
                     if(actualDisk.diskCacheMode != "") {
-                        diskObject = { 'name': "disk" + i.toString(), 'cache': actualDisk.diskCacheMode, 'disk': {}};
+                        if(actualDisk.diskBus != "") {
+                            diskObject = { 'name': "disk" + i.toString(), 'cache': actualDisk.diskCacheMode, 'bootOrder': actualDisk.diskBootOrder, 'disk': {'bus': actualDisk.diskBus}};
+                        } else {
+                            diskObject = { 'name': "disk" + i.toString(), 'cache': actualDisk.diskCacheMode, 'bootOrder': actualDisk.diskBootOrder, 'disk': {}};
+                        }
                     } else {
-                        diskObject = { 'name': "disk" + i.toString(), 'disk': {}};
+                        if(actualDisk.diskBus != "") {
+                            diskObject = { 'name': "disk" + i.toString(), 'bootOrder': actualDisk.diskBootOrder, 'disk': {'bus': actualDisk.diskBus}};
+                        } else {
+                            diskObject = { 'name': "disk" + i.toString(), 'bootOrder': actualDisk.diskBootOrder, 'disk': {}};
+                        }
                     }
-                    deviceObject = { 'name': "disk" + i.toString(), 'dataVolume': { 'name': actualDiskName}};
+                    deviceObject = { 'name': "disk" + i.toString(), 'dataVolume': { 'name': actualDisk.diskValue }};
                     volumes.push(deviceObject);
                     disks.push(diskObject);
+                    console.log(diskObject)
                 }
             }
 
@@ -969,13 +1016,18 @@ export class VmlistComponent implements OnInit {
                 } else {
                     netObject = {'name': "net" + i.toString(), 'pod': {}};
                 }
+
+                let nicDriver = "virtio"
+                if(thisNIC.networkDriver != "") {
+                    nicDriver = thisNIC.networkDriver
+                }
                 
                 if(thisNIC.networkType == "bridge") {
-                    ifaceObject = {'name': "net" + i.toString(), 'bridge': {}}; 
+                    ifaceObject = {'name': "net" + i.toString(), 'bridge': {}, 'model': nicDriver}; 
                 } else if(thisNIC.networkType == "macvtap") {
-                    ifaceObject = {'name': "net" + i.toString(), 'binding': {'name': 'macvtap'}};
+                    ifaceObject = {'name': "net" + i.toString(), 'binding': {'name': 'macvtap'}, 'model': nicDriver};
                 } else {
-                    ifaceObject = {'name': "net" + i.toString(), 'masquerade': {}};
+                    ifaceObject = {'name': "net" + i.toString(), 'masquerade': {}, 'model': nicDriver};
                 }
                 networks.push(netObject);
                 interfaces.push(ifaceObject);
@@ -1285,7 +1337,7 @@ export class VmlistComponent implements OnInit {
      * New VM: Load Disk Options
      */
     async loadDiskOptions(dvNamespace: string) {
-        let diskSelectorOptions = "";
+        let diskSelectorOptions = "<option selected></option>\n";
         try {
             let data = await lastValueFrom(await this.dataVolumesService.getNamespacedDataVolumes(dvNamespace));
             let disks = data.items;

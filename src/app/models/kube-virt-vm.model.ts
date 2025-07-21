@@ -8,6 +8,7 @@ export class KubeVirtVM {
   labels:                 {}  = {};
   creationTimestamp:   Date   = new Date;
   running:           boolean  = false;
+  runStrategy:        string  = "";
   ready:             boolean  = false;
   status:             string  = "";
   cores:              number  = 0;
