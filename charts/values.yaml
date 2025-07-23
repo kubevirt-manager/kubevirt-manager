@@ -79,11 +79,10 @@ diagnosticMode:
 ## @section manager Parameters
 ##
 
-## %%MAIN_CONTAINER/POD_DESCRIPTION%%
+## manager
 ##
 manager:
-  ## Bitnami manager image
-  ## ref: https://hub.docker.com/r/bitnami/kubevirtmanager/tags/
+  ## ref: https://hub.docker.com/r/kubevirtmanager/kubevirt-manager
   ## @param manager.image.registry [default: REGISTRY_NAME] manager image registry
   ## @param manager.image.repository [default: REPOSITORY_NAME/kubevirtmanager] manager image repository
   ## @skip manager.image.tag manager image tag (immutable tags are recommended)
@@ -180,8 +179,6 @@ manager:
   customStartupProbe: {}
   ## manager resource requests and limits
   ## ref: http://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
-  ## @param manager.resourcesPreset Set manager container resources according to one common preset (allowed values: none, nano, small, medium, large, xlarge, 2xlarge). This is ignored if manager.resources is set (manager.resources is recommended for production).
-  ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
   ##
   resourcesPreset: "nano"
   ## @param manager.resources Set manager container requests and limits for different resources like CPU or memory (essential for production workloads)
@@ -698,7 +695,6 @@ volumePermissions:
   ##
   enabled: false
   ## OS Shell + Utility image
-  ## ref: https://hub.docker.com/r/bitnami/os-shell/tags/
   ## @param volumePermissions.image.registry [default: REGISTRY_NAME] OS Shell + Utility image registry
   ## @param volumePermissions.image.repository [default: REPOSITORY_NAME/os-shell] OS Shell + Utility image repository
   ## @skip volumePermissions.image.tag OS Shell + Utility image tag (immutable tags are recommended)
@@ -721,7 +717,6 @@ volumePermissions:
   ## Init container's resource requests and limits
   ## ref: http://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/
   ## @param volumePermissions.resourcesPreset Set init container resources according to one common preset (allowed values: none, nano, small, medium, large, xlarge, 2xlarge). This is ignored if volumePermissions.resources is set (volumePermissions.resources is recommended for production).
-  ## More information: https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
   ##
   resourcesPreset: "nano"
   ## @param volumePermissions.resources Set init container requests and limits for different resources like CPU or memory (essential for production workloads)
@@ -936,7 +931,6 @@ metrics:
     ##
     relabelings: []
     ## @param metrics.serviceMonitor.selector Prometheus instance selector labels
-    ## ref: https://github.com/bitnami/charts/tree/main/bitnami/prometheus-operator#prometheus-configuration
     ## selector:
     ##   prometheus: my-prometheus
     ##
