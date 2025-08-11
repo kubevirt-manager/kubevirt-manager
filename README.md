@@ -67,64 +67,6 @@ $ kubectl apply -f kubernetes/pc.yaml
 kubectl apply -f kubernetes/service.yaml
 ```
 
-## PROMETHEUS INTEGRATION
-
-To integrate `kubevirt-manager` with `prometheus`, you need to edit `kubernetes/prometheus-config.yaml` and adjust your endpoint on line 21.
-After adjusting the endpoint, apply the configmap:
-```sh
-$ kubectl apply -f kubernetes/prometheus-config.yaml
-```
-
-This integration was tested using `prometheus-operator`. A `ServiceMonitor` descriptor to integrate `KubeVirt` with `prometheus-operator` has been provided as an example at `kubernetes/servicemonitor.yaml`. Note that you need to set the `namespace` on the `ServiceMonitor` accordingly and you need to update your `KubeVirt` resource to reflect the `namespace` as well:
-```
-spec:
-  monitorNamespace: monitoring
-```
-
-You will need to restart (delete) the `Pod` or redeploy the solution for the changes to take effect.
-
-*Note:* The tool assumes Prometheus is exposing the following metrics: kubevirt_vmi_storage_write_traffic_bytes_total, kubevirt_vmi_storage_read_traffic_bytes_total, kubevirt_vmi_network_transmit_bytes_total, kubevirt_vmi_network_receive_bytes_total, kube_pod_container_resource_requests and kubevirt_vmi_memory_domain_total_bytes. These metrics are exposed by `KubeVirt` and `kube-state-metrics`.  
-*Note:* Due to the introduction of NGINX Authentication support, the configmap changed a bit, make sure you review it.
-
-## CLUSTER-API INTEGRATION  
-
-To use `kubevirt-manager` with `cluster-api-provider` for `KubeVirt` you must install Cluster API.   
-Check [Cluster API Introduction](https://cluster-api.sigs.k8s.io/introduction.html) for more information.   
-Feature `ClusterResourceSet` is **required** by the tool to automate CNI and Add-ons fuctionality on `Standard` clusters. Either enable it before installing `Cluster API` by following the documentation on [ClusterResourceSet](https://cluster-api.sigs.k8s.io/tasks/experimental-features/cluster-resource-set.html) and export `EXP_CLUSTER_RESOURCE_SET=true` before running `clusterctl generate`, or enable it by adding `ClusterResourceSet=true` to the `feature-gates` argument line of your already running `capi-controller-manager` Deployment. Don't forget to wait for `capi-controller-manager` pods to restart or restart it manually if needed. The following can be done with a command like the below: 
-```sh
-$ kubectl edit -n capi-system deployment.apps/capi-controller-manager
-```   
-
-*Note:* Pre-baked images are provided from kubevirt-manager.online domain.  
-*Note:* Pre-baked images were created using [image-builder](https://github.com/kubernetes-sigs/image-builder) project.  
-*Note:* Pre-baked images have `qemu-guest-agent` pre installed to provide instance details on dashboard.  
-*Note:* CNI files are also provided from kubevirt-manager.online domain.  
-*Note:* CNI files were mostly generated from original Helm Charts using `helm template`.   
-*Note:* CNI files have some value substituion before applying to the cluster in order to support user customization.   
-*Note:* The supported CNIs can be found [here](https://kubevirt-manager.online/cni-versions.json).   
-*Note:* Features are also provided as YAML files from kubevirt-manager.online domain.   
-*Note:* Features files were mostly generated from original Helm Charts using `helm template`.    
-*Note:* The supported features can be found [here](https://kubevirt-manager.online/features.json).   
-
-## NGINX AUTHENTICATION
-
-To add `nginx` with `basic-auth`, you need to edit `kubernetes/auth_secret.yaml` and add your htpasswd file contents in base64 to the secret. The provided example has a single entry which username is `admin` and password is `admin`. You are encouraged to create your own file and replace in the secret.  
-An example of how to get the base64 of your file is:
-```sh
-$ cat htpasswd-file | base64 -w0
-```
-After adjusting secret contents, apply the configmap and the secret:
-```sh
-$ kubectl apply -f kubernetes/auth-config.yaml
-$ kubectl apply -f kubernetes/auth-secret.yaml
-```
-
-You will need to restart (delete) the `Pod` or redeploy the solution for the changes to take effect.
-
-*Note:* If you had previous versions of Prometheus integration make sure `proxy_set_header Authorization "";` is present on your Prometheus `ConfigMap`. 
-You may use `kubernetes/prometheus-config.yaml` as a reference to make sure your `ConfigMap` looks ok.  
-*Note:* You may also want to check [htpasswd](https://httpd.apache.org/docs/2.4/programs/htpasswd.html) documentation for extra help on creating and managing the file.
-
 ## HOW TO USE IT
 
 The recommended way to use this tool is through an `Ingress` or a `Service`.  

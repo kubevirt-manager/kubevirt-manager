@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: oauth-config
+  namespace: kubevirt-manager
+  labels:
+    app: kubevirt-manager
+    kubevirt-manager.io/version: 1.5.2
+    kubevirt-manager.io/managed: "true"
+data:
+  oauth2.conf: |
+    http_address="127.0.0.1:4180"
+    cookie_secret="OQINaROshtE9TcZkNAm-5Zs2Pv3xaWytBmc5W7sPX7w="
+    email_domains="my-domain.com"
+    cookie_secure="true"
+    cookie_domains=["kubevirt-manager.my-domain.com"]
+    whitelist_domains=[".my-domain.com"]
+    client_secret="CLIENT_SECRET"
+    client_id="MY CLIENT_ID"
+    redirect_url="https://kubevirt-manager.my-domain.com/oauth2/callback"
+    oidc_issuer_url="http://keycloak.my-domain.com/realms/master"
+    provider="oidc"
+    provider_display_name="Keycloak"
+    ssl_insecure_skip_verify="true"
+    code_challenge_method="S256"
