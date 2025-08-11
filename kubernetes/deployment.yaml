@@ -5,12 +5,12 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.5.1
+    kubevirt-manager.io/version: 1.5.2
 spec:
   selector:
     matchLabels:
       app: kubevirt-manager
-      kubevirt-manager.io/version: 1.5.1
+      kubevirt-manager.io/version: 1.5.2
   replicas: 1
   strategy:
     type: Recreate
@@ -18,11 +18,11 @@ spec:
     metadata:
       labels:
         app: kubevirt-manager
-        kubevirt-manager.io/version: 1.5.1
+        kubevirt-manager.io/version: 1.5.2
     spec:
       containers:
         - name: kubevirtmgr
-          image: kubevirtmanager/kubevirt-manager:1.5.1
+          image: kubevirtmanager/kubevirt-manager:1.5.2
           imagePullPolicy: IfNotPresent
           ports:
           - name: http
@@ -37,6 +37,8 @@ spec:
             mountPath: /var/cache/nginx
           - name: run-volume
             mountPath: /var/run
+          - name: oauth-config
+            mountPath: /etc/nginx/oauth.d/
           - name: auth-config
             mountPath: /etc/nginx/auth.d/
           - name: auth-secret
@@ -50,6 +52,10 @@ spec:
           emptyDir: {}
         - name: run-volume
           emptyDir: {}
+        - name: oauth-config
+          configMap:
+            name: oauth-config
+            optional: true
         - name: auth-config
           configMap:
             name: auth-config

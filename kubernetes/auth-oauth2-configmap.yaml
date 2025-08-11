@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-config
+  namespace: kubevirt-manager
+  labels:
+    app: kubevirt-manager
+    kubevirt-manager.io/version: 1.5.2
+    kubevirt-manager.io/managed: "true"
+data:
+  oauth2.conf: |
+    auth_request /internal-auth/;
+    auth_request_set $auth_redirect_url $upstream_http_location;
+    auth_request_set $auth_status $upstream_status;
+    error_page 401 =403 https://kubevirt-manager.my-domain.com/oauth2/start?rd=https://$host$request_uri;

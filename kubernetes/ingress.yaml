@@ -5,8 +5,9 @@ metadata:
   namespace: kubevirt-manager
   labels:
     app: kubevirt-manager
-    kubevirt-manager.io/version: 1.5.1
+    kubevirt-manager.io/version: 1.5.2
   annotations:
+    # If you are using OAUTH, make sure Proxy Buffers are big enougth
     nginx.org/location-snippets: |
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection $connection_upgrade;

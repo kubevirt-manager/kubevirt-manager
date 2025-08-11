@@ -1,7 +1,7 @@
 FROM alpine:latest
 
 LABEL org.opencontainers.image.authors="marcelo@feitoza.com.br"
-LABEL description="Kubevirt Manager 1.4.1 - Screenshot Generator"
+LABEL description="Kubevirt Manager 1.5.2 - Screenshot Generator"
 
 # Installs latest Chromium package.
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories \
