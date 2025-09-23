@@ -94,7 +94,7 @@ manager:
   image:
     registry: kubevirtmanager
     repository: kubevirt-manager
-    tag: 1.5.1
+    tag: 1.5.2
     digest: ""
     ## Specify a imagePullPolicy
     ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'

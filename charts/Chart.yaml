@@ -2,7 +2,7 @@ annotations:
   category: Infrastructure
   licenses: Apache-2.0
 apiVersion: v2
-appVersion: 1.5.1
+appVersion: 1.5.2
 dependencies:
   - name: common
     repository: oci://registry-1.docker.io/bitnamicharts
@@ -20,4 +20,4 @@ keywords:
 name: manager
 sources:
   - https://kubevirt-manager.io/get_started.html
-version: 1.5.1
+version: 1.5.2
