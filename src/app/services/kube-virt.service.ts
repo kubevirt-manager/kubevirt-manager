@@ -153,7 +153,8 @@ export class KubeVirtService {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'
         };
-        return this.http.patch(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`, '{"spec":{"template":{"spec":{"domain":{"cpu":{"sockets": '+sockets+',"cores": '+cores+',"threads": '+threads+'},"resources":{"requests":{"memory": "'+memory+'Gi"}}}}}}}', { 'headers': headers } );
+        const mem = memory + 'Gi';
+        return this.http.patch(`${baseUrl}/namespaces/${namespace}/virtualmachines/${name}`, '{"spec":{"template":{"spec":{"domain":{"cpu":{"sockets": '+sockets+',"cores": '+cores+',"threads": '+threads+'},"memory":{"guest":"'+mem+'"},"resources":{"requests":{"memory":"'+mem+'"},"limits":{"memory":"'+mem+'"}}}}}}}', { 'headers': headers } );
     }
 
     changeVmStrategy(namespace: string, name: string, strategy: string): Observable<any> {
@@ -299,7 +300,8 @@ export class KubeVirtService {
             'content-type': 'application/merge-patch+json',
             'accept': 'application/json'
         };
-        return this.http.patch(`${baseUrl}/namespaces/${namespace}/virtualmachinepools/${name}`, '{"spec":{"virtualMachineTemplate":{"spec":{"template":{"spec":{"domain":{"cpu":{"sockets": '+sockets+',"cores": '+cores+',"threads": '+threads+'},"resources":{"requests":{"memory": "'+memory+'Gi"}}}}}}}}}', { 'headers': headers } );
+        const mem = memory + 'Gi';
+        return this.http.patch(`${baseUrl}/namespaces/${namespace}/virtualmachinepools/${name}`, '{"spec":{"virtualMachineTemplate":{"spec":{"template":{"spec":{"domain":{"cpu":{"sockets": '+sockets+',"cores": '+cores+',"threads": '+threads+'},"memory":{"guest":"'+mem+'"},"resources":{"requests":{"memory":"'+mem+'"},"limits":{"memory":"'+mem+'"}}}}}}}}}}', { 'headers': headers } );
     }
 
     createPool(virtualMachinePool: VirtualMachinePool): Observable<any> {

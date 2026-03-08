@@ -34,6 +34,9 @@ RUN cd /usr/src/app/src/assets/ && \
 RUN cd /usr/src/app && \
     sed -i "s|nightly|${KVM_VERSION}|g" src/app/components/main-footer/main-footer.component.html && \
     npm run build
+# Download kubectl in builder stage (fixes corrupt kubectl when nginx stage has no proxy/network)
+RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
+    chmod +x kubectl
 
 # OAUTH2 IMAGE
 FROM quay.io/oauth2-proxy/oauth2-proxy:latest AS oauth2_proxy_downloader
@@ -48,9 +51,7 @@ COPY --from=oauth2_proxy_downloader /etc/ssl/private/jwt_signing_key.pem /etc/ss
 
 RUN mkdir -p /etc/nginx/location.d/ && \
     mkdir -p /etc/nginx/oauth.d/
-RUN curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl && \
-    chmod +x ./kubectl && \
-    mv ./kubectl /usr/local/bin
+COPY --from=builder /usr/src/app/kubectl /usr/local/bin/kubectl
 
 COPY entrypoint/90-oauth-proxy.sh /docker-entrypoint.d
 COPY entrypoint/91-startkubectl.sh /docker-entrypoint.d
@@ -60,4 +61,3 @@ COPY conf/gzip.conf /etc/nginx/conf.d/
 RUN chmod +x /docker-entrypoint.d/90-oauth-proxy.sh && chmod +x /docker-entrypoint.d/91-startkubectl.sh
 
 COPY --from=builder /usr/src/app/dist/kubevirtmgr-webui/browser /usr/share/nginx/html
- 
