@@ -21,6 +21,7 @@ metadata:
     app: kubevirt-manager
     kubevirt-manager.io/version: nightly
   annotations:
+    # cert-manager.io/cluster-issuer: letsencrypt
     # If you are using OAUTH, make sure Proxy Buffers are big enougth
     nginx.org/location-snippets: |
       proxy_set_header Upgrade $http_upgrade;
@@ -34,7 +35,7 @@ spec:
   - host: my-host.com
     http:
       paths:
-      - path: /
+      - path: /kubevirt-manager/
         pathType: Prefix
         backend:
           service:
