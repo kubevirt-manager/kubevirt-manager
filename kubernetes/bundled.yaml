@@ -379,11 +379,11 @@ spec:
     spec:
       containers:
         - name: kubevirtmgr
-          image: kubevirtmanager/kubevirt-manager:nightly
+          image: docker.io/kubevirtmanager/kubevirt-manager:nightly
           imagePullPolicy: IfNotPresent
-          env:
-          - name: APP_BASE_PATH
-            value: /kubevirt-manager
+          # env:
+          # - name: APP_BASE_PATH
+          #   value: / # Change to /kubevirt-manager/ to serve under a subpath
           ports:
           - name: http
             containerPort: 8080

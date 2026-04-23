@@ -31,11 +31,12 @@ spec:
   tls:
    - hosts:
      - my-host.com
+    #  secretName: km-tls
   rules:
   - host: my-host.com
     http:
       paths:
-      - path: /kubevirt-manager/
+      - path: / # Change to /kubevirt-manager/ to serve under a subpath
         pathType: Prefix
         backend:
           service:
