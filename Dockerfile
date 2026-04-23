@@ -56,8 +56,9 @@ COPY entrypoint/90-oauth-proxy.sh /docker-entrypoint.d
 COPY entrypoint/91-startkubectl.sh /docker-entrypoint.d
 COPY entrypoint/92-configure-basepath.sh /docker-entrypoint.d
 
-COPY conf/default.conf /etc/nginx/conf.d.templates/default.conf.template
-COPY conf/gzip.conf    /etc/nginx/conf.d.templates/gzip.conf
+COPY conf/default-root.conf  /etc/nginx/conf.d.templates/
+COPY conf/default-subpath.conf.template  /etc/nginx/conf.d.templates/
+COPY conf/gzip.conf    /etc/nginx/conf.d.templates/
 
 RUN chmod +x /docker-entrypoint.d/90-oauth-proxy.sh \
  && chmod +x /docker-entrypoint.d/91-startkubectl.sh \
