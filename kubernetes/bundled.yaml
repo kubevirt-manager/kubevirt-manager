@@ -381,6 +381,7 @@ spec:
         - name: kubevirtmgr
           image: docker.io/kubevirtmanager/kubevirt-manager:nightly
           imagePullPolicy: IfNotPresent
+          # Uncomment to enable subpath deployment
           # env:
           # - name: APP_BASE_PATH
           #   value: / # Change to /kubevirt-manager/ to serve under a subpath
