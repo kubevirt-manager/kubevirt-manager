@@ -40,6 +40,7 @@ FROM quay.io/oauth2-proxy/oauth2-proxy:latest AS oauth2_proxy_downloader
 
 # NGINX Image
 FROM docker.io/nginx:1.29-alpine
+ARG TARGETARCH
 LABEL org.opencontainers.image.authors="marcelo@feitoza.com.br"
 LABEL description="Kubevirt Manager ${KVM_VERSION}"
 
@@ -48,7 +49,7 @@ COPY --from=oauth2_proxy_downloader /etc/ssl/private/jwt_signing_key.pem /etc/ss
 
 RUN mkdir -p /etc/nginx/location.d/ && \
     mkdir -p /etc/nginx/oauth.d/
-RUN curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl && \
+RUN curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/${TARGETARCH}/kubectl && \
     chmod +x ./kubectl && \
     mv ./kubectl /usr/local/bin
 
@@ -60,4 +61,3 @@ COPY conf/gzip.conf /etc/nginx/conf.d/
 RUN chmod +x /docker-entrypoint.d/90-oauth-proxy.sh && chmod +x /docker-entrypoint.d/91-startkubectl.sh
 
 COPY --from=builder /usr/src/app/dist/kubevirtmgr-webui/browser /usr/share/nginx/html
- 
