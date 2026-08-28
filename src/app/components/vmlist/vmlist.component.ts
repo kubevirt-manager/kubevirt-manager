@@ -887,7 +887,11 @@ export class VmlistComponent implements OnInit {
                         disks.push(diskObject);
                         console.log(diskObject)
                     } catch (e: any) {
-                        this.myToasts.toastError(this.pageName, "", e.message);
+                        if (e.status === 409) {
+                            this.myToasts.toastError(this.pageName, "Conflict", `DataVolume disk "${actualDiskName}" already exists. Please choose a different VM name or clean up the existing disk.`);
+                        } else {
+                            this.myToasts.toastError(this.pageName, "", e.message);
+                        }
                         console.log(e);
                         throw new Error("Error creating disk" + i.toString() + " from Image!");
                     }
@@ -915,7 +919,11 @@ export class VmlistComponent implements OnInit {
                         disks.push(diskObject);
                         console.log(diskObject)
                     } catch (e: any) {
-                        this.myToasts.toastError(this.pageName, "", e.message);
+                        if (e.status === 409) {
+                            this.myToasts.toastError(this.pageName, "Conflict", `DataVolume disk "${actualDiskName}" already exists. Please choose a different VM name or clean up the existing disk.`);
+                        } else {
+                            this.myToasts.toastError(this.pageName, "", e.message);
+                        }
                         console.log(e);
                         throw new Error("Error creating disk" + i.toString() + " from Blank!");
                     }

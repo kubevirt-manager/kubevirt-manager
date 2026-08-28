@@ -327,7 +327,11 @@ export class DiskListComponent implements OnInit {
                 this.myToasts.toastSuccess(this.pageName, "", "Created Data Volume: " + diskName);
                 this.fullReload();
             } catch (e: any) {
-                this.myToasts.toastError(this.pageName, "", e.message);
+                if (e.status === 409) {
+                    this.myToasts.toastError(this.pageName, "Conflict", `DataVolume disk "${diskName}" already exists. Please choose a different disk name or clean up the existing disk.`);
+                } else {
+                    this.myToasts.toastError(this.pageName, "", e.message);
+                }
                 console.log(e);
             }
         }
