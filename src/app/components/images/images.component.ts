@@ -86,6 +86,12 @@ export class ImagesComponent implements OnInit {
      * Create the new image
      */
     async applyNew(name: string, namespace: string, type: string, credentials: string, readableName: string, readableDescription: string, value: string): Promise<void> {
+        let k8sNameRegex = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$/;
+        if (!k8sNameRegex.test(name)) {
+            this.myToasts.toastError("Images", "", "Image name must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character.");
+            return;
+        }
+
         if(name != "" && namespace != "" && type != "" && readableName != "" && value != "") {
             let myImage: Image = {
                 apiVersion: 'kubevirt-manager.io/v1',
