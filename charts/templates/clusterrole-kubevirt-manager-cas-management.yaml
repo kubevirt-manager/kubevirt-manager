@@ -1,0 +1,21 @@
+{{ if .Values.rbac.clusterrole4.create }}
+apiVersion: {{ include "common.capabilities.rbac.apiVersion" . }}
+kind: ClusterRole
+metadata:
+  name: kubevirt-manager-cas-management
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: manager
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+rules:
+  - apiGroups: ["cluster.x-k8s.io"]
+    resources: ["machinedeployments", "machinedeployments/scale", "machines", "machinesets", "machinepools"]
+    verbs: ["get", "list", "watch", "udate"]
+  - apiGroups: ["infrastructure.cluster.x-k8s.io"]
+    resources: ["kubevirtcluster", "kubevirtmachinetemplate", "kubevirtmachinetemplates"]
+    verbs: ["get", "list", "watch", "udate"]
+  {{- if .Values.rbac.clusterrole4.rules }}
+  {{- include "common.tplvalues.render" ( dict "value" .Values.rbac.clusterrole4.rules "context" $ ) | nindent 2 }}
+  {{- end }}
+{{- end }}

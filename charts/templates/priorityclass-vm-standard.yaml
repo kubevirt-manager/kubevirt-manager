@@ -1,0 +1,17 @@
+{{- if .Values.priorityClass1.enabled }}
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+description: {{ .Values.priorityClass1.description }}
+metadata:
+  name: {{ .Values.priorityClass1.name }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app: kubevirt-manager
+    kubevirt-manager.io/version: {{ .Values.manager.image.tag }}
+    kubevirt-manager.io/managed: "true"
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+preemptionPolicy: {{ .Values.priorityClass1.preemptionPolicy }}
+value: {{ .Values.priorityClass1.value }}
+{{- end }}
+

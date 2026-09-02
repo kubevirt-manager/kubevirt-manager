@@ -1,0 +1,19 @@
+apiVersion: {{ include "common.capabilities.rbac.apiVersion" . }}
+kind: ClusterRoleBinding
+metadata:
+  name: kubevirt-manager-cas-workload
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: manager
+    app: kubevirt-manager
+    kubevirt-manager.io/version: {{ .Values.manager.image.tag }}
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kubevirt-manager-cas-workload
+subjects:
+  - kind: ServiceAccount
+    name: {{ template "manager.serviceAccountName" . }}
+    namespace: {{ include "common.names.namespace" . | quote }}

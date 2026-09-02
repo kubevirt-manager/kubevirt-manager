@@ -1,0 +1,23 @@
+annotations:
+  category: Infrastructure
+  licenses: Apache-2.0
+apiVersion: v2
+appVersion: 1.5.2
+dependencies:
+  - name: common
+    repository: oci://registry-1.docker.io/bitnamicharts
+    tags:
+      - bitnami-common
+    version: 2.x.x
+description: Create, Manage and Operate your KubeVirt Workloads in a simple, effective and friendly Web User Interface.
+home: https://kubevirt-manager.io/
+icon: https://kubevirt-manager.io/img/logo-website.png
+keywords:
+  - kubevirt
+  - kubernetes
+  - infrastructure
+  - virtualization
+name: manager
+sources:
+  - https://kubevirt-manager.io/get_started.html
+version: 1.5.2

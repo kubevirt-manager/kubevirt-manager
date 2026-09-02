@@ -1,0 +1,175 @@
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: {{ template "common.names.fullname" . }}
+  namespace: {{ include "common.names.namespace" . | quote }}
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: manager
+    app: kubevirt-manager
+    kubevirt-manager.io/version: {{ .Values.manager.image.tag }}
+  {{- if or .Values.manager.deploymentAnnotations .Values.commonAnnotations }}
+  {{- $annotations := include "common.tplvalues.merge" (dict "values" (list .Values.manager.deploymentAnnotations .Values.commonAnnotations) "context" .) }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" $annotations "context" $ ) | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not .Values.manager.autoscaling.hpa.enabled }}
+  replicas: {{ .Values.manager.replicaCount }}
+  {{- end }}
+  {{- $podLabels := include "common.tplvalues.merge" (dict "values" (list .Values.manager.podLabels .Values.commonLabels) "context" .) }}
+  selector:
+    matchLabels: {{- include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 }}
+      app.kubernetes.io/component: manager
+      app: kubevirt-manager
+      kubevirt-manager.io/version: {{ .Values.manager.image.tag }}
+  {{- if .Values.manager.updateStrategy }}
+  strategy: {{- toYaml .Values.manager.updateStrategy | nindent 4 }}
+  {{- end }}
+  template:
+    metadata:
+      {{- if .Values.manager.podAnnotations }}
+      annotations: {{- include "common.tplvalues.render" (dict "value" .Values.manager.podAnnotations "context" $) | nindent 8 }}
+      {{- end }}
+      labels: {{- include "common.labels.standard" ( dict "customLabels" $podLabels "context" $ ) | nindent 8 }}
+        app.kubernetes.io/component: manager
+        app: kubevirt-manager
+        kubevirt-manager.io/version: {{ .Values.manager.image.tag }}
+    spec:
+      {{- include "manager.imagePullSecrets" . | nindent 6 }}
+      {{- if .Values.manager.hostAliases }}
+      hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.manager.hostAliases "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.manager.nodeSelector }}
+      nodeSelector: {{- include "common.tplvalues.render" ( dict "value" .Values.manager.nodeSelector "context" $) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.manager.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.manager.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.manager.priorityClassName }}
+      priorityClassName: {{ .Values.manager.priorityClassName | quote }}
+      {{- end }}
+      {{- if .Values.manager.schedulerName }}
+      schedulerName: {{ .Values.manager.schedulerName | quote }}
+      {{- end }}
+      {{- if .Values.manager.topologySpreadConstraints }}
+      topologySpreadConstraints: {{- include "common.tplvalues.render" (dict "value" .Values.manager.topologySpreadConstraints "context" .) | nindent 8 }}
+      {{- end }}
+      {{- if .Values.manager.terminationGracePeriodSeconds }}
+      terminationGracePeriodSeconds: {{ .Values.manager.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- if or (and .Values.volumePermissions.enabled .Values.persistence.enabled) .Values.manager.initContainers }}
+      initContainers:
+        {{- if and .Values.volumePermissions.enabled .Values.persistence.enabled }}
+        - name: volume-permissions
+          image: {{ include "manager.volumePermissions.image" . }}
+          imagePullPolicy: {{ .Values.volumePermissions.image.pullPolicy | quote }}
+          command:
+          {{- if .Values.volumePermissions.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.volumePermissions.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.volumePermissions.resources }}
+          resources: {{- toYaml .Values.volumePermissions.resources | nindent 12 }}
+          {{- else if ne .Values.volumePermissions.resourcesPreset "none" }}
+          resources: {{- include "common.resources.preset" (dict "type" .Values.volumePermissions.resourcesPreset) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+              {{- if .Values.persistence.subPath }}
+              subPath: {{ .Values.persistence.subPath }}
+              {{- end }}
+        {{- end }}
+        {{- if .Values.manager.initContainers }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.manager.initContainers "context" $) | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: kubevirtmgr
+          image: {{ template "manager.image" . }}
+          imagePullPolicy: {{ .Values.manager.image.pullPolicy }}
+          {{- if .Values.diagnosticMode.enabled }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.command "context" $) | nindent 12 }}
+          {{- else if .Values.manager.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.manager.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.diagnosticMode.enabled }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.diagnosticMode.args "context" $) | nindent 12 }}
+          {{- else if .Values.manager.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.manager.args "context" $) | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.manager.containerPorts.http }}
+            {{- if .Values.manager.extraContainerPorts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.manager.extraContainerPorts "context" $) | nindent 12 }}
+            {{- end }}
+          {{- if .Values.manager.containerSecurityContext.enabled }}
+          securityContext: {{- include "common.compatibility.renderSecurityContext" (dict "secContext" .Values.manager.containerSecurityContext "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if not .Values.diagnosticMode.enabled }}
+          {{- if .Values.manager.customLivenessProbe }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.manager.customLivenessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.manager.livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.manager.livenessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.manager.customReadinessProbe }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" .Values.manager.customReadinessProbe "context" $) | nindent 12 }}
+          {{- else if .Values.manager.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.manager.readinessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.manager.customStartupProbe }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" .Values.manager.customStartupProbe "context" $) | nindent 12 }}
+          {{- else if .Values.manager.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.manager.startupProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.manager.lifecycleHooks }}
+          lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.manager.lifecycleHooks "context" $) | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: cache-volume
+              mountPath: {{ .Values.persistence.mountPath }}
+              {{- if .Values.persistence.subPath }}
+              subPath: {{ .Values.persistence.subPath }}
+              {{- end }}
+            - name: run-volume
+              mountPath: /var/run
+            - name: oauth-config
+              mountPath: /etc/nginx/oauth.d/
+            - name: auth-config
+              mountPath: /etc/nginx/auth.d/
+            - name: auth-secret
+              mountPath: /etc/nginx/secret.d/
+            - name: prometheus-config
+              mountPath: /etc/nginx/location.d/
+          {{- if .Values.manager.extraVolumeMounts }}
+          {{- include "common.tplvalues.render" (dict "value" .Values.manager.extraVolumeMounts "context" $) | nindent 12 }}
+          {{- end }}
+        {{- if .Values.manager.sidecars }}
+        {{- include "common.tplvalues.render" ( dict "value" .Values.manager.sidecars "context" $) | nindent 8 }}
+        {{- end }}
+      serviceAccountName: {{ template "manager.serviceAccountName" . }}
+      restartPolicy: Always
+      volumes:
+        - name: cache-volume
+          emptyDir: {}
+        - name: run-volume
+          emptyDir: {}
+        - name: oauth-config
+          configMap:
+            name: oauth-config
+            optional: true
+        - name: auth-config
+          configMap:
+            name: auth-config
+            optional: true
+        - name: auth-secret
+          secret:
+            secretName: auth-secret
+            optional: true
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+            optional: true
+        {{- if .Values.manager.extraVolumes }}
+        {{- include "common.tplvalues.render" (dict "value" .Values.manager.extraVolumes "context" $) | nindent 8 }}
+        {{- end }}

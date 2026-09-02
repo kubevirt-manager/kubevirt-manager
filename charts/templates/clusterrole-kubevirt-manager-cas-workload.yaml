@@ -1,0 +1,46 @@
+{{ if .Values.rbac.clusterrole3.create }}
+apiVersion: {{ include "common.capabilities.rbac.apiVersion" . }}
+kind: ClusterRole
+metadata:
+  name: kubevirt-manager-cas-workload
+  labels: {{- include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 }}
+    app.kubernetes.io/component: manager
+  {{- if .Values.commonAnnotations }}
+  annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
+  {{- end }}
+rules:
+  - apiGroups: [""]
+    resources: ["namespaces", "persistentvolumeclaims", "persistentvolumes", "pods", "replicationcontrollers", "services", "secrets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list", "watch", "udate"]
+  - apiGroups: [""]
+    resources: ["pods/eviction"]
+    verbs: ["create"]
+  - apiGroups: ["policy"]
+    resources: ["poddisruptionbudgets"]
+    verbs: ["list", "watch"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["csinodes", "storageclasses", "csidrivers", "csistoragecapacities"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["daemonsets", "replicasets", "statefulsets"]
+    verbs: ["list", "watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["create", "delete", "get", "update"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["create", "get", "update"]
+  {{- if .Values.rbac.clusterrole3.rules }}
+  {{- include "common.tplvalues.render" ( dict "value" .Values.rbac.clusterrole3.rules "context" $ ) | nindent 2 }}
+  {{- end }}
+{{- end }}
+
