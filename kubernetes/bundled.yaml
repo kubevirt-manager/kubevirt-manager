@@ -379,8 +379,12 @@ spec:
     spec:
       containers:
         - name: kubevirtmgr
-          image: kubevirtmanager/kubevirt-manager:nightly
+          image: docker.io/kubevirtmanager/kubevirt-manager:nightly
           imagePullPolicy: IfNotPresent
+          # Uncomment to enable subpath deployment
+          # env:
+          # - name: APP_BASE_PATH
+          #   value: / # Change to /kubevirt-manager/ to serve under a subpath
           ports:
           - name: http
             containerPort: 8080
@@ -390,6 +394,10 @@ spec:
             runAsUser: 10000
             runAsGroup: 30000
           volumeMounts:
+          - mountPath: /etc/nginx/conf.d
+            name: nginx-conf-d
+          - mountPath: /usr/share/nginx/html
+            name: html-volume
           - name: cache-volume
             mountPath: /var/cache/nginx
           - name: run-volume
@@ -405,6 +413,10 @@ spec:
       serviceAccountName: kubevirt-manager
       restartPolicy: Always
       volumes:
+        - emptyDir: {}
+          name: html-volume
+        - emptyDir: {}
+          name: nginx-conf-d        
         - name: cache-volume
           emptyDir: {}
         - name: run-volume
