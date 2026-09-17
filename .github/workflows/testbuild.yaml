@@ -36,3 +36,19 @@ jobs:
       run: npm run build
     - name: Final Cleanup
       run: npm run clean
+
+  container-build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: Build container images
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        push: false
+        platforms: linux/amd64,linux/arm64
